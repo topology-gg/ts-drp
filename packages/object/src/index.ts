@@ -12,7 +12,7 @@ export * as ObjectPb from "./proto/topology/object/object_pb.js";
 export * from "./hashgraph/index.js";
 
 export interface CRO {
-	operations: string[];
+	operations: Set<string>;
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	mergeCallback: (operations: Operation[]) => void;
@@ -70,7 +70,8 @@ export class TopologyObject implements ITopologyObject {
 				if (typeof target[propKey as keyof object] === "function") {
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
-							if ((thisArg.operations as string[]).includes(propKey as string))
+							thisArg["caller"] = "peer1"
+							if ((thisArg.operations as Set<string>).has(propKey as string))
 								obj.callFn(
 									propKey as string,
 									args.length === 1 ? args[0] : args,

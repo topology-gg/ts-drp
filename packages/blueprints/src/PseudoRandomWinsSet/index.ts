@@ -21,13 +21,13 @@ function computeHash(s: string): number {
 	return hash;
 }
 
-/* 	
+/*
 	Example implementation of multi-vertex semantics that uses the reduce action type.
 	An arbitrary number of concurrent operations can be reduced to a single operation.
 	The winning operation is chosen using a pseudo-random number generator.
 */
 export class PseudoRandomWinsSet<T> implements CRO {
-	operations: string[] = ["add", "remove"];
+	operations: Set<string> = new Set(["add", "remove"]);
 	state: Map<T, boolean>;
 	semanticsType = SemanticsType.multiple;
 

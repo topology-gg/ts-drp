@@ -8,7 +8,7 @@ import {
 } from "@topology-foundation/object";
 
 export class AddWinsSet<T> implements CRO {
-	operations: string[] = ["add", "remove"];
+	operations: Set<string> = new Set(["add", "remove"]);
 	state: Map<T, boolean>;
 	semanticsType = SemanticsType.pair;
 
