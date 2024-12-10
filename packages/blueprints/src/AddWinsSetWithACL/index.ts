@@ -78,7 +78,9 @@ export class AddWinsSetWithACL<T> implements DRP {
 			throw new Error("Invalid signature.");
 		}
 		if (this.permission.isAdmin(target)) {
-			throw new Error("Cannot revoke permissions from a node with admin privileges.");
+			throw new Error(
+				"Cannot revoke permissions from a node with admin privileges.",
+			);
 		}
 		this.permission.revoke(target);
 	}
@@ -87,13 +89,13 @@ export class AddWinsSetWithACL<T> implements DRP {
 		return this.state.get(value) === true;
 	}
 
-  isAdmin(publicKey: string): boolean {
-    return this.permission.isAdmin(publicKey);
-  }
+	isAdmin(publicKey: string): boolean {
+		return this.permission.isAdmin(publicKey);
+	}
 
-  isWriter(publicKey: string): boolean {
-    return this.permission.isWriter(publicKey);
-  }
+	isWriter(publicKey: string): boolean {
+		return this.permission.isWriter(publicKey);
+	}
 
 	values(): T[] {
 		return Array.from(this.state.entries())
