@@ -9,11 +9,11 @@ import {
 } from "@ts-drp/object";
 import { AccessControl } from "../AccessControl/index.js";
 
-export class AddWinsSet<T> implements DRP {
+export class AddWinsSetWithACL<T> implements DRP {
 	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
-	permission: AccessControl;
 	semanticsType = SemanticsType.pair;
+	private permission: AccessControl;
 
 	constructor(admins: string[]) {
 		this.permission = new AccessControl(admins);
@@ -78,7 +78,7 @@ export class AddWinsSet<T> implements DRP {
 			throw new Error("Invalid signature.");
 		}
 		if (this.permission.isAdmin(target)) {
-			throw new Error("Cannot revoke admin permissions.");
+			throw new Error("Cannot revoke permissions from a node with admin privileges.");
 		}
 		this.permission.revoke(target);
 	}
@@ -86,6 +86,14 @@ export class AddWinsSet<T> implements DRP {
 	contains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
+
+  isAdmin(publicKey: string): boolean {
+    return this.permission.isAdmin(publicKey);
+  }
+
+  isWriter(publicKey: string): boolean {
+    return this.permission.isWriter(publicKey);
+  }
 
 	values(): T[] {
 		return Array.from(this.state.entries())

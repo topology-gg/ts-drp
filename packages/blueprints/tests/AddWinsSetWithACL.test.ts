@@ -6,9 +6,10 @@ import {
 	AccessControl,
 	AccessControlConflictResolution,
 } from "../src/AccessControl/index.js";
+import { AddWinsSetWithACL } from "../src/AddWinsSetWithACL/index.js";
 
 describe("AccessControl tests with RevokeWins resolution", () => {
-	let drp: AccessControl;
+	let drp: AddWinsSetWithACL<number>;
 	let keyPair: { publicKey: string; privateKey: string };
 
 	beforeEach(() => {
@@ -18,10 +19,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 			privateKeyEncoding: { type: "pkcs8", format: "pem" },
 		});
 
-		drp = new AccessControl(
-			[keyPair.publicKey],
-			AccessControlConflictResolution.RevokeWins,
-		);
+		drp = new AddWinsSetWithACL([keyPair.publicKey]);
 	});
 
 	test("Admin nodes should have admin privileges", () => {
