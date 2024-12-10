@@ -1,9 +1,6 @@
-import { createVerify } from "node:crypto";
-
 import {
 	ActionType,
 	type DRP,
-	type Operation,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
@@ -32,48 +29,20 @@ export class AccessControl implements DRP {
 			conflictResolution ?? AccessControlConflictResolution.RevokeWins;
 	}
 
-	private _grant(invoker: string): void {
-		this._writers.add(invoker);
+	private _grant(publicKey: string): void {
+		this._writers.add(publicKey);
 	}
 
-	grant(sender: string, signature: string, invoker: string): void {
-		if (!this.isAdmin(sender)) {
-			throw new Error("Only admins can grant permissions.");
-		}
-		if (
-			!this._verifySignature(
-				sender,
-				{ type: "grant", value: invoker },
-				signature,
-			)
-		) {
-			throw new Error("Invalid signature.");
-		}
-		this._grant(invoker);
+	grant(publicKey: string): void {
+		this._grant(publicKey);
 	}
 
-	private _revoke(invoker: string): void {
-		this._writers.delete(invoker);
+	private _revoke(publicKey: string): void {
+		this._writers.delete(publicKey);
 	}
 
-	revoke(sender: string, signature: string, invoker: string): void {
-		if (!this.isAdmin(sender)) {
-			throw new Error("Only admins can revoke permissions.");
-		}
-		if (
-			!this._verifySignature(
-				sender,
-				{ type: "revoke", value: invoker },
-				signature,
-			)
-		) {
-			throw new Error("Invalid signature.");
-		}
-		if (this.isAdmin(invoker))
-			throw new Error(
-				"Cannot revoke permissions from a node with admin privileges.",
-			);
-		this._revoke(invoker);
+	revoke(publicKey: string): void {
+		this._revoke(publicKey);
 	}
 
 	isAdmin(publicKey: string): boolean {
@@ -107,18 +76,5 @@ export class AccessControl implements DRP {
 							? ActionType.DropLeft
 							: ActionType.DropRight,
 				};
-	}
-
-	private _verifySignature(
-		sender: string,
-		operation: Operation,
-		signature: string,
-	): boolean {
-		if (!this.isWriter(sender)) return false;
-		const verifier = createVerify("sha256");
-		verifier.update(operation.type);
-		verifier.update(operation.value);
-		verifier.end();
-		return verifier.verify(sender, signature, "hex");
 	}
 }
