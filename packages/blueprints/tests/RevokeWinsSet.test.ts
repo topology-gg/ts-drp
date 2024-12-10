@@ -1,9 +1,9 @@
+import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
 import {
 	AccessControl,
 	AccessControlConflictResolution,
 } from "../src/AccessControl/index.js";
-import { ActionType } from "@ts-drp/object";
 
 describe("HashGraph for AddWinSet tests", () => {
 	let drp: AccessControl;
