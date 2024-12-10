@@ -1,6 +1,9 @@
+import { createVerify } from "node:crypto";
+
 import {
 	ActionType,
 	type DRP,
+	type Operation,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
@@ -29,32 +32,56 @@ export class AccessControl implements DRP {
 			conflictResolution ?? AccessControlConflictResolution.RevokeWins;
 	}
 
-	private _grant(nodeId: string): void {
-		this._writers.add(nodeId);
+	private _grant(invoker: string): void {
+		this._writers.add(invoker);
 	}
 
-	grant(nodeId: string): void {
-		this._grant(nodeId);
+	grant(sender: string, signature: string, invoker: string): void {
+		if (!this.isAdmin(sender)) {
+			throw new Error("Only admins can grant permissions.");
+		}
+		if (
+			!this._verifySignature(
+				sender,
+				{ type: "grant", value: invoker },
+				signature,
+			)
+		) {
+			throw new Error("Invalid signature.");
+		}
+		this._grant(invoker);
 	}
 
-	private _revoke(nodeId: string): void {
-		this._writers.delete(nodeId);
+	private _revoke(invoker: string): void {
+		this._writers.delete(invoker);
 	}
 
-	revoke(nodeId: string): void {
-		if (this.isAdmin(nodeId))
+	revoke(sender: string, signature: string, invoker: string): void {
+		if (!this.isAdmin(sender)) {
+			throw new Error("Only admins can revoke permissions.");
+		}
+		if (
+			!this._verifySignature(
+				sender,
+				{ type: "revoke", value: invoker },
+				signature,
+			)
+		) {
+			throw new Error("Invalid signature.");
+		}
+		if (this.isAdmin(invoker))
 			throw new Error(
 				"Cannot revoke permissions from a node with admin privileges.",
 			);
-		this._revoke(nodeId);
+		this._revoke(invoker);
 	}
 
-	isAdmin(nodeId: string): boolean {
-		return this._admins.has(nodeId);
+	isAdmin(publicKey: string): boolean {
+		return this._admins.has(publicKey);
 	}
 
-	isWriter(nodeId: string): boolean {
-		return this._writers.has(nodeId);
+	isWriter(publicKey: string): boolean {
+		return this._writers.has(publicKey);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
@@ -80,5 +107,18 @@ export class AccessControl implements DRP {
 							? ActionType.DropLeft
 							: ActionType.DropRight,
 				};
+	}
+
+	private _verifySignature(
+		sender: string,
+		operation: Operation,
+		signature: string,
+	): boolean {
+		if (!this.isWriter(sender)) return false;
+		const verifier = createVerify("sha256");
+		verifier.update(operation.type);
+		verifier.update(operation.value);
+		verifier.end();
+		return verifier.verify(sender, signature, "hex");
 	}
 }

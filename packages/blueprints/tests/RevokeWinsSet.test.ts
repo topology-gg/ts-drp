@@ -1,48 +1,77 @@
 import { ActionType } from "@ts-drp/object";
+import type { Operation } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
+import { createSign, generateKeyPairSync } from "node:crypto";
 import {
 	AccessControl,
 	AccessControlConflictResolution,
 } from "../src/AccessControl/index.js";
 
-describe("HashGraph for AddWinSet tests", () => {
+describe("AccessControl tests with RevokeWins resolution", () => {
 	let drp: AccessControl;
+	let keyPair: { publicKey: string; privateKey: string };
 
 	beforeEach(() => {
-		const admins = ["peer1", "peer2"];
-		drp = new AccessControl(admins, AccessControlConflictResolution.RevokeWins);
-	});
+		keyPair = generateKeyPairSync("rsa", {
+			modulusLength: 2048,
+			publicKeyEncoding: { type: "spki", format: "pem" },
+			privateKeyEncoding: { type: "pkcs8", format: "pem" },
+		});
 
-	test("Admin nodes should be admins", () => {
-		expect(drp.isAdmin("peer1")).toBe(true);
-		expect(drp.isAdmin("peer2")).toBe(true);
-	});
-
-	test("Admin should have write permissions", () => {
-		expect(drp.isWriter("peer1")).toBe(true);
-		expect(drp.isWriter("peer2")).toBe(true);
-	});
-
-	test("Can not revoke admin permission", () => {
-		expect(() => drp.revoke("peer1")).toThrow(
-			"Cannot revoke permissions from a node with admin privileges.",
+		drp = new AccessControl(
+			[keyPair.publicKey],
+			AccessControlConflictResolution.RevokeWins,
 		);
-		expect(drp.isWriter("peer1")).toBe(true);
-		expect(drp.isAdmin("peer1")).toBe(true);
 	});
 
-	test("Grant write permission", () => {
-		drp.grant("peer3");
+	test("Admin nodes should have admin privileges", () => {
+		expect(drp.isAdmin(keyPair.publicKey)).toBe(true);
+	});
+
+	test("Admin nodes should have write permissions", () => {
+		expect(drp.isWriter(keyPair.publicKey)).toBe(true);
+	});
+
+	test("Grant write permissions to a new writer", () => {
+		const signature = signOperation(keyPair.privateKey, {
+			type: "grant",
+			value: "peer3",
+		});
+		drp.grant(keyPair.publicKey, signature, "peer3");
+
 		expect(drp.isWriter("peer3")).toBe(true);
 	});
 
-	test("Revoke write permission", () => {
-		drp.grant("peer3");
-		drp.revoke("peer3");
+	test("Revoke write permissions from a writer", () => {
+		const grantSignature = signOperation(keyPair.privateKey, {
+			type: "grant",
+			value: "peer3",
+		});
+		drp.grant(keyPair.publicKey, grantSignature, "peer3");
+
+		const revokeSignature = signOperation(keyPair.privateKey, {
+			type: "revoke",
+			value: "peer3",
+		});
+		drp.revoke(keyPair.publicKey, revokeSignature, "peer3");
+
 		expect(drp.isWriter("peer3")).toBe(false);
 	});
 
-	test("resolve conflicts", () => {
+	test("Cannot revoke admin permissions", () => {
+		const revokeSignature = signOperation(keyPair.privateKey, {
+			type: "revoke",
+			value: keyPair.publicKey,
+		});
+
+		expect(() => {
+			drp.revoke(keyPair.publicKey, revokeSignature, keyPair.publicKey);
+		}).toThrow("Cannot revoke permissions from a node with admin privileges.");
+
+		expect(drp.isWriter(keyPair.publicKey)).toBe(true);
+	});
+
+	test("Resolve conflicts with RevokeWins", () => {
 		const vertices = [
 			{
 				hash: "",
@@ -60,4 +89,19 @@ describe("HashGraph for AddWinSet tests", () => {
 		const result = drp.resolveConflicts(vertices);
 		expect(result.action).toBe(ActionType.DropLeft);
 	});
+
+	test("Invalid signature is not verified", () => {
+		const signature = "abcdef1234567890";
+		expect(() => drp.grant(keyPair.publicKey, signature, "peer3")).toThrow(
+			"Invalid signature.",
+		);
+	});
 });
+
+function signOperation(privateKey: string, operation: Operation): string {
+	const signer = createSign("sha256");
+	signer.update(operation.type);
+	signer.update(operation.value);
+	signer.end();
+	return signer.sign(privateKey, "hex");
+}
