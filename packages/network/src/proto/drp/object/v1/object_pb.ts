@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Value } from "../../../google/protobuf/struct_pb";
+import { Value } from "../../../google/protobuf/struct_pb.js";
 
 export const protobufPackage = "drp.object.v1";
 

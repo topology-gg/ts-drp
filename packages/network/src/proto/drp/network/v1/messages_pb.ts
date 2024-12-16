@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Vertex } from "../../object/v1/object_pb";
+import { Vertex } from "../../object/v1/object_pb.js";
 
 export const protobufPackage = "drp.network.v1";
 
