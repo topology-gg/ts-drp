@@ -72,6 +72,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 					value: v.operation?.value,
 				},
 				dependencies: v.dependencies,
+				signature: v.signature,
 			};
 		}),
 	);
@@ -147,6 +148,7 @@ function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 				value: v.operation?.value,
 			},
 			dependencies: v.dependencies,
+			signature: v.signature,
 		};
 	});
 

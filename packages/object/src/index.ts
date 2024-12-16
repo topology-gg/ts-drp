@@ -148,6 +148,7 @@ export class DRPObject implements IDRPObject {
 					vertex.operation,
 					vertex.dependencies,
 					vertex.nodeId,
+					vertex.signature,
 				);
 
 				this._setState(vertex);

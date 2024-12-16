@@ -89,6 +89,7 @@ export class HashGraph {
 				value: null,
 			},
 			dependencies: [],
+			signature: "",
 		};
 		this.vertices.set(HashGraph.rootHash, rootVertex);
 		this.frontier.push(HashGraph.rootHash);
@@ -107,6 +108,7 @@ export class HashGraph {
 			nodeId: this.nodeId,
 			operation: operation ?? { type: OperationType.NOP },
 			dependencies: deps,
+			signature: "",
 		};
 
 		this.vertices.set(hash, vertex);
@@ -145,7 +147,12 @@ export class HashGraph {
 	 * If the vertex already exists, return the hash of the existing vertex.
 	 * Throws an error if any of the dependencies are not present in the hashgraph.
 	 */
-	addVertex(operation: Operation, deps: Hash[], nodeId: string): Hash {
+	addVertex(
+		operation: Operation,
+		deps: Hash[],
+		nodeId: string,
+		signature: string,
+	): Hash {
 		const hash = computeHash(nodeId, operation, deps);
 		if (this.vertices.has(hash)) {
 			return hash; // Vertex already exists
@@ -162,6 +169,7 @@ export class HashGraph {
 			nodeId,
 			operation,
 			dependencies: deps,
+			signature,
 		};
 		this.vertices.set(hash, vertex);
 		this.frontier.push(hash);
