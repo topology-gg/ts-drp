@@ -1,5 +1,5 @@
 import { createSign, createVerify } from "node:crypto";
-import type { Operation, Vertex } from "@ts-drp/object";
+import type { Operation } from "@ts-drp/object";
 
 export function signOperation(
 	privateKey: string,

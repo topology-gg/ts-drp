@@ -1,6 +1,6 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import type { DRP, DRPObject, ObjectPb } from "@ts-drp/object";
 import { type DRPNode, log } from "./index.js";
 import { verifySignature } from "./utils/vertexSignature.js";
 
@@ -132,7 +132,7 @@ function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		return;
 	}
 
-	const verifiedVertices: Vertex[] = verifyIncomingVertices(
+	const verifiedVertices: ObjectPb.Vertex[] = verifyIncomingVertices(
 		object,
 		syncAcceptMessage.requested,
 	);
@@ -208,9 +208,9 @@ export function drpObjectChangesHandler(
 
 export function verifyIncomingVertices(
 	object: DRPObject,
-	incomingVertices: Vertex[],
-): Vertex[] {
-	const vertices: Vertex[] = incomingVertices.map((vertex) => {
+	incomingVertices: ObjectPb.Vertex[],
+): ObjectPb.Vertex[] {
+	const vertices: ObjectPb.Vertex[] = incomingVertices.map((vertex) => {
 		return {
 			hash: vertex.hash,
 			nodeId: vertex.nodeId,
@@ -228,7 +228,7 @@ export function verifyIncomingVertices(
 		return vertices;
 	}
 	const acl = drp.accessControl;
-	const verifiedVertices: Vertex[] = vertices.filter((vertex) => {
+	const verifiedVertices: ObjectPb.Vertex[] = vertices.filter((vertex) => {
 		const signature = vertex.signature;
 		if (!signature) {
 			return false;
