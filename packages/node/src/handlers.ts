@@ -1,7 +1,8 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import type { DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
 import { type DRPNode, log } from "./index.js";
+import { verifySignature } from "./utils/vertexSignature.js";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -62,20 +63,12 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		return false;
 	}
 
-	const [merged, _] = object.merge(
-		updateMessage.vertices.map((v) => {
-			return {
-				hash: v.hash,
-				nodeId: v.nodeId,
-				operation: {
-					type: v.operation?.type ?? "",
-					value: v.operation?.value,
-				},
-				dependencies: v.dependencies,
-				signature: v.signature,
-			};
-		}),
+	const verifiedVertices = verifyIncomingVertices(
+		object,
+		updateMessage.vertices,
 	);
+
+	const [merged, _] = object.merge(verifiedVertices);
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
@@ -139,21 +132,13 @@ function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		return;
 	}
 
-	const vertices: Vertex[] = syncAcceptMessage.requested.map((v) => {
-		return {
-			hash: v.hash,
-			nodeId: v.nodeId,
-			operation: {
-				type: v.operation?.type ?? "",
-				value: v.operation?.value,
-			},
-			dependencies: v.dependencies,
-			signature: v.signature,
-		};
-	});
+	const verifiedVertices: Vertex[] = verifyIncomingVertices(
+		object,
+		syncAcceptMessage.requested,
+	);
 
-	if (vertices.length !== 0) {
-		object.merge(vertices);
+	if (verifiedVertices.length !== 0) {
+		object.merge(verifiedVertices);
 		node.objectStore.put(object.id, object);
 	}
 
@@ -219,4 +204,40 @@ export function drpObjectChangesHandler(
 		default:
 			log.error("::createObject: Invalid origin function");
 	}
+}
+
+export function verifyIncomingVertices(
+	object: DRPObject,
+	incomingVertices: Vertex[],
+): Vertex[] {
+	const vertices: Vertex[] = incomingVertices.map((vertex) => {
+		return {
+			hash: vertex.hash,
+			nodeId: vertex.nodeId,
+			operation: {
+				type: vertex.operation?.type ?? "",
+				value: vertex.operation?.value,
+			},
+			dependencies: vertex.dependencies,
+			signature: vertex.signature,
+		};
+	});
+
+	const drp = object.drp as DRP;
+	if (!drp.accessControl) {
+		return vertices;
+	}
+	const acl = drp.accessControl;
+	const verifiedVertices: Vertex[] = vertices.filter((vertex) => {
+		const signature = vertex.signature;
+		if (!signature) {
+			return false;
+		}
+		const publicKey = acl.getPeerKey(vertex.nodeId);
+		if (!publicKey) {
+			return false;
+		}
+		return verifySignature(publicKey, vertex.operation, signature);
+	});
+	return verifiedVertices;
 }
