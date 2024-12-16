@@ -14,10 +14,23 @@ import { ObjectSet } from "./utils/objectSet.js";
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
 
+export interface ACL {
+	operations: string[];
+	semanticsType: SemanticsType;
+	peerKeyStore: Map<string, string>;
+	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
+	isWriter: (peerId: string) => boolean;
+	isAdmin: (peerId: string) => boolean;
+	grant: (peerId: string, publicKey: string) => void;
+	revoke: (peerId: string) => void;
+	getPeerKey: (peeId: string) => string | undefined;
+}
+
 export interface DRP {
 	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
+	accessControl?: ACL;
 	// biome-ignore lint: attributes can be anything
 	[key: string]: any;
 }

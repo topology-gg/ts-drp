@@ -1,6 +1,6 @@
 import {
+	type ACL,
 	ActionType,
-	type DRP,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
@@ -11,46 +11,53 @@ export enum AccessControlConflictResolution {
 	RevokeWins = 1,
 }
 
-export class AccessControl implements DRP {
+export class AccessControl implements ACL {
 	operations: string[] = ["grant", "revoke"];
 	semanticsType = SemanticsType.pair;
+	peerKeyStore = new Map<string, string>();
 
 	private _conflictResolution: AccessControlConflictResolution;
 	private _admins: Set<string>;
 	private _writers: Set<string>;
 
 	constructor(
-		admins: string[],
+		admins: Map<string, string>,
 		conflictResolution?: AccessControlConflictResolution,
 	) {
-		this._admins = new Set(admins);
-		this._writers = new Set(admins);
+		this._admins = new Set(admins.keys());
+		this._writers = new Set(admins.keys());
+		this.peerKeyStore = admins;
 		this._conflictResolution =
 			conflictResolution ?? AccessControlConflictResolution.RevokeWins;
 	}
 
-	private _grant(publicKey: string): void {
-		this._writers.add(publicKey);
+	private _grant(peerId: string, publicKey: string): void {
+		this._writers.add(peerId);
+		this.peerKeyStore.set(peerId, publicKey);
 	}
 
-	grant(publicKey: string): void {
-		this._grant(publicKey);
+	grant(peerId: string, publicKey: string): void {
+		this._grant(peerId, publicKey);
 	}
 
-	private _revoke(publicKey: string): void {
-		this._writers.delete(publicKey);
+	private _revoke(peerId: string): void {
+		this._writers.delete(peerId);
 	}
 
-	revoke(publicKey: string): void {
-		this._revoke(publicKey);
+	revoke(peerId: string): void {
+		this._revoke(peerId);
 	}
 
-	isAdmin(publicKey: string): boolean {
-		return this._admins.has(publicKey);
+	isAdmin(peerId: string): boolean {
+		return this._admins.has(peerId);
 	}
 
-	isWriter(publicKey: string): boolean {
-		return this._writers.has(publicKey);
+	isWriter(peerId: string): boolean {
+		return this._writers.has(peerId);
+	}
+
+	getPeerKey(peerId: string): string | undefined {
+		return this.peerKeyStore.get(peerId);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {

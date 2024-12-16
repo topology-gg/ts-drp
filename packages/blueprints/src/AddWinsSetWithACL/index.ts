@@ -1,8 +1,7 @@
-import { createVerify } from "node:crypto";
 import {
+	type ACL,
 	ActionType,
 	type DRP,
-	type Operation,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
@@ -12,11 +11,13 @@ import { AccessControl } from "../AccessControl/index.js";
 export class AddWinsSetWithACL<T> implements DRP {
 	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
+	accessControl?: ACL;
 	semanticsType = SemanticsType.pair;
-	private permission: AccessControl;
 
-	constructor(admins: string[]) {
-		this.permission = new AccessControl(admins);
+	constructor(admins: Map<string, string>) {
+		if (admins) {
+			this.accessControl = new AccessControl(admins);
+		}
 		this.state = new Map<T, boolean>();
 	}
 
@@ -24,12 +25,9 @@ export class AddWinsSetWithACL<T> implements DRP {
 		if (!this.state.get(value)) this.state.set(value, true);
 	}
 
-	add(sender: string, signature: string, value: T): void {
-		if (!this.permission.isWriter(sender)) {
+	add(sender: string, value: T): void {
+		if (this.accessControl && !this.accessControl.isWriter(sender)) {
 			throw new Error("Only writers can add values.");
-		}
-		if (!this._verifySignature(sender, { type: "add", value }, signature)) {
-			throw new Error("Invalid signature.");
 		}
 		this._add(value);
 	}
@@ -38,63 +36,48 @@ export class AddWinsSetWithACL<T> implements DRP {
 		if (this.state.get(value)) this.state.set(value, false);
 	}
 
-	remove(sender: string, signature: string, value: T): void {
-		if (!this.permission.isWriter(sender)) {
+	remove(sender: string, value: T): void {
+		if (this.accessControl && !this.accessControl.isWriter(sender)) {
 			throw new Error("Only writers can remove values.");
-		}
-		if (!this._verifySignature(sender, { type: "remove", value }, signature)) {
-			throw new Error("Invalid signature.");
 		}
 		this._remove(value);
 	}
 
-	grant(sender: string, signature: string, target: string): void {
-		if (!this.permission.isAdmin(sender)) {
-			throw new Error("Only admins can grant permissions.");
+	grant(sender: string, target: string, publicKey: string): void {
+		if (!this.accessControl) {
+			throw new Error("accessControl is undefined.");
 		}
-		if (
-			!this._verifySignature(
-				sender,
-				{ type: "grant", value: target },
-				signature,
-			)
-		) {
-			throw new Error("Invalid signature.");
+		if (!this.accessControl.isAdmin(sender)) {
+			throw new Error("Only admins can grant accessControls.");
 		}
-		this.permission.grant(target);
+		this.accessControl.grant(target, publicKey);
 	}
 
-	revoke(sender: string, signature: string, target: string): void {
-		if (!this.permission.isAdmin(sender)) {
-			throw new Error("Only admins can revoke permissions.");
+	revoke(sender: string, target: string): void {
+		if (!this.accessControl) {
+			throw new Error("accessControl is undefined.");
 		}
-		if (
-			!this._verifySignature(
-				sender,
-				{ type: "revoke", value: target },
-				signature,
-			)
-		) {
-			throw new Error("Invalid signature.");
+		if (!this.accessControl.isAdmin(sender)) {
+			throw new Error("Only admins can revoke accessControls.");
 		}
-		if (this.permission.isAdmin(target)) {
+		if (this.accessControl.isAdmin(target)) {
 			throw new Error(
 				"Cannot revoke permissions from a node with admin privileges.",
 			);
 		}
-		this.permission.revoke(target);
+		this.accessControl.revoke(target);
 	}
 
 	contains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
 
-	isAdmin(publicKey: string): boolean {
-		return this.permission.isAdmin(publicKey);
+	isAdmin(peerId: string): boolean | undefined {
+		return this.accessControl?.isAdmin(peerId);
 	}
 
-	isWriter(publicKey: string): boolean {
-		return this.permission.isWriter(publicKey);
+	isWriter(peerId: string): boolean | undefined {
+		return this.accessControl?.isWriter(peerId);
 	}
 
 	values(): T[] {
@@ -113,10 +96,10 @@ export class AddWinsSetWithACL<T> implements DRP {
 			return { action: ActionType.Nop };
 
 		if (
-			this.permission.operations.includes(vertices[0].operation.type) &&
-			this.permission.operations.includes(vertices[0].operation.type)
+			this.accessControl?.operations.includes(vertices[0].operation.type) &&
+			this.accessControl?.operations.includes(vertices[0].operation.type)
 		) {
-			return this.permission.resolveConflicts(vertices);
+			return this.accessControl.resolveConflicts(vertices);
 		}
 
 		if (
@@ -129,17 +112,5 @@ export class AddWinsSetWithACL<T> implements DRP {
 		}
 
 		return { action: ActionType.Nop };
-	}
-
-	private _verifySignature(
-		sender: string,
-		operation: Operation,
-		signature: string,
-	) {
-		const verifier = createVerify("sha256");
-		verifier.update(operation.type);
-		verifier.update(operation.value);
-		verifier.end();
-		return verifier.verify(sender, signature, "hex");
 	}
 }
