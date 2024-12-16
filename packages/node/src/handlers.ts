@@ -1,8 +1,8 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
 import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
-import { type DRPNode, log } from "./index.js";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { type DRPNode, log } from "./index.js";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
