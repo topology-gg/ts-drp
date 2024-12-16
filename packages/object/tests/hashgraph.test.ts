@@ -69,6 +69,7 @@ describe("HashGraph construction tests", () => {
 			},
 			[],
 			"",
+			"",
 		);
 		obj1.hashGraph.addVertex(
 			{
@@ -76,6 +77,7 @@ describe("HashGraph construction tests", () => {
 				value: 1,
 			},
 			[hash],
+			"",
 			"",
 		);
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
