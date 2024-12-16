@@ -254,6 +254,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.4.7
+      uint8arrays:
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
       '@bufbuild/protobuf':
         specifier: ^2.0.0

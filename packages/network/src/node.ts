@@ -16,6 +16,8 @@ import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify } from "@libp2p/identify";
 import type {
+	Ed25519PrivateKey,
+	Ed25519PublicKey,
 	EventCallback,
 	PubSub,
 	Stream,
@@ -32,6 +34,7 @@ import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
+import type { Vertex } from "./proto/drp/object/v1/object_pb.js";
 
 export * from "./stream.js";
 
@@ -52,7 +55,8 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: PubSub<GossipsubEvents>;
-
+	private _privateKey?: Ed25519PrivateKey;
+	publicKey?: string;
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
@@ -61,13 +65,13 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
-		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			privateKey = await generateKeyPairFromSeed(
+			this._privateKey = await generateKeyPairFromSeed(
 				"Ed25519",
 				uint8ArrayFromString(tmp),
 			);
+			this.publicKey = this._privateKey.publicKey.toString();
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
@@ -106,7 +110,7 @@ export class DRPNetworkNode {
 		};
 
 		this._node = await createLibp2p({
-			privateKey,
+			privateKey: this._privateKey,
 			addresses: {
 				listen: this._config?.addresses
 					? this._config.addresses
@@ -287,5 +291,21 @@ export class DRPNetworkNode {
 
 	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
 		this._node?.handle(protocol, handler);
+	}
+
+	async signVertexOperation(vertex: Vertex) {
+		if (vertex.nodeId !== this.peerId) {
+			log.error("::signVertexOperation: Invalid peer id");
+			return;
+		}
+		if (!this._privateKey) {
+			log.error("::signVertexOperation: Private key not found");
+			return;
+		}
+
+		const signature = await this._privateKey.sign(
+			uint8ArrayFromString(JSON.stringify(vertex.operation)),
+		);
+		vertex.signature = Buffer.from(signature).toString("base64");
 	}
 }

@@ -1,8 +1,8 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import type { DRP, DRPObject, ObjectPb } from "@ts-drp/object";
+import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
 import { type DRPNode, log } from "./index.js";
-import { verifySignature } from "./utils/vertexSignature.js";
+import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -63,7 +63,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		return false;
 	}
 
-	const verifiedVertices = verifyIncomingVertices(
+	const verifiedVertices = await verifyIncomingVertices(
 		object,
 		updateMessage.vertices,
 	);
@@ -83,7 +83,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = NetworkPb.Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
@@ -91,6 +91,8 @@ function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		log.error("::syncHandler: Object not found");
 		return;
 	}
+
+	await signGeneratedVertices(node, object.vertices);
 
 	const requested: Set<ObjectPb.Vertex> = new Set(object.vertices);
 	const requesting: string[] = [];
@@ -124,7 +126,11 @@ function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function syncAcceptHandler(
+	node: DRPNode,
+	sender: string,
+	data: Uint8Array,
+) {
 	const syncAcceptMessage = NetworkPb.SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {
@@ -132,7 +138,7 @@ function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		return;
 	}
 
-	const verifiedVertices: ObjectPb.Vertex[] = verifyIncomingVertices(
+	const verifiedVertices = await verifyIncomingVertices(
 		object,
 		syncAcceptMessage.requested,
 	);
@@ -142,6 +148,7 @@ function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		node.objectStore.put(object.id, object);
 	}
 
+	await signGeneratedVertices(node, object.vertices);
 	// send missing vertices
 	const requested: ObjectPb.Vertex[] = [];
 	for (const h of syncAcceptMessage.requesting) {
@@ -206,11 +213,23 @@ export function drpObjectChangesHandler(
 	}
 }
 
-export function verifyIncomingVertices(
+export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
+	const signPromises = vertices.map(async (vertex) => {
+		if (vertex.nodeId !== node.networkNode.peerId || vertex.signature !== "") {
+			return;
+		}
+
+		await node.networkNode.signVertexOperation(vertex);
+	});
+
+	await Promise.all(signPromises);
+}
+
+export async function verifyIncomingVertices(
 	object: DRPObject,
 	incomingVertices: ObjectPb.Vertex[],
-): ObjectPb.Vertex[] {
-	const vertices: ObjectPb.Vertex[] = incomingVertices.map((vertex) => {
+): Promise<Vertex[]> {
+	const vertices: Vertex[] = incomingVertices.map((vertex) => {
 		return {
 			hash: vertex.hash,
 			nodeId: vertex.nodeId,
@@ -228,16 +247,49 @@ export function verifyIncomingVertices(
 		return vertices;
 	}
 	const acl = drp.accessControl;
-	const verifiedVertices: ObjectPb.Vertex[] = vertices.filter((vertex) => {
-		const signature = vertex.signature;
-		if (!signature) {
-			return false;
+	const verificationPromises = vertices.map(async (vertex) => {
+		if (vertex.signature === "") {
+			return null;
 		}
+
+		const signature = Buffer.from(vertex.signature, "base64");
+
 		const publicKey = acl.getPeerKey(vertex.nodeId);
 		if (!publicKey) {
-			return false;
+			return null;
 		}
-		return verifySignature(publicKey, vertex.operation, signature);
+
+		const publicKeyBytes = Buffer.from(publicKey, "base64");
+		const operationData = uint8ArrayFromString(
+			JSON.stringify(vertex.operation),
+		);
+
+		try {
+			const cryptoKey = await crypto.subtle.importKey(
+				"raw",
+				publicKeyBytes,
+				{ name: "Ed25519" },
+				true,
+				["verify"],
+			);
+
+			const isValid = await crypto.subtle.verify(
+				{ name: "Ed25519" },
+				cryptoKey,
+				signature,
+				operationData,
+			);
+
+			return isValid ? vertex : null;
+		} catch (error) {
+			console.error("Error verifying signature:", error);
+			return null;
+		}
 	});
+
+	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
+		(vertex) => vertex !== null,
+	);
+
 	return verifiedVertices;
 }
