@@ -17,7 +17,6 @@ import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify } from "@libp2p/identify";
 import type {
 	Ed25519PrivateKey,
-	Ed25519PublicKey,
 	EventCallback,
 	PubSub,
 	Stream,
@@ -30,6 +29,7 @@ import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { fromByteArray } from "base64-js";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
@@ -306,6 +306,6 @@ export class DRPNetworkNode {
 		const signature = await this._privateKey.sign(
 			uint8ArrayFromString(JSON.stringify(vertex.operation)),
 		);
-		vertex.signature = Buffer.from(signature).toString("base64");
+		vertex.signature = fromByteArray(signature);
 	}
 }

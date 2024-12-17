@@ -1,6 +1,7 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
 import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import { toByteArray } from "base64-js";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
@@ -252,14 +253,14 @@ export async function verifyIncomingVertices(
 			return null;
 		}
 
-		const signature = Buffer.from(vertex.signature, "base64");
+		const signature = toByteArray(vertex.signature);
 
 		const publicKey = acl.getPeerKey(vertex.nodeId);
 		if (!publicKey) {
 			return null;
 		}
 
-		const publicKeyBytes = Buffer.from(publicKey, "base64");
+		const publicKeyBytes = toByteArray(publicKey);
 		const operationData = uint8ArrayFromString(
 			JSON.stringify(vertex.operation),
 		);
