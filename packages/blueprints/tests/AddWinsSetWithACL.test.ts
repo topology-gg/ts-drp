@@ -1,20 +1,12 @@
-import { generateKeyPairSync } from "node:crypto";
 import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSetWithACL } from "../src/AddWinsSetWithACL/index.js";
 
 describe("AccessControl tests with RevokeWins resolution", () => {
 	let drp: AddWinsSetWithACL<number>;
-	let keyPair: { publicKey: string; privateKey: string };
 
 	beforeEach(() => {
-		keyPair = generateKeyPairSync("rsa", {
-			modulusLength: 2048,
-			publicKeyEncoding: { type: "spki", format: "pem" },
-			privateKeyEncoding: { type: "pkcs8", format: "pem" },
-		});
-
-		drp = new AddWinsSetWithACL(new Map([["peer1", keyPair.publicKey]]));
+		drp = new AddWinsSetWithACL(new Map([["peer1", "publicKey1"]]));
 	});
 
 	test("Admin nodes should have admin privileges", () => {
@@ -26,13 +18,13 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Grant write permissions to a new writer", () => {
-		drp.grant("peer1", "peer3", keyPair.publicKey);
+		drp.grant("peer1", "peer3", "publicKey3");
 
 		expect(drp.isWriter("peer3")).toBe(true);
 	});
 
 	test("Revoke write permissions from a writer", () => {
-		drp.grant("peer1", "peer3", keyPair.publicKey);
+		drp.grant("peer1", "peer3", "publicKey3");
 		drp.revoke("peer1", "peer3");
 
 		expect(drp.isWriter("peer3")).toBe(false);
