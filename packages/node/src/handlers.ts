@@ -244,10 +244,10 @@ export async function verifyIncomingVertices(
 	});
 
 	const drp = object.drp as DRP;
-	if (!drp.accessControl) {
+	if (!drp.acl) {
 		return vertices;
 	}
-	const acl = drp.accessControl;
+	const acl = drp.acl;
 	const verificationPromises = vertices.map(async (vertex) => {
 		if (vertex.signature === "") {
 			return null;

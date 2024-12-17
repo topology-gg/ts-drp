@@ -11,12 +11,12 @@ import { AccessControl } from "../AccessControl/index.js";
 export class AddWinsSetWithACL<T> implements DRP {
 	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
-	accessControl?: ACL;
+	acl?: ACL;
 	semanticsType = SemanticsType.pair;
 
 	constructor(admins: Map<string, string>) {
 		if (admins) {
-			this.accessControl = new AccessControl(admins);
+			this.acl = new AccessControl(admins);
 		}
 		this.state = new Map<T, boolean>();
 	}
@@ -26,7 +26,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 	}
 
 	add(sender: string, value: T): void {
-		if (this.accessControl && !this.accessControl.isWriter(sender)) {
+		if (this.acl && !this.acl.isWriter(sender)) {
 			throw new Error("Only writers can add values.");
 		}
 		this._add(value);
@@ -37,35 +37,35 @@ export class AddWinsSetWithACL<T> implements DRP {
 	}
 
 	remove(sender: string, value: T): void {
-		if (this.accessControl && !this.accessControl.isWriter(sender)) {
+		if (this.acl && !this.acl.isWriter(sender)) {
 			throw new Error("Only writers can remove values.");
 		}
 		this._remove(value);
 	}
 
 	grant(sender: string, target: string, publicKey: string): void {
-		if (!this.accessControl) {
-			throw new Error("accessControl is undefined.");
+		if (!this.acl) {
+			throw new Error("acl is undefined.");
 		}
-		if (!this.accessControl.isAdmin(sender)) {
-			throw new Error("Only admins can grant accessControls.");
+		if (!this.acl.isAdmin(sender)) {
+			throw new Error("Only admins can grant access.");
 		}
-		this.accessControl.grant(target, publicKey);
+		this.acl.grant(target, publicKey);
 	}
 
 	revoke(sender: string, target: string): void {
-		if (!this.accessControl) {
-			throw new Error("accessControl is undefined.");
+		if (!this.acl) {
+			throw new Error("acl is undefined.");
 		}
-		if (!this.accessControl.isAdmin(sender)) {
-			throw new Error("Only admins can revoke accessControls.");
+		if (!this.acl.isAdmin(sender)) {
+			throw new Error("Only admins can revoke access.");
 		}
-		if (this.accessControl.isAdmin(target)) {
+		if (this.acl.isAdmin(target)) {
 			throw new Error(
 				"Cannot revoke permissions from a node with admin privileges.",
 			);
 		}
-		this.accessControl.revoke(target);
+		this.acl.revoke(target);
 	}
 
 	contains(value: T): boolean {
@@ -73,11 +73,11 @@ export class AddWinsSetWithACL<T> implements DRP {
 	}
 
 	isAdmin(peerId: string): boolean | undefined {
-		return this.accessControl?.isAdmin(peerId);
+		return this.acl?.isAdmin(peerId);
 	}
 
 	isWriter(peerId: string): boolean | undefined {
-		return this.accessControl?.isWriter(peerId);
+		return this.acl?.isWriter(peerId);
 	}
 
 	values(): T[] {
@@ -96,10 +96,10 @@ export class AddWinsSetWithACL<T> implements DRP {
 			return { action: ActionType.Nop };
 
 		if (
-			this.accessControl?.operations.includes(vertices[0].operation.type) &&
-			this.accessControl?.operations.includes(vertices[0].operation.type)
+			this.acl?.operations.includes(vertices[0].operation.type) &&
+			this.acl?.operations.includes(vertices[0].operation.type)
 		) {
-			return this.accessControl.resolveConflicts(vertices);
+			return this.acl.resolveConflicts(vertices);
 		}
 
 		if (

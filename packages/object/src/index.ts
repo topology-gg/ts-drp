@@ -30,7 +30,7 @@ export interface DRP {
 	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	accessControl?: ACL;
+	acl?: ACL;
 	// biome-ignore lint: attributes can be anything
 	[key: string]: any;
 }
