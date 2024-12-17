@@ -1,6 +1,7 @@
 import {
 	type ACL,
 	ActionType,
+	type DRP,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
@@ -11,7 +12,7 @@ export enum AccessControlConflictResolution {
 	RevokeWins = 1,
 }
 
-export class AccessControl implements ACL {
+export class AccessControl implements ACL, DRP {
 	operations: string[] = ["grant", "revoke"];
 	semanticsType = SemanticsType.pair;
 	peerKeyStore = new Map<string, string>();

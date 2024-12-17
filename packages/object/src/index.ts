@@ -15,10 +15,6 @@ export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
 
 export interface ACL {
-	operations: string[];
-	semanticsType: SemanticsType;
-	peerKeyStore: Map<string, string>;
-	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	isWriter: (peerId: string) => boolean;
 	isAdmin: (peerId: string) => boolean;
 	grant: (peerId: string, publicKey: string) => void;
@@ -30,7 +26,7 @@ export interface DRP {
 	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	acl?: ACL;
+	acl?: ACL & DRP;
 	// biome-ignore lint: attributes can be anything
 	[key: string]: any;
 }

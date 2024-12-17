@@ -11,7 +11,7 @@ import { AccessControl } from "../AccessControl/index.js";
 export class AddWinsSetWithACL<T> implements DRP {
 	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
-	acl?: ACL;
+	acl?: ACL & DRP;
 	semanticsType = SemanticsType.pair;
 
 	constructor(admins: Map<string, string>) {
