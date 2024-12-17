@@ -23,7 +23,7 @@ export interface ACL {
 	isAdmin: (peerId: string) => boolean;
 	grant: (peerId: string, publicKey: string) => void;
 	revoke: (peerId: string) => void;
-	getPeerKey: (peeId: string) => string | undefined;
+	getPeerKey: (peerId: string) => string | undefined;
 }
 
 export interface DRP {

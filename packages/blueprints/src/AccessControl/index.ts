@@ -11,7 +11,7 @@ export enum AccessControlConflictResolution {
 	RevokeWins = 1,
 }
 
-export class AccessControl implements ACL {
+export class AccessControl implements ACL  {
 	operations: string[] = ["grant", "revoke"];
 	semanticsType = SemanticsType.pair;
 	peerKeyStore = new Map<string, string>();
