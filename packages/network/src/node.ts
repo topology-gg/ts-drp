@@ -293,19 +293,19 @@ export class DRPNetworkNode {
 		this._node?.handle(protocol, handler);
 	}
 
-	async signVertexOperation(vertex: Vertex) {
+	async signVertexOperation(vertex: Vertex): Promise<string> {
 		if (vertex.nodeId !== this.peerId) {
 			log.error("::signVertexOperation: Invalid peer id");
-			return;
+			return "";
 		}
 		if (!this._privateKey) {
 			log.error("::signVertexOperation: Private key not found");
-			return;
+			return "";
 		}
 
 		const signature = await this._privateKey.sign(
 			uint8ArrayFromString(JSON.stringify(vertex.operation)),
 		);
-		vertex.signature = fromByteArray(signature);
+		return fromByteArray(signature);
 	}
 }

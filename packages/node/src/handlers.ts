@@ -220,7 +220,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 
-		await node.networkNode.signVertexOperation(vertex);
+		vertex.signature = await node.networkNode.signVertexOperation(vertex);
 	});
 
 	await Promise.all(signPromises);
