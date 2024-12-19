@@ -11,7 +11,10 @@
 	"bugs": {
 		"url": "https://github.com/topology-foundation/ts-drp/issues"
 	},
-	"workspaces": ["packages/*", "examples/*"],
+	"workspaces": [
+		"packages/*",
+		"examples/*"
+	],
 	"scripts": {
 		"bench": "vitest bench",
 		"biome-check": "biome check",
@@ -34,6 +37,7 @@
 		"@biomejs/biome": "^1.8.3",
 		"@release-it-plugins/workspaces": "^4.2.0",
 		"@types/node": "^22.5.4",
+		"@vitest/coverage-v8": "2.1.8",
 		"assemblyscript": "^0.27.29",
 		"release-it": "^17.6.0",
 		"ts-proto": "^2.2.4",
