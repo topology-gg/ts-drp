@@ -14,7 +14,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 	acl?: ACL & DRP;
 	semanticsType = SemanticsType.pair;
 
-	constructor(admins: Map<string, string>) {
+	constructor(admins?: Map<string, string>) {
 		if (admins) {
 			this.acl = new AccessControl(admins);
 		}

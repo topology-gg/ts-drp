@@ -71,7 +71,7 @@ export class DRPNetworkNode {
 				"Ed25519",
 				uint8ArrayFromString(tmp),
 			);
-			this.publicKey = this._privateKey.publicKey.toString();
+			this.publicKey = fromByteArray(this._privateKey.publicKey.raw);
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
