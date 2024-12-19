@@ -14,7 +14,7 @@ import { ObjectSet } from "./utils/objectSet.js";
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
 
-export interface ACL {
+export interface IACL {
 	isWriter: (peerId: string) => boolean;
 	isAdmin: (peerId: string) => boolean;
 	grant: (peerId: string, publicKey: string) => void;
@@ -26,7 +26,7 @@ export interface DRP {
 	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	acl?: ACL & DRP;
+	acl?: IACL & DRP;
 	// biome-ignore lint: attributes can be anything
 	[key: string]: any;
 }

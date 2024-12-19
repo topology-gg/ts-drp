@@ -1,22 +1,22 @@
 import {
-	type ACL,
 	ActionType,
 	type DRP,
+	type IACL,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/object";
-import { AccessControl } from "../AccessControl/index.js";
+import { ACL } from "../AccessControl/index.js";
 
 export class AddWinsSetWithACL<T> implements DRP {
 	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
-	acl?: ACL & DRP;
+	acl?: IACL & DRP;
 	semanticsType = SemanticsType.pair;
 
 	constructor(admins?: Map<string, string>) {
 		if (admins) {
-			this.acl = new AccessControl(admins);
+			this.acl = new ACL(admins);
 		}
 		this.state = new Map<T, boolean>();
 	}
