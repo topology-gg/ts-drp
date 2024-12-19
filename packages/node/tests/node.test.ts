@@ -1,7 +1,6 @@
-import { describe } from "node:test";
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { type DRP, DRPObject } from "@ts-drp/object";
-import { beforeAll, expect, test } from "vitest";
+import { beforeAll, describe, expect, test } from "vitest";
 import {
 	signGeneratedVertices,
 	verifyIncomingVertices,
