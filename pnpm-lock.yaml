@@ -45,10 +45,10 @@ importers:
   examples/canvas:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -67,10 +67,10 @@ importers:
   examples/chat:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -89,10 +89,10 @@ importers:
   examples/grid:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -111,7 +111,7 @@ importers:
   examples/local-bootstrap:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../../packages/node
     devDependencies:
       '@types/node':
@@ -134,7 +134,7 @@ importers:
         version: 4.1.4
     devDependencies:
       '@ts-drp/object':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../object
 
   packages/logger:
@@ -197,7 +197,7 @@ importers:
         specifier: ^12.3.1
         version: 12.3.4
       '@ts-drp/logger':
-        specifier: ^0.4.0
+        specifier: ^0.4.1
         version: link:../logger
       base64-js:
         specifier: ^1.5.1
@@ -240,16 +240,16 @@ importers:
         specifier: ^2.1.3
         version: 2.2.1
       '@ts-drp/blueprints':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../blueprints
       '@ts-drp/logger':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../logger
       '@ts-drp/network':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../network
       '@ts-drp/object':
-        specifier: 0.4.0
+        specifier: 0.4.1
         version: link:../object
       base64-js:
         specifier: ^1.5.1
@@ -283,7 +283,7 @@ importers:
   packages/object:
     dependencies:
       '@ts-drp/logger':
-        specifier: ^0.4.0
+        specifier: ^0.4.1
         version: link:../logger
     devDependencies:
       '@bufbuild/protobuf':

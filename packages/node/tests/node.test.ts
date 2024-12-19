@@ -1,12 +1,12 @@
+import { describe } from "node:test";
+import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
+import { type DRP, DRPObject } from "@ts-drp/object";
 import { beforeAll, expect, test } from "vitest";
-import { DRPNode, type DRPNodeConfig } from "../src/index.js";
 import {
 	signGeneratedVertices,
 	verifyIncomingVertices,
 } from "../src/handlers.js";
-import { describe } from "node:test";
-import { type DRP, DRPObject } from "@ts-drp/object";
-import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
+import { DRPNode, type DRPNodeConfig } from "../src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
