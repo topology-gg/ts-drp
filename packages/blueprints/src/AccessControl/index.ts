@@ -7,7 +7,7 @@ import {
 	type Vertex,
 } from "@ts-drp/object";
 
-export enum AccessControlConflictResolution {
+export enum ACLConflictResolution {
 	GrantWins = 0,
 	RevokeWins = 1,
 }
