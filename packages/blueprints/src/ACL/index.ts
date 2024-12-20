@@ -15,29 +15,29 @@ export enum ACLConflictResolution {
 export class ACL implements IACL, DRP {
 	operations: string[] = ["grant", "revoke"];
 	semanticsType = SemanticsType.pair;
-	peerKeyStore = new Map<string, string>();
 
 	private _conflictResolution: ACLConflictResolution;
-	private _admins: Set<string>;
-	private _writers: Set<string>;
+	private _admins: Map<string, string>;
+	private _writers: Map<string, string>;
 
 	constructor(
 		admins: Map<string, string>,
 		conflictResolution?: ACLConflictResolution,
 	) {
-		this._admins = new Set(admins.keys());
-		this._writers = new Set(admins.keys());
-		this.peerKeyStore = admins;
+		this._admins = new Map(Array.from(admins, ([key, value]) => [key, value]));
+		this._writers = new Map(Array.from(admins, ([key, value]) => [key, value]));
 		this._conflictResolution =
 			conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
 	private _grant(peerId: string, publicKey: string): void {
-		this._writers.add(peerId);
-		this.peerKeyStore.set(peerId, publicKey);
+		this._writers.set(peerId, publicKey);
 	}
 
-	grant(peerId: string, publicKey: string): void {
+	grant(senderId: string, peerId: string, publicKey: string): void {
+		if (!this.isAdmin(senderId)) {
+			throw new Error("Only admin nodes can grant permissions.");
+		}
 		this._grant(peerId, publicKey);
 	}
 
@@ -45,7 +45,15 @@ export class ACL implements IACL, DRP {
 		this._writers.delete(peerId);
 	}
 
-	revoke(peerId: string): void {
+	revoke(senderId: string, peerId: string): void {
+		if (!this.isAdmin(senderId)) {
+			throw new Error("Only admin nodes can revoke permissions.");
+		}
+		if (this.isAdmin(peerId)) {
+			throw new Error(
+				"Cannot revoke permissions from a node with admin privileges.",
+			);
+		}
 		this._revoke(peerId);
 	}
 
@@ -58,7 +66,7 @@ export class ACL implements IACL, DRP {
 	}
 
 	getPeerKey(peerId: string): string | undefined {
-		return this.peerKeyStore.get(peerId);
+		return this._writers.get(peerId);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {

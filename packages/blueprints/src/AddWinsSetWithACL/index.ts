@@ -11,13 +11,11 @@ import { ACL } from "../ACL/index.js";
 export class AddWinsSetWithACL<T> implements DRP {
 	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
-	acl?: IACL & DRP;
+	acl: IACL & DRP;
 	semanticsType = SemanticsType.pair;
 
-	constructor(admins?: Map<string, string>) {
-		if (admins) {
-			this.acl = new ACL(admins);
-		}
+	constructor(admins: Map<string, string>) {
+		this.acl = new ACL(admins);
 		this.state = new Map<T, boolean>();
 	}
 
@@ -43,41 +41,8 @@ export class AddWinsSetWithACL<T> implements DRP {
 		this._remove(value);
 	}
 
-	grant(sender: string, target: string, publicKey: string): void {
-		if (!this.acl) {
-			throw new Error("acl is undefined.");
-		}
-		if (!this.acl.isAdmin(sender)) {
-			throw new Error("Only admins can grant access.");
-		}
-		this.acl.grant(target, publicKey);
-	}
-
-	revoke(sender: string, target: string): void {
-		if (!this.acl) {
-			throw new Error("acl is undefined.");
-		}
-		if (!this.acl.isAdmin(sender)) {
-			throw new Error("Only admins can revoke access.");
-		}
-		if (this.acl.isAdmin(target)) {
-			throw new Error(
-				"Cannot revoke permissions from a node with admin privileges.",
-			);
-		}
-		this.acl.revoke(target);
-	}
-
 	contains(value: T): boolean {
 		return this.state.get(value) === true;
-	}
-
-	isAdmin(peerId: string): boolean | undefined {
-		return this.acl?.isAdmin(peerId);
-	}
-
-	isWriter(peerId: string): boolean | undefined {
-		return this.acl?.isWriter(peerId);
 	}
 
 	values(): T[] {

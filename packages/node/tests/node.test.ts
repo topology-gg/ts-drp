@@ -1,4 +1,5 @@
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
+import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { type DRP, DRPObject } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
@@ -97,7 +98,7 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 
-		const drp1 = new AddWinsSetWithACL();
+		const drp1 = new AddWinsSet();
 		const drpObject1 = new DRPObject("peer1", drp1);
 		const verifiedVertices = await verifyIncomingVertices(drpObject1, vertices);
 		expect(verifiedVertices.length).toBe(1);

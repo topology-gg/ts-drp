@@ -17,8 +17,8 @@ export * from "./hashgraph/index.js";
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
 	isAdmin: (peerId: string) => boolean;
-	grant: (peerId: string, publicKey: string) => void;
-	revoke: (peerId: string) => void;
+	grant: (senderId: string, peerId: string, publicKey: string) => void;
+	revoke: (senderId: string, peerId: string) => void;
 	getPeerKey: (peerId: string) => string | undefined;
 }
 
