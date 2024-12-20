@@ -62,11 +62,19 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		return false;
 	}
 
-	const verifiedVertices = cleanIncomingVertices(
-		object,
-		updateMessage.vertices,
+	const [merged, _] = object.merge(
+		updateMessage.vertices.map((v) => {
+			return {
+				hash: v.hash,
+				nodeId: v.nodeId,
+				operation: {
+					type: v.operation?.type ?? "",
+					value: v.operation?.value,
+				},
+				dependencies: v.dependencies,
+			};
+		}),
 	);
-	const [merged, _] = object.merge(verifiedVertices);
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
@@ -130,10 +138,17 @@ function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		return;
 	}
 
-	const vertices: Vertex[] = cleanIncomingVertices(
-		object,
-		syncAcceptMessage.requested,
-	);
+	const vertices: Vertex[] = syncAcceptMessage.requested.map((v) => {
+		return {
+			hash: v.hash,
+			nodeId: v.nodeId,
+			operation: {
+				type: v.operation?.type ?? "",
+				value: v.operation?.value,
+			},
+			dependencies: v.dependencies,
+		};
+	});
 
 	if (vertices.length !== 0) {
 		object.merge(vertices);
@@ -202,24 +217,4 @@ export function drpObjectChangesHandler(
 		default:
 			log.error("::createObject: Invalid origin function");
 	}
-}
-
-export function cleanIncomingVertices(
-	object: DRPObject,
-	incomingVertices: ObjectPb.Vertex[],
-): Vertex[] {
-	const vertices: Vertex[] = incomingVertices.map((v) => {
-		return {
-			hash: v.hash,
-			nodeId: v.nodeId,
-			operation: {
-				type: v.operation?.type ?? "",
-				value: v.operation?.value,
-			},
-			dependencies: v.dependencies,
-			timestamp: v.timestamp,
-		};
-	});
-
-	return vertices;
 }
