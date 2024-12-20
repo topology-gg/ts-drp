@@ -158,15 +158,20 @@ export class HashGraph {
 			return hash; // Vertex already exists
 		}
 
-		if (!deps.every((dep) => this.vertices.has(dep))) {
-			throw new Error("Invalid dependency detected.");
+		for (const dep of deps) {
+			const vertex = this.vertices.get(dep);
+			if (vertex === undefined) {
+				throw new Error("Invalid dependency detected.");
+			}
+			if (vertex.timestamp > timestamp) {
+				// Vertex's timestamp must not be less than its dependencies
+				throw new Error("Invalid timestamp detected.");
+			}
 		}
 
 		const currentTimestamp = Date.now();
-		if (
-			timestamp > currentTimestamp ||
-			!deps.every((dep) => this.vertices.get(dep)?.timestamp <= timestamp)
-		) {
+		if (timestamp > currentTimestamp) {
+			// Vertex created in the future is invalid
 			throw new Error("Invalid timestamp detected.");
 		}
 
