@@ -29,8 +29,8 @@ import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { fromByteArray } from "base64-js";
 import { type Libp2p, createLibp2p } from "libp2p";
+import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import type { Vertex } from "./proto/drp/object/v1/object_pb.js";
@@ -155,7 +155,10 @@ export class DRPNetworkNode {
 			log.error("::start: Private key not found");
 		} else {
 			this._privateKey = options.privateKey;
-			this.publicKey = fromByteArray(this._privateKey.publicKey.raw);
+			this.publicKey = uint8ArrayToString(
+				this._privateKey.publicKey.raw,
+				"base64",
+			);
 		}
 
 		this._pubsub = this._node.services.pubsub as PubSub<GossipsubEvents>;
@@ -315,6 +318,6 @@ export class DRPNetworkNode {
 		const signature = await this._privateKey.sign(
 			uint8ArrayFromString(JSON.stringify(vertex.operation)),
 		);
-		return fromByteArray(signature);
+		return uint8ArrayToString(signature, "base64");
 	}
 }

@@ -199,9 +199,6 @@ importers:
       '@ts-drp/logger':
         specifier: ^0.4.1
         version: link:../logger
-      base64-js:
-        specifier: ^1.5.1
-        version: 1.5.1
       it-length-prefixed:
         specifier: ^9.1.0
         version: 9.1.0
@@ -251,9 +248,6 @@ importers:
       '@ts-drp/object':
         specifier: 0.4.1
         version: link:../object
-      base64-js:
-        specifier: ^1.5.1
-        version: 1.5.1
       commander:
         specifier: ^12.1.0
         version: 12.1.0

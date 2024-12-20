@@ -43,7 +43,6 @@
 		"@ts-drp/object": "0.4.1",
 		"@ts-drp/logger": "0.4.1",
 		"commander": "^12.1.0",
-		"uint8arrays": "^5.1.0",
-		"base64-js": "^1.5.1"
+		"uint8arrays": "^5.1.0"
 	}
 }
