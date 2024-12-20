@@ -29,7 +29,7 @@ export class ACL implements IACL, DRP {
 		this._writers = new Set(admins.keys());
 		this.peerKeyStore = admins;
 		this._conflictResolution =
-			conflictResolution ?? AccessControlConflictResolution.RevokeWins;
+			conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
 	private _grant(peerId: string, publicKey: string): void {
