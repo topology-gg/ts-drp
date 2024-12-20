@@ -6,7 +6,7 @@ import {
 	type DRPNetworkNodeConfig,
 	NetworkPb,
 } from "@ts-drp/network";
-import { type DRP, DRPObject, type DRPObjectConfig } from "@ts-drp/object";
+import { type DRP, DRPObject } from "@ts-drp/object";
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
@@ -77,9 +77,8 @@ export class DRPNode {
 		abi?: string,
 		sync?: boolean,
 		peerId?: string,
-		config?: DRPObjectConfig,
 	) {
-		const object = new DRPObject(this.networkNode.peerId, drp, id, abi, config);
+		const object = new DRPObject(this.networkNode.peerId, drp, id, abi);
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
 		if (sync) {
