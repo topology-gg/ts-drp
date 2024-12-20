@@ -65,13 +65,13 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
+		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			this._privateKey = await generateKeyPairFromSeed(
+			privateKey = await generateKeyPairFromSeed(
 				"Ed25519",
 				uint8ArrayFromString(tmp),
 			);
-			this.publicKey = fromByteArray(this._privateKey.publicKey.raw);
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
@@ -109,8 +109,8 @@ export class DRPNetworkNode {
 			relay: circuitRelayServer(),
 		};
 
-		this._node = await createLibp2p({
-			privateKey: this._privateKey,
+		const options = {
+			privateKey,
 			addresses: {
 				listen: this._config?.addresses
 					? this._config.addresses
@@ -137,7 +137,9 @@ export class DRPNetworkNode {
 				}),
 				webTransport(),
 			],
-		});
+		};
+
+		this._node = await createLibp2p(options);
 
 		if (!this._config?.bootstrap) {
 			for (const addr of this._config?.bootstrap_peers || []) {
@@ -147,6 +149,13 @@ export class DRPNetworkNode {
 					log.error("::start::dial::error", e);
 				}
 			}
+		}
+
+		if (!options.privateKey) {
+			log.error("::start: Private key not found");
+		} else {
+			this._privateKey = options.privateKey;
+			this.publicKey = fromByteArray(this._privateKey.publicKey.raw);
 		}
 
 		this._pubsub = this._node.services.pubsub as PubSub<GossipsubEvents>;
