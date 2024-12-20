@@ -164,7 +164,7 @@ export class HashGraph {
 				throw new Error("Invalid dependency detected.");
 			}
 			if (vertex.timestamp > timestamp) {
-				// Vertex's timestamp must not be less than its dependencies
+				// Vertex's timestamp must not be less than any of its dependencies' timestamps
 				throw new Error("Invalid timestamp detected.");
 			}
 		}

@@ -619,3 +619,66 @@ describe("Vertex state tests", () => {
 		expect(drpStateV8?.state.get("state").get(3)).toBe(undefined);
 	});
 });
+
+describe("Vertex timestamp tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	let obj3: DRPObject;
+
+	beforeEach(async () => {
+		obj1 = new DRPObject("peer1", new AddWinsSet<number>());
+		obj2 = new DRPObject("peer1", new AddWinsSet<number>());
+		obj3 = new DRPObject("peer1", new AddWinsSet<number>());
+	});
+
+	test("Test: Vertex created in the future is invalid", () => {
+		const drp1 = obj1.drp as AddWinsSet<number>;
+
+		drp1.add(1);
+
+		expect(() =>
+			obj1.hashGraph.addVertex(
+				{
+					type: "add",
+					value: 1,
+				},
+				obj1.hashGraph.getFrontier(),
+				"",
+				Number.POSITIVE_INFINITY,
+			),
+		).toThrowError("Invalid timestamp detected.");
+	});
+
+	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", () => {
+		/*
+		        __ V1:ADD(1) __
+		       /               \  
+		  ROOT -- V2:ADD(2) ---- V1:ADD(4) (invalid)
+		       \               /
+		        -- V3:ADD(3) --
+		*/
+
+		const drp1 = obj1.drp as AddWinsSet<number>;
+		const drp2 = obj2.drp as AddWinsSet<number>;
+		const drp3 = obj2.drp as AddWinsSet<number>;
+
+		drp1.add(1);
+		drp2.add(2);
+		drp3.add(3);
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj1.merge(obj3.hashGraph.getAllVertices());
+
+		expect(() =>
+			obj1.hashGraph.addVertex(
+				{
+					type: "add",
+					value: 1,
+				},
+				obj1.hashGraph.getFrontier(),
+				"",
+				1,
+			),
+		).toThrowError("Invalid timestamp detected.");
+	});
+});
