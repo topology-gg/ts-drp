@@ -14,12 +14,7 @@ describe("DPRNode with verify and sign signature", () => {
 	let drpObject: DRPObject;
 	let config: DRPNodeConfig;
 	beforeAll(async () => {
-		config = {
-			network_config: {
-				private_key_seed: "cdc4c01bb5869c7497a80c5ae06afba6",
-			},
-		};
-		drpNode = new DRPNode(config);
+		drpNode = new DRPNode();
 		await drpNode.start();
 	});
 
