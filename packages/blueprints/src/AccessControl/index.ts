@@ -17,7 +17,7 @@ export class ACL implements IACL, DRP {
 	semanticsType = SemanticsType.pair;
 	peerKeyStore = new Map<string, string>();
 
-	private _conflictResolution: AccessControlConflictResolution;
+	private _conflictResolution: ACLConflictResolution;
 	private _admins: Set<string>;
 	private _writers: Set<string>;
 
