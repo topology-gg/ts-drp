@@ -23,7 +23,7 @@ export class ACL implements IACL, DRP {
 
 	constructor(
 		admins: Map<string, string>,
-		conflictResolution?: AccessControlConflictResolution,
+		conflictResolution?: ACLConflictResolution,
 	) {
 		this._admins = new Set(admins.keys());
 		this._writers = new Set(admins.keys());
