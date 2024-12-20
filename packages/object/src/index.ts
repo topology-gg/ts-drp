@@ -42,7 +42,6 @@ export interface IDRPObject extends ObjectPb.DRPObjectBase {
 // snake_casing to match the JSON config
 export interface DRPObjectConfig {
 	log_config?: LoggerOptions;
-	vertex_expiration_period?: number;
 }
 
 export let log: Logger;
@@ -59,7 +58,6 @@ export class DRPObject implements IDRPObject {
 	states: Map<string, DRPState>;
 	originalDRP: DRP;
 	subscriptions: DRPObjectCallback[];
-	vertexExpirationPeriod: number;
 
 	constructor(
 		nodeId: string,
@@ -94,8 +92,6 @@ export class DRPObject implements IDRPObject {
 			Object.getOwnPropertyDescriptors(structuredClone(drp)),
 		);
 		this.vertices = this.hashGraph.getAllVertices();
-		this.vertexExpirationPeriod =
-			config?.vertex_expiration_period ?? Number.POSITIVE_INFINITY;
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
