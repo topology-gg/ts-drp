@@ -653,7 +653,7 @@ describe("Vertex timestamp tests", () => {
 		/*
 		        __ V1:ADD(1) __
 		       /               \  
-		  ROOT -- V2:ADD(2) ---- V1:ADD(4) (invalid)
+		  ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
 		       \               /
 		        -- V3:ADD(3) --
 		*/

@@ -101,14 +101,15 @@ export class HashGraph {
 
 	addToFrontier(operation: Operation): Vertex {
 		const deps = this.getFrontier();
-		const hash = computeHash(this.nodeId, operation, deps);
+		const currentTimestamp = Date.now();
+		const hash = computeHash(this.nodeId, operation, deps, currentTimestamp);
 
 		const vertex: Vertex = {
 			hash,
 			nodeId: this.nodeId,
 			operation: operation ?? { type: OperationType.NOP },
 			dependencies: deps,
-			timestamp: Date.now(),
+			timestamp: currentTimestamp,
 		};
 
 		this.vertices.set(hash, vertex);
@@ -153,7 +154,7 @@ export class HashGraph {
 		nodeId: string,
 		timestamp: number,
 	): Hash {
-		const hash = computeHash(nodeId, operation, deps);
+		const hash = computeHash(nodeId, operation, deps, timestamp);
 		if (this.vertices.has(hash)) {
 			return hash; // Vertex already exists
 		}
@@ -513,12 +514,13 @@ export class HashGraph {
 	}
 }
 
-function computeHash<T>(
+function computeHash(
 	nodeId: string,
 	operation: Operation,
 	deps: Hash[],
+	timestamp: number,
 ): Hash {
-	const serialized = JSON.stringify({ operation, deps, nodeId });
+	const serialized = JSON.stringify({ operation, deps, nodeId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
 }
