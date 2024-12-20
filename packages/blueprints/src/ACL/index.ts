@@ -71,7 +71,7 @@ export class ACL implements IACL, DRP {
 			return { action: ActionType.Nop };
 
 		return this._conflictResolution ===
-			AccessControlConflictResolution.GrantWins
+			ACLConflictResolution.GrantWins
 			? {
 					action:
 						vertices[0].operation.type === "grant"

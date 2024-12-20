@@ -6,7 +6,7 @@ import {
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/object";
-import { ACL } from "../AccessControl/index.js";
+import { ACL } from "../ACL/index.js";
 
 export class AddWinsSetWithACL<T> implements DRP {
 	operations: string[] = ["add", "remove"];
