@@ -1,6 +1,6 @@
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { type DRP, DRPObject } from "@ts-drp/object";
-import { beforeAll, describe, expect, test } from "vitest";
+import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
 	signGeneratedVertices,
 	verifyIncomingVertices,
@@ -15,17 +15,14 @@ describe("DPRNode with verify and sign signature", () => {
 	beforeAll(async () => {
 		config = {
 			network_config: {
-				addresses: ["/ip4/0.0.0.0/tcp/50000/ws", "/ip4/0.0.0.0/tcp/50001"],
-				bootstrap: true,
-				bootstrap_peers: [
-					"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
-				],
 				private_key_seed: "cdc4c01bb5869c7497a80c5ae06afba6",
 			},
 		};
 		drpNode = new DRPNode(config);
 		await drpNode.start();
+	});
 
+	beforeEach(async () => {
 		drp = new AddWinsSetWithACL(
 			new Map([
 				[drpNode.networkNode.peerId, drpNode.networkNode.publicKey || ""],
