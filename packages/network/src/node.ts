@@ -11,7 +11,7 @@ import {
 	circuitRelayServer,
 	circuitRelayTransport,
 } from "@libp2p/circuit-relay-v2";
-import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
+import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify } from "@libp2p/identify";
@@ -65,14 +65,19 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
-		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			privateKey = await generateKeyPairFromSeed(
+			this._privateKey = await generateKeyPairFromSeed(
 				"Ed25519",
 				uint8ArrayFromString(tmp),
 			);
+		} else {
+			this._privateKey = await generateKeyPair("Ed25519");
 		}
+		this.publicKey = uint8ArrayToString(
+			this._privateKey.publicKey.raw,
+			"base64",
+		);
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
 			? this._config.bootstrap_peers
@@ -109,8 +114,8 @@ export class DRPNetworkNode {
 			relay: circuitRelayServer(),
 		};
 
-		const options = {
-			privateKey,
+		this._node = await createLibp2p({
+			privateKey: this._privateKey,
 			addresses: {
 				listen: this._config?.addresses
 					? this._config.addresses
@@ -137,9 +142,7 @@ export class DRPNetworkNode {
 				}),
 				webTransport(),
 			],
-		};
-
-		this._node = await createLibp2p(options);
+		});
 
 		if (!this._config?.bootstrap) {
 			for (const addr of this._config?.bootstrap_peers || []) {
@@ -149,16 +152,6 @@ export class DRPNetworkNode {
 					log.error("::start::dial::error", e);
 				}
 			}
-		}
-
-		if (!options.privateKey) {
-			log.error("::start: Private key not found");
-		} else {
-			this._privateKey = options.privateKey;
-			this.publicKey = uint8ArrayToString(
-				this._privateKey.publicKey.raw,
-				"base64",
-			);
 		}
 
 		this._pubsub = this._node.services.pubsub as PubSub<GossipsubEvents>;
