@@ -90,6 +90,7 @@ export class HashGraph {
 			},
 			dependencies: [],
 			timestamp: 0,
+			signature: "",
 		};
 		this.vertices.set(HashGraph.rootHash, rootVertex);
 		this.frontier.push(HashGraph.rootHash);
@@ -110,6 +111,7 @@ export class HashGraph {
 			operation: operation ?? { type: OperationType.NOP },
 			dependencies: deps,
 			timestamp: currentTimestamp,
+			signature: "",
 		};
 
 		this.vertices.set(hash, vertex);
@@ -153,7 +155,8 @@ export class HashGraph {
 		deps: Hash[],
 		nodeId: string,
 		timestamp: number,
-	): Hash {
+		signature: string,
+		): Hash {
 		const hash = computeHash(nodeId, operation, deps, timestamp);
 		if (this.vertices.has(hash)) {
 			return hash; // Vertex already exists
@@ -182,6 +185,7 @@ export class HashGraph {
 			operation,
 			dependencies: deps,
 			timestamp,
+			signature,
 		};
 		this.vertices.set(hash, vertex);
 		this.frontier.push(hash);

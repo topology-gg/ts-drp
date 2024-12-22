@@ -1,6 +1,7 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import type { DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
 /*
@@ -62,20 +63,12 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		return false;
 	}
 
-	const [merged, _] = object.merge(
-		updateMessage.vertices.map((v) => {
-			return {
-				hash: v.hash,
-				nodeId: v.nodeId,
-				operation: {
-					type: v.operation?.type ?? "",
-					value: v.operation?.value,
-				},
-				dependencies: v.dependencies,
-				timestamp: v.timestamp,
-			};
-		}),
+	const verifiedVertices = await verifyIncomingVertices(
+		object,
+		updateMessage.vertices,
 	);
+
+	const [merged, _] = object.merge(verifiedVertices);
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
@@ -90,7 +83,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = NetworkPb.Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
@@ -98,6 +91,8 @@ function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		log.error("::syncHandler: Object not found");
 		return;
 	}
+
+	await signGeneratedVertices(node, object.vertices);
 
 	const requested: Set<ObjectPb.Vertex> = new Set(object.vertices);
 	const requesting: string[] = [];
@@ -131,7 +126,11 @@ function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function syncAcceptHandler(
+	node: DRPNode,
+	sender: string,
+	data: Uint8Array,
+) {
 	const syncAcceptMessage = NetworkPb.SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {
@@ -139,24 +138,17 @@ function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		return;
 	}
 
-	const vertices: Vertex[] = syncAcceptMessage.requested.map((v) => {
-		return {
-			hash: v.hash,
-			nodeId: v.nodeId,
-			operation: {
-				type: v.operation?.type ?? "",
-				value: v.operation?.value,
-			},
-			dependencies: v.dependencies,
-			timestamp: v.timestamp,
-		};
-	});
+	const verifiedVertices = await verifyIncomingVertices(
+		object,
+		syncAcceptMessage.requested,
+	);
 
-	if (vertices.length !== 0) {
-		object.merge(vertices);
+	if (verifiedVertices.length !== 0) {
+		object.merge(verifiedVertices);
 		node.objectStore.put(object.id, object);
 	}
 
+	await signGeneratedVertices(node, object.vertices);
 	// send missing vertices
 	const requested: ObjectPb.Vertex[] = [];
 	for (const h of syncAcceptMessage.requesting) {
@@ -219,4 +211,86 @@ export function drpObjectChangesHandler(
 		default:
 			log.error("::createObject: Invalid origin function");
 	}
+}
+
+export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
+	const signPromises = vertices.map(async (vertex) => {
+		if (vertex.nodeId !== node.networkNode.peerId || vertex.signature !== "") {
+			return;
+		}
+
+		await node.signVertexOperation(vertex);
+	});
+
+	await Promise.all(signPromises);
+}
+
+export async function verifyIncomingVertices(
+	object: DRPObject,
+	incomingVertices: ObjectPb.Vertex[],
+): Promise<Vertex[]> {
+	const vertices: Vertex[] = incomingVertices.map((vertex) => {
+		return {
+			hash: vertex.hash,
+			nodeId: vertex.nodeId,
+			operation: {
+				type: vertex.operation?.type ?? "",
+				value: vertex.operation?.value,
+			},
+			dependencies: vertex.dependencies,
+			timestamp: vertex.timestamp,
+			signature: vertex.signature,
+		};
+	});
+
+	const drp = object.drp as DRP;
+	if (!drp.acl) {
+		return vertices;
+	}
+	const acl = drp.acl;
+	const verificationPromises = vertices.map(async (vertex) => {
+		if (vertex.signature === "") {
+			return null;
+		}
+
+		const signature = uint8ArrayFromString(vertex.signature, "base64");
+
+		const publicKey = acl.getPeerKey(vertex.nodeId);
+		if (!publicKey) {
+			return null;
+		}
+
+		const publicKeyBytes = uint8ArrayFromString(publicKey, "base64");
+		const operationData = uint8ArrayFromString(
+			JSON.stringify(vertex.operation),
+		);
+
+		try {
+			const cryptoKey = await crypto.subtle.importKey(
+				"raw",
+				publicKeyBytes,
+				{ name: "Ed25519" },
+				true,
+				["verify"],
+			);
+
+			const isValid = await crypto.subtle.verify(
+				{ name: "Ed25519" },
+				cryptoKey,
+				signature,
+				operationData,
+			);
+
+			return isValid ? vertex : null;
+		} catch (error) {
+			console.error("Error verifying signature:", error);
+			return null;
+		}
+	});
+
+	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
+		(vertex) => vertex !== null,
+	);
+
+	return verifiedVertices;
 }

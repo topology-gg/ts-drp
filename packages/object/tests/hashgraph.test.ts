@@ -70,6 +70,7 @@ describe("HashGraph construction tests", () => {
 			[],
 			"",
 			Date.now(),
+			"",
 		);
 		obj1.hashGraph.addVertex(
 			{
@@ -79,6 +80,7 @@ describe("HashGraph construction tests", () => {
 			[hash],
 			"",
 			Date.now(),
+			"",
 		);
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
 

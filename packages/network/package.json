@@ -1,6 +1,6 @@
 {
 	"name": "@ts-drp/network",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -42,7 +42,7 @@
 		"@libp2p/websockets": "^9.0.7",
 		"@libp2p/webtransport": "^5.0.9",
 		"@multiformats/multiaddr": "^12.3.1",
-		"@ts-drp/logger": "^0.4.0",
+		"@ts-drp/logger": "^0.4.1",
 		"it-length-prefixed": "^9.1.0",
 		"it-map": "^3.1.1",
 		"it-pipe": "^3.0.1",

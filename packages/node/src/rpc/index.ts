@@ -1,5 +1,9 @@
 import * as grpc from "@grpc/grpc-js";
+import * as protoLoader from "@grpc/proto-loader";
+import * as reflection from "@grpc/reflection";
 
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { ServerUnaryCall, sendUnaryData } from "@grpc/grpc-js";
 import { type DRPNode, log } from "../index.js";
 import { DRPRpcService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
@@ -70,7 +74,15 @@ export function init(node: DRPNode) {
 		callback(null, response);
 	}
 
+	const protoPath = path.resolve(
+		dirname(fileURLToPath(import.meta.url)),
+		"../proto/drp/node/v1/rpc.proto",
+	);
+	const packageDefinition = protoLoader.loadSync(protoPath);
+	const reflectionService = new reflection.ReflectionService(packageDefinition);
+
 	const server = new grpc.Server();
+	reflectionService.addToServer(server);
 	server.addService(DRPRpcService, {
 		subscribeDRP,
 		unsubscribeDRP,

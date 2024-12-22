@@ -14,10 +14,19 @@ import { ObjectSet } from "./utils/objectSet.js";
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
 
+export interface IACL {
+	isWriter: (peerId: string) => boolean;
+	isAdmin: (peerId: string) => boolean;
+	grant: (senderId: string, peerId: string, publicKey: string) => void;
+	revoke: (senderId: string, peerId: string) => void;
+	getPeerKey: (peerId: string) => string | undefined;
+}
+
 export interface DRP {
 	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
+	acl?: IACL & DRP;
 	// biome-ignore lint: attributes can be anything
 	[key: string]: any;
 }
@@ -150,6 +159,7 @@ export class DRPObject implements IDRPObject {
 					vertex.dependencies,
 					vertex.nodeId,
 					vertex.timestamp,
+					vertex.signature,
 				);
 
 				this._setState(vertex);

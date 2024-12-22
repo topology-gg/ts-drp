@@ -15,4 +15,4 @@ jobs:
       - shell: bash
         run: |
           pnpm install --no-frozen-lockfile
-          pnpm test
+          pnpm ci-test
