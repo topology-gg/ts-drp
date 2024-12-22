@@ -13,7 +13,6 @@ export enum ACLConflictResolution {
 }
 
 export class ACL implements IACL, DRP {
-	operations: string[] = ["grant", "revoke"];
 	semanticsType = SemanticsType.pair;
 
 	private _conflictResolution: ACLConflictResolution;

@@ -26,7 +26,6 @@ function computeHash(s: string): number {
 	The winning operation is chosen using a pseudo-random number generator.
 */
 export class PseudoRandomWinsSet<T> implements DRP {
-	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
 	semanticsType = SemanticsType.multiple;
 

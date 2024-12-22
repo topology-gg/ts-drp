@@ -1,3 +1,4 @@
+import { deepStrictEqual } from "node:assert";
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import {
@@ -23,7 +24,6 @@ export interface IACL {
 }
 
 export interface DRP {
-	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	acl?: IACL & DRP;
@@ -111,7 +111,7 @@ export class DRPObject implements IDRPObject {
 				if (typeof target[propKey as keyof object] === "function") {
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
-							if ((thisArg.operations as string[]).includes(propKey as string))
+							if (!(propKey as string).startsWith("_"))
 								obj.callFn(
 									propKey as string,
 									args.length === 1 ? args[0] : args,
@@ -127,8 +127,60 @@ export class DRPObject implements IDRPObject {
 
 	// biome-ignore lint: value can't be unknown because of protobuf
 	callFn(fn: string, args: any) {
+		if (!this.drp) {
+			throw new Error("DRP object not initialized");
+		}
+		const preOperationState = this._computeState(this.hashGraph.getFrontier());
+
+		const drp = Object.create(
+			Object.getPrototypeOf(this.originalDRP),
+			Object.getOwnPropertyDescriptors(structuredClone(this.originalDRP)),
+		) as DRP;
+
+		const state = structuredClone(preOperationState);
+
+		for (const [key, value] of state.entries()) {
+			drp[key] = value;
+		}
+
+		const normalizedArgs = Array.isArray(args) ? args : [args];
+		drp[fn](...normalizedArgs);
+
+		let stateChanged = false;
+		for (const [key, value] of preOperationState.entries()) {
+			try {
+				deepStrictEqual(value, drp[key]);
+			} catch (e) {
+				stateChanged = true;
+				break;
+			}
+		}
+
+		if (!stateChanged) {
+			return;
+		}
+
+		for (const [key, value] of preOperationState.entries()) {
+			console.log("before", key, value);
+			console.log("after", key, drp[key]);
+			try {
+				deepStrictEqual(value, drp[key]);
+				console.log("they are equal");
+			} catch (e) {
+				stateChanged = true;
+				console.log("they are different");
+			}
+		}
+
 		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args });
-		this._setState(vertex);
+		console.log("vertex", vertex);
+		const varNames: string[] = Object.keys(drp);
+		// biome-ignore lint: values can be anything
+		const newState: Map<string, any> = new Map();
+		for (const varName of varNames) {
+			newState.set(varName, drp[varName]);
+		}
+		this._setState(vertex, newState);
 
 		const serializedVertex = ObjectPb.Vertex.create({
 			hash: vertex.hash,
@@ -238,9 +290,17 @@ export class DRPObject implements IDRPObject {
 		return newState;
 	}
 
-	private _setState(vertex: Vertex) {
-		const newState = this._computeState(vertex.dependencies, vertex.operation);
-		this.states.set(vertex.hash, { state: newState });
+	// biome-ignore lint: values can be anything
+	private _setState(vertex: Vertex, state?: Map<string, any>) {
+		if (state) {
+			this.states.set(vertex.hash, { state });
+		} else {
+			const newState = this._computeState(
+				vertex.dependencies,
+				vertex.operation,
+			);
+			this.states.set(vertex.hash, { state: newState });
+		}
 	}
 
 	private _updateDRPState() {

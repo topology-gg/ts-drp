@@ -7,7 +7,6 @@ import {
 } from "@ts-drp/object";
 
 export class Grid implements DRP {
-	operations: string[] = ["addUser", "moveUser"];
 	semanticsType: SemanticsType = SemanticsType.pair;
 	positions: Map<string, { x: number; y: number }>;
 

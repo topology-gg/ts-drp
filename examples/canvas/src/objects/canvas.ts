@@ -7,7 +7,6 @@ import {
 import { Pixel } from "./pixel";
 
 export class Canvas implements DRP {
-	operations: string[] = ["splash", "paint"];
 	semanticsType: SemanticsType = SemanticsType.pair;
 
 	width: number;
