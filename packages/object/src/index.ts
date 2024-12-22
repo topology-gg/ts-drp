@@ -87,10 +87,7 @@ export class DRPObject implements IDRPObject {
 		);
 		this.subscriptions = [];
 		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.originalDRP = Object.create(
-			Object.getPrototypeOf(drp),
-			Object.getOwnPropertyDescriptors(structuredClone(drp)),
-		);
+		this.originalDRP = this._deepClone(drp) as DRP;
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
@@ -192,17 +189,14 @@ export class DRPObject implements IDRPObject {
 				? []
 				: this.hashGraph.linearizeOperations(lca, subgraph);
 
-		const drp = Object.create(
-			Object.getPrototypeOf(this.originalDRP),
-			Object.getOwnPropertyDescriptors(structuredClone(this.originalDRP)),
-		) as DRP;
+		const drp = this._deepClone(this.originalDRP) as DRP;
 
 		const fetchedState = this.states.get(lca);
 		if (!fetchedState) {
 			throw new Error("State is undefined");
 		}
 
-		const state = structuredClone(fetchedState);
+		const state = this._deepClone(fetchedState) as DRPState;
 
 		for (const [key, value] of state.state) {
 			drp[key] = value;
@@ -244,5 +238,9 @@ export class DRPObject implements IDRPObject {
 				currentDRP[key] = value;
 			}
 		}
+	}
+
+	private _deepClone(obj: unknown): unknown {
+		return Object.assign(Object.create(Object.getPrototypeOf(obj)), obj);
 	}
 }
