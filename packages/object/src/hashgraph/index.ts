@@ -156,7 +156,7 @@ export class HashGraph {
 		nodeId: string,
 		timestamp: number,
 		signature: string,
-		): Hash {
+	): Hash {
 		const hash = computeHash(nodeId, operation, deps, timestamp);
 		if (this.vertices.has(hash)) {
 			return hash; // Vertex already exists
