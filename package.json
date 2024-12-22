@@ -11,10 +11,7 @@
 	"bugs": {
 		"url": "https://github.com/topology-foundation/ts-drp/issues"
 	},
-	"workspaces": [
-		"packages/*",
-		"examples/*"
-	],
+	"workspaces": ["packages/*", "examples/*"],
 	"scripts": {
 		"bench": "vitest bench",
 		"biome-check": "biome check",
