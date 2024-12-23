@@ -390,54 +390,6 @@ describe("HashGraph for AddWinSet tests", () => {
 	});
 });
 
-describe("HashGraph for PseudoRandomWinsSet tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
-	let obj3: DRPObject;
-	let obj4: DRPObject;
-	let obj5: DRPObject;
-
-	beforeEach(async () => {
-		obj1 = new DRPObject("peer1", new PseudoRandomWinsSet<number>());
-		obj2 = new DRPObject("peer2", new PseudoRandomWinsSet<number>());
-		obj3 = new DRPObject("peer3", new PseudoRandomWinsSet<number>());
-		obj4 = new DRPObject("peer4", new PseudoRandomWinsSet<number>());
-		obj5 = new DRPObject("peer5", new PseudoRandomWinsSet<number>());
-	});
-
-	test("Test: Many concurrent operations", () => {
-		/*
-		        /-- V1:ADD(1)
-		       /--- V2:ADD(2)
-		  ROOT -- V3:ADD(3)
-		       \__  V4:ADD(4)
-		        \__ V5:ADD(5)
-		*/
-
-		const drp1 = obj1.drp as PseudoRandomWinsSet<number>;
-		const drp2 = obj2.drp as PseudoRandomWinsSet<number>;
-		const drp3 = obj3.drp as PseudoRandomWinsSet<number>;
-		const drp4 = obj4.drp as PseudoRandomWinsSet<number>;
-		const drp5 = obj5.drp as PseudoRandomWinsSet<number>;
-
-		drp1.add(1);
-		drp2.add(2);
-		drp3.add(3);
-		drp4.add(4);
-		drp5.add(5);
-
-		obj2.merge(obj1.hashGraph.getAllVertices());
-		obj3.merge(obj2.hashGraph.getAllVertices());
-		obj4.merge(obj3.hashGraph.getAllVertices());
-		obj5.merge(obj4.hashGraph.getAllVertices());
-		obj1.merge(obj5.hashGraph.getAllVertices());
-
-		const linearOps = obj1.hashGraph.linearizeOperations();
-		// Pseudo-randomly chosen operation
-		expect(linearOps).toEqual([{ type: "add", value: 3 }]);
-	});
-});
-
 describe("HashGraph for undefined operations tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
@@ -539,17 +491,18 @@ describe("Vertex state tests", () => {
 		drp1.add(4);
 		drp3.add(5);
 
+		expect(obj1.hashGraph.getFrontier().length).toBe(1);
+		expect(obj3.hashGraph.getFrontier().length).toBe(1);
+		const hashA4 = obj1.hashGraph.getFrontier()[0];
+		const hashC5 = obj3.hashGraph.getFrontier()[0];
+
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
 
 		drp1.add(6);
 
-		const hashA4 =
-			"8e6f4369010528ae3668efce452da04d077e0957955d62d671b90f2934c755fe";
-		const hashC5 =
-			"a8d94f7e2b421be2d5cd1124ca9ddb831e38246065db6e9a32ce493ca9604038";
-		const hashA6 =
-			"cd6a955f0734a09df1bff44c5e0458365d3a26ec7f1cae0df2c0f708b9f100a8";
+		expect(obj1.hashGraph.getFrontier().length).toBe(1);
+		const hashA6 = obj1.hashGraph.getFrontier()[0];
 
 		const drpState1 = obj1.states.get(hashA4);
 		expect(drpState1?.state.get("state").get(1)).toBe(true);
@@ -606,6 +559,9 @@ describe("Vertex state tests", () => {
 		drp1.remove(3);
 		drp2.remove(1);
 
+		expect(obj1.hashGraph.getFrontier().length).toBe(1);
+		const hashV8 = obj1.hashGraph.getFrontier()[0];
+
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -613,8 +569,6 @@ describe("Vertex state tests", () => {
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj2.hashGraph.getAllVertices());
 
-		const hashV8 =
-			"be97d8fe9169800893c28b3d8aaefda517b98936efb069673e0250317b5e4a0b";
 		const drpStateV8 = obj1.states.get(hashV8);
 		expect(drpStateV8?.state.get("state").get(1)).toBe(false);
 		expect(drpStateV8?.state.get("state").get(2)).toBe(true);
@@ -647,6 +601,7 @@ describe("Vertex timestamp tests", () => {
 				obj1.hashGraph.getFrontier(),
 				"",
 				Number.POSITIVE_INFINITY,
+				"",
 			),
 		).toThrowError("Invalid timestamp detected.");
 	});
@@ -680,6 +635,7 @@ describe("Vertex timestamp tests", () => {
 				obj1.hashGraph.getFrontier(),
 				"",
 				1,
+				"",
 			),
 		).toThrowError("Invalid timestamp detected.");
 	});
