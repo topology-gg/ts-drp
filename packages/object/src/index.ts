@@ -13,6 +13,7 @@ import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
+import { clone, cloneDeep } from "es-toolkit";
 
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
@@ -96,10 +97,7 @@ export class DRPObject implements IDRPObject {
 		);
 		this.subscriptions = [];
 		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.originalDRP = Object.create(
-			Object.getPrototypeOf(drp),
-			Object.getOwnPropertyDescriptors(structuredClone(drp)),
-		);
+		this.originalDRP = cloneDeep(drp);
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
@@ -202,17 +200,14 @@ export class DRPObject implements IDRPObject {
 				? []
 				: this.hashGraph.linearizeOperations(lca, subgraph);
 
-		const drp = Object.create(
-			Object.getPrototypeOf(this.originalDRP),
-			Object.getOwnPropertyDescriptors(structuredClone(this.originalDRP)),
-		) as DRP;
+		const drp = cloneDeep(this.originalDRP);
 
 		const fetchedState = this.states.get(lca);
 		if (!fetchedState) {
 			throw new Error("State is undefined");
 		}
 
-		const state = structuredClone(fetchedState);
+		const state = cloneDeep(fetchedState);
 
 		for (const [key, value] of state.state) {
 			drp[key] = value;
