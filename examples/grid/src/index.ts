@@ -10,7 +10,7 @@ let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 
-const formatNodeId = (id: string): string => {
+const formatPeerId = (id: string): string => {
 	return `${id.slice(0, 4)}...${id.slice(-4)}`;
 };
 
@@ -25,7 +25,7 @@ const hashCode = (str: string): number => {
 	return hash;
 };
 
-const getColorForNodeId = (id: string): string => {
+const getColorForPeerId = (id: string): string => {
 	if (!colorMap.has(id)) {
 		const hash = hashCode(id);
 		let r = (hash & 0xff0000) >> 16;
@@ -64,22 +64,22 @@ const render = () => {
 	}
 
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
-	element_peerId.innerHTML = `<strong style="color: ${getColorForNodeId(node.networkNode.peerId)};">${formatNodeId(node.networkNode.peerId)}</strong>`;
+	element_peerId.innerHTML = `<strong style="color: ${getColorForPeerId(node.networkNode.peerId)};">${formatPeerId(node.networkNode.peerId)}</strong>`;
 
 	const element_peers = <HTMLDivElement>document.getElementById("peers");
-	element_peers.innerHTML = `[${peers.map((peer) => `<strong style="color: ${getColorForNodeId(peer)};">${formatNodeId(peer)}</strong>`).join(", ")}]`;
+	element_peers.innerHTML = `[${peers.map((peer) => `<strong style="color: ${getColorForPeerId(peer)};">${formatPeerId(peer)}</strong>`).join(", ")}]`;
 
 	const element_discoveryPeers = <HTMLDivElement>(
 		document.getElementById("discoveryPeers")
 	);
-	element_discoveryPeers.innerHTML = `[${discoveryPeers.map((peer) => `<strong style="color: ${getColorForNodeId(peer)};">${formatNodeId(peer)}</strong>`).join(", ")}]`;
+	element_discoveryPeers.innerHTML = `[${discoveryPeers.map((peer) => `<strong style="color: ${getColorForPeerId(peer)};">${formatPeerId(peer)}</strong>`).join(", ")}]`;
 
 	const element_objectPeers = <HTMLDivElement>(
 		document.getElementById("objectPeers")
 	);
 	element_objectPeers.innerHTML = !gridDRP
 		? ""
-		: `Your frens in GRID: [${objectPeers.map((peer) => `<strong style="color: ${getColorForNodeId(peer)};">${formatNodeId(peer)}</strong>`).join(", ")}]`;
+		: `Your frens in GRID: [${objectPeers.map((peer) => `<strong style="color: ${getColorForPeerId(peer)};">${formatPeerId(peer)}</strong>`).join(", ")}]`;
 
 	if (!gridDRP) return;
 	const users = gridDRP.getUsers();
@@ -179,7 +179,7 @@ async function addUser() {
 
 	gridDRP.addUser(
 		node.networkNode.peerId,
-		getColorForNodeId(node.networkNode.peerId),
+		getColorForPeerId(node.networkNode.peerId),
 	);
 	render();
 }

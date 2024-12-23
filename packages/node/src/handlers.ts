@@ -215,7 +215,7 @@ export function drpObjectChangesHandler(
 
 export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 	const signPromises = vertices.map(async (vertex) => {
-		if (vertex.nodeId !== node.networkNode.peerId || vertex.signature !== "") {
+		if (vertex.peerId !== node.networkNode.peerId || vertex.signature !== "") {
 			return;
 		}
 
@@ -232,7 +232,7 @@ export async function verifyIncomingVertices(
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
 		return {
 			hash: vertex.hash,
-			nodeId: vertex.nodeId,
+			peerId: vertex.peerId,
 			operation: {
 				type: vertex.operation?.type ?? "",
 				value: vertex.operation?.value,
@@ -254,7 +254,7 @@ export async function verifyIncomingVertices(
 
 		const signature = uint8ArrayFromString(vertex.signature, "base64");
 
-		const publicKey = acl.getPeerKey(vertex.nodeId);
+		const publicKey = acl.getPeerKey(vertex.peerId);
 		if (!publicKey) {
 			return null;
 		}

@@ -49,7 +49,7 @@ export type VertexDistance = {
 };
 
 export class HashGraph {
-	nodeId: string;
+	peerId: string;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsType: SemanticsType;
 
@@ -73,17 +73,17 @@ export class HashGraph {
 	private currentBitsetSize = 1;
 
 	constructor(
-		nodeId: string,
+		peerId: string,
 		resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType,
 		semanticsType: SemanticsType,
 	) {
-		this.nodeId = nodeId;
+		this.peerId = peerId;
 		this.resolveConflicts = resolveConflicts;
 		this.semanticsType = semanticsType;
 
 		const rootVertex: Vertex = {
 			hash: HashGraph.rootHash,
-			nodeId: "",
+			peerId: "",
 			operation: {
 				type: OperationType.NOP,
 				value: null,
@@ -101,11 +101,11 @@ export class HashGraph {
 
 	addToFrontier(operation: Operation): Vertex {
 		const deps = this.getFrontier();
-		const hash = computeHash(this.nodeId, operation, deps);
+		const hash = computeHash(this.peerId, operation, deps);
 
 		const vertex: Vertex = {
 			hash,
-			nodeId: this.nodeId,
+			peerId: this.peerId,
 			operation: operation ?? { type: OperationType.NOP },
 			dependencies: deps,
 			signature: "",
@@ -150,10 +150,10 @@ export class HashGraph {
 	addVertex(
 		operation: Operation,
 		deps: Hash[],
-		nodeId: string,
+		peerId: string,
 		signature: string,
 	): Hash {
-		const hash = computeHash(nodeId, operation, deps);
+		const hash = computeHash(peerId, operation, deps);
 		if (this.vertices.has(hash)) {
 			return hash; // Vertex already exists
 		}
@@ -166,7 +166,7 @@ export class HashGraph {
 
 		const vertex: Vertex = {
 			hash,
-			nodeId,
+			peerId: peerId,
 			operation,
 			dependencies: deps,
 			signature,
@@ -503,11 +503,11 @@ export class HashGraph {
 }
 
 function computeHash<T>(
-	nodeId: string,
+	peerId: string,
 	operation: Operation,
 	deps: Hash[],
 ): Hash {
-	const serialized = JSON.stringify({ operation, deps, nodeId });
+	const serialized = JSON.stringify({ operation, deps, peerId });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
 }

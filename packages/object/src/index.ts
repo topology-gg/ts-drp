@@ -56,7 +56,7 @@ export interface DRPObjectConfig {
 export let log: Logger;
 
 export class DRPObject implements IDRPObject {
-	nodeId: string;
+	peerId: string;
 	id: string;
 	abi: string;
 	bytecode: Uint8Array;
@@ -69,20 +69,20 @@ export class DRPObject implements IDRPObject {
 	subscriptions: DRPObjectCallback[];
 
 	constructor(
-		nodeId: string,
+		peerId: string,
 		drp: DRP,
 		id?: string,
 		abi?: string,
 		config?: DRPObjectConfig,
 	) {
-		this.nodeId = nodeId;
+		this.peerId = peerId;
 		log = new Logger("drp::object", config?.log_config);
 		this.id =
 			id ??
 			crypto
 				.createHash("sha256")
 				.update(abi ?? "")
-				.update(nodeId)
+				.update(peerId)
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
 		this.abi = abi ?? "";
@@ -90,7 +90,7 @@ export class DRPObject implements IDRPObject {
 		this.vertices = [];
 		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler()) : null;
 		this.hashGraph = new HashGraph(
-			nodeId,
+			peerId,
 			drp?.resolveConflicts?.bind(drp ?? this),
 			drp?.semanticsType,
 		);
@@ -132,7 +132,7 @@ export class DRPObject implements IDRPObject {
 
 		const serializedVertex = ObjectPb.Vertex.create({
 			hash: vertex.hash,
-			nodeId: vertex.nodeId,
+			peerId: vertex.peerId,
 			operation: vertex.operation,
 			dependencies: vertex.dependencies,
 		});
@@ -156,7 +156,7 @@ export class DRPObject implements IDRPObject {
 				this.hashGraph.addVertex(
 					vertex.operation,
 					vertex.dependencies,
-					vertex.nodeId,
+					vertex.peerId,
 					vertex.signature,
 				);
 
