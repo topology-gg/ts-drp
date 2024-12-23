@@ -19,5 +19,4 @@ jobs:
       
       - shell: bash
         run: |
-          pnpm install --no-frozen-lockfile
-          pnpm ci-test
+          pnpm run check-coverage
