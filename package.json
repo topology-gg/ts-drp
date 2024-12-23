@@ -28,7 +28,8 @@
 		"release": "release-it",
 		"test": "vitest",
 		"ci-test": "vitest --exclude **/node.test.ts",
-		"watch": "pnpm --parallel --filter '@ts-drp/*' watch"
+		"watch": "pnpm --parallel --filter '@ts-drp/*' watch",
+		"check-coverage": "npx ts-node check-coverage.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.8.3",
