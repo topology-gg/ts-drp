@@ -166,7 +166,7 @@ export class HashGraph {
 
 		const vertex: Vertex = {
 			hash,
-			peerId: peerId,
+			peerId,
 			operation,
 			dependencies: deps,
 			signature,
