@@ -89,7 +89,7 @@ export class HashGraph {
 				value: null,
 			},
 			dependencies: [],
-			timestamp: 0,
+			timestamp: -1,
 			signature: "",
 		};
 		this.vertices.set(HashGraph.rootHash, rootVertex);
