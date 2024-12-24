@@ -6,10 +6,10 @@ export default defineConfig({
 	test: {
 		exclude: ["**/node_modules"],
 		coverage: {
-			enabled: true, // Enable coverage collection
-			reporter: ["text", "lcov"], // Output coverage report in text format and lcov format
-			include: ["packages/**/*.{ts,tsx}"], // Specify file patterns to include for coverage
-			exclude: ["**/node_modules/**", "**/__tests__/**", "**/tests/**"], // Exclude test and node_modules directories
+			enabled: true, 
+			reporter: ["text", "lcov"],
+			include: ["packages/**/*.{ts,tsx}"], 
+			exclude: ["**/node_modules/**", "**/__tests__/**", "**/tests/**"],
 		},
 	},
 });

@@ -19,4 +19,4 @@ jobs:
       
       - shell: bash
         run: |
-          pnpm run check-coverage
+          pnpm run coverage
