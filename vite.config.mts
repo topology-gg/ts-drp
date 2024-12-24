@@ -6,9 +6,9 @@ export default defineConfig({
 	test: {
 		exclude: ["**/node_modules"],
 		coverage: {
-			enabled: true, 
+			enabled: true,
 			reporter: ["text", "lcov"],
-			include: ["packages/**/*.{ts,tsx}"], 
+			include: ["packages/**/*.{ts,tsx}"],
 			exclude: ["**/node_modules/**", "**/__tests__/**", "**/tests/**"],
 		},
 	},
