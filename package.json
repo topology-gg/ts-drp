@@ -38,6 +38,7 @@
 		"@vitest/coverage-v8": "2.1.8",
 		"assemblyscript": "^0.27.29",
 		"release-it": "^17.6.0",
+		"ts-node": "^10.9.2",
 		"ts-proto": "^2.2.4",
 		"tsx": "4.19.1",
 		"typedoc": "^0.26.6",
