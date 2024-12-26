@@ -59,12 +59,13 @@ export class HashGraph {
 	/*
 	computeHash(
 		"",
-		{ type: OperationType.NOP },
+		{ type: OperationType.NOP, value: null },
 		[],
-	)
+		-1,
+	);
 	*/
 	static readonly rootHash: Hash =
-		"02465e287e3d086f12c6edd856953ca5ad0f01d6707bf8e410b4a601314c1ca5";
+		"7ca74226e2670cd08cadd5ed351fb207ff97d505cf97051abd8c35278c93a7c8";
 	private arePredecessorsFresh = false;
 	private reachablePredecessors: Map<Hash, BitSet> = new Map();
 	private topoSortedIndex: Map<Hash, number> = new Map();
