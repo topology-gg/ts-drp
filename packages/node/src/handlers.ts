@@ -219,7 +219,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 
-		await node.signVertexOperation(vertex);
+		await node.signVertex(vertex);
 	});
 
 	await Promise.all(signPromises);
@@ -260,9 +260,7 @@ export async function verifyIncomingVertices(
 		}
 
 		const publicKeyBytes = uint8ArrayFromString(publicKey, "base64");
-		const operationData = uint8ArrayFromString(
-			JSON.stringify(vertex.operation),
-		);
+		const data = uint8ArrayFromString(vertex.hash);
 
 		try {
 			const cryptoKey = await crypto.subtle.importKey(
@@ -277,7 +275,7 @@ export async function verifyIncomingVertices(
 				{ name: "Ed25519" },
 				cryptoKey,
 				signature,
-				operationData,
+				data,
 			);
 
 			return isValid ? vertex : null;
