@@ -432,7 +432,7 @@ describe("HashGraph for PseudoRandomWinsSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		// Pseudo-randomly chosen operation
-		expect(linearOps).toEqual([{ type: "add", value: 4 }]);
+		expect(linearOps).toEqual([{ type: "add", value: 5 }]);
 	});
 });
 
