@@ -432,7 +432,7 @@ describe("HashGraph for PseudoRandomWinsSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		// Pseudo-randomly chosen operation
-		expect(linearOps).toEqual([{ type: "add", value: 3 }]);
+		expect(linearOps).toEqual([{ type: "add", value: 5 }]);
 	});
 });
 
@@ -537,17 +537,13 @@ describe("Vertex state tests", () => {
 		drp1.add(4);
 		drp3.add(5);
 
+		const hashA4 = obj1.hashGraph.getFrontier()[0];
+		const hashC5 = obj3.hashGraph.getFrontier()[0];
+
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
-
 		drp1.add(6);
-
-		const hashA4 =
-			"8e6f4369010528ae3668efce452da04d077e0957955d62d671b90f2934c755fe";
-		const hashC5 =
-			"a8d94f7e2b421be2d5cd1124ca9ddb831e38246065db6e9a32ce493ca9604038";
-		const hashA6 =
-			"cd6a955f0734a09df1bff44c5e0458365d3a26ec7f1cae0df2c0f708b9f100a8";
+		const hashA6 = obj1.hashGraph.getFrontier()[0];
 
 		const drpState1 = obj1.states.get(hashA4);
 		expect(drpState1?.state.get("state").get(1)).toBe(true);
@@ -611,8 +607,7 @@ describe("Vertex state tests", () => {
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj2.hashGraph.getAllVertices());
 
-		const hashV8 =
-			"be97d8fe9169800893c28b3d8aaefda517b98936efb069673e0250317b5e4a0b";
+		const hashV8 = obj1.hashGraph.getFrontier()[0];
 		const drpStateV8 = obj1.states.get(hashV8);
 		expect(drpStateV8?.state.get("state").get(1)).toBe(false);
 		expect(drpStateV8?.state.get("state").get(2)).toBe(true);

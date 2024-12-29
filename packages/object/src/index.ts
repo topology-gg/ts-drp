@@ -13,6 +13,7 @@ import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
+import { cloneDeep } from "es-toolkit";
 
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
@@ -56,7 +57,7 @@ export interface DRPObjectConfig {
 export let log: Logger;
 
 export class DRPObject implements IDRPObject {
-	nodeId: string;
+	peerId: string;
 	id: string;
 	abi: string;
 	bytecode: Uint8Array;
@@ -69,20 +70,20 @@ export class DRPObject implements IDRPObject {
 	subscriptions: DRPObjectCallback[];
 
 	constructor(
-		nodeId: string,
+		peerId: string,
 		drp: DRP,
 		id?: string,
 		abi?: string,
 		config?: DRPObjectConfig,
 	) {
-		this.nodeId = nodeId;
+		this.peerId = peerId;
 		log = new Logger("drp::object", config?.log_config);
 		this.id =
 			id ??
 			crypto
 				.createHash("sha256")
 				.update(abi ?? "")
-				.update(nodeId)
+				.update(peerId)
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
 		this.abi = abi ?? "";
@@ -90,16 +91,13 @@ export class DRPObject implements IDRPObject {
 		this.vertices = [];
 		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler()) : null;
 		this.hashGraph = new HashGraph(
-			nodeId,
+			peerId,
 			drp?.resolveConflicts?.bind(drp ?? this),
 			drp?.semanticsType,
 		);
 		this.subscriptions = [];
 		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.originalDRP = Object.create(
-			Object.getPrototypeOf(drp),
-			Object.getOwnPropertyDescriptors(structuredClone(drp)),
-		);
+		this.originalDRP = cloneDeep(drp);
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
@@ -132,7 +130,7 @@ export class DRPObject implements IDRPObject {
 
 		const serializedVertex = ObjectPb.Vertex.create({
 			hash: vertex.hash,
-			nodeId: vertex.nodeId,
+			peerId: vertex.peerId,
 			operation: vertex.operation,
 			dependencies: vertex.dependencies,
 		});
@@ -156,7 +154,7 @@ export class DRPObject implements IDRPObject {
 				this.hashGraph.addVertex(
 					vertex.operation,
 					vertex.dependencies,
-					vertex.nodeId,
+					vertex.peerId,
 					vertex.signature,
 				);
 
@@ -202,17 +200,14 @@ export class DRPObject implements IDRPObject {
 				? []
 				: this.hashGraph.linearizeOperations(lca, subgraph);
 
-		const drp = Object.create(
-			Object.getPrototypeOf(this.originalDRP),
-			Object.getOwnPropertyDescriptors(structuredClone(this.originalDRP)),
-		) as DRP;
+		const drp = cloneDeep(this.originalDRP);
 
 		const fetchedState = this.states.get(lca);
 		if (!fetchedState) {
 			throw new Error("State is undefined");
 		}
 
-		const state = structuredClone(fetchedState);
+		const state = cloneDeep(fetchedState);
 
 		for (const [key, value] of state.state) {
 			drp[key] = value;

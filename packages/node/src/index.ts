@@ -100,7 +100,7 @@ export class DRPNode {
 	}
 
 	async signVertex(vertex: Vertex) {
-		if (vertex.nodeId !== this.networkNode.peerId) {
+		if (vertex.peerId !== this.networkNode.peerId) {
 			log.error("::signVertexOperation: Invalid peer id");
 			return "";
 		}

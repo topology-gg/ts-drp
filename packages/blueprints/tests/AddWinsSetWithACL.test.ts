@@ -42,14 +42,14 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 		const vertices = [
 			{
 				hash: "",
-				nodeId: "peer1",
+				peerId: "peer1",
 				operation: { type: "grant", value: "peer3" },
 				dependencies: [],
 				signature: "",
 			},
 			{
 				hash: "",
-				nodeId: "peer2",
+				peerId: "peer2",
 				operation: { type: "revoke", value: "peer3" },
 				dependencies: [],
 				signature: "",
