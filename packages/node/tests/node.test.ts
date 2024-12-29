@@ -31,7 +31,7 @@ describe("DPRNode with verify and sign signature", () => {
 		const vertices = [
 			{
 				hash: "hash",
-				nodeId: "nodeId",
+				peerId: "peerId",
 				operation: {
 					type: "type",
 					value: "value",
@@ -48,7 +48,7 @@ describe("DPRNode with verify and sign signature", () => {
 		const vertices = [
 			{
 				hash: "hash",
-				nodeId: drpNode.networkNode.peerId,
+				peerId: drpNode.networkNode.peerId,
 				operation: {
 					type: "add",
 					value: 1,
@@ -65,7 +65,7 @@ describe("DPRNode with verify and sign signature", () => {
 		const vertices = [
 			{
 				hash: "hash",
-				nodeId: drpNode.networkNode.peerId,
+				peerId: drpNode.networkNode.peerId,
 				operation: {
 					type: "add",
 					value: 1,
@@ -83,7 +83,7 @@ describe("DPRNode with verify and sign signature", () => {
 		const vertices = [
 			{
 				hash: "hash",
-				nodeId: "peer1",
+				peerId: "peer1",
 				operation: {
 					type: "add",
 					value: 1,
@@ -103,7 +103,7 @@ describe("DPRNode with verify and sign signature", () => {
 		const vertices = [
 			{
 				hash: "hash",
-				nodeId: drpNode.networkNode.peerId,
+				peerId: drpNode.networkNode.peerId,
 				operation: {
 					type: "add",
 					value: 1,

@@ -13,7 +13,7 @@ export const protobufPackage = "drp.object.v1";
 /** Supposed to be the RIBLT stuff */
 export interface Vertex {
   hash: string;
-  nodeId: string;
+  peerId: string;
   operation: Vertex_Operation | undefined;
   dependencies: string[];
   timestamp: number;
@@ -33,7 +33,7 @@ export interface DRPObjectBase {
 }
 
 function createBaseVertex(): Vertex {
-  return { hash: "", nodeId: "", operation: undefined, dependencies: [], timestamp: 0, signature: "" };
+  return { hash: "", peerId: "", operation: undefined, dependencies: [], timestamp: 0, signature: "" };
 }
 
 export const Vertex: MessageFns<Vertex> = {
@@ -41,8 +41,8 @@ export const Vertex: MessageFns<Vertex> = {
     if (message.hash !== "") {
       writer.uint32(10).string(message.hash);
     }
-    if (message.nodeId !== "") {
-      writer.uint32(18).string(message.nodeId);
+    if (message.peerId !== "") {
+      writer.uint32(18).string(message.peerId);
     }
     if (message.operation !== undefined) {
       Vertex_Operation.encode(message.operation, writer.uint32(26).fork()).join();
@@ -79,7 +79,7 @@ export const Vertex: MessageFns<Vertex> = {
             break;
           }
 
-          message.nodeId = reader.string();
+          message.peerId = reader.string();
           continue;
         }
         case 3: {
@@ -126,7 +126,7 @@ export const Vertex: MessageFns<Vertex> = {
   fromJSON(object: any): Vertex {
     return {
       hash: isSet(object.hash) ? globalThis.String(object.hash) : "",
-      nodeId: isSet(object.nodeId) ? globalThis.String(object.nodeId) : "",
+      peerId: isSet(object.peerId) ? globalThis.String(object.peerId) : "",
       operation: isSet(object.operation) ? Vertex_Operation.fromJSON(object.operation) : undefined,
       dependencies: globalThis.Array.isArray(object?.dependencies)
         ? object.dependencies.map((e: any) => globalThis.String(e))
@@ -141,8 +141,8 @@ export const Vertex: MessageFns<Vertex> = {
     if (message.hash !== "") {
       obj.hash = message.hash;
     }
-    if (message.nodeId !== "") {
-      obj.nodeId = message.nodeId;
+    if (message.peerId !== "") {
+      obj.peerId = message.peerId;
     }
     if (message.operation !== undefined) {
       obj.operation = Vertex_Operation.toJSON(message.operation);
@@ -165,7 +165,7 @@ export const Vertex: MessageFns<Vertex> = {
   fromPartial<I extends Exact<DeepPartial<Vertex>, I>>(object: I): Vertex {
     const message = createBaseVertex();
     message.hash = object.hash ?? "";
-    message.nodeId = object.nodeId ?? "";
+    message.peerId = object.peerId ?? "";
     message.operation = (object.operation !== undefined && object.operation !== null)
       ? Vertex_Operation.fromPartial(object.operation)
       : undefined;

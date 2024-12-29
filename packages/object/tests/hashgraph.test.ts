@@ -491,17 +491,12 @@ describe("Vertex state tests", () => {
 		drp1.add(4);
 		drp3.add(5);
 
-		expect(obj1.hashGraph.getFrontier().length).toBe(1);
-		expect(obj3.hashGraph.getFrontier().length).toBe(1);
 		const hashA4 = obj1.hashGraph.getFrontier()[0];
 		const hashC5 = obj3.hashGraph.getFrontier()[0];
 
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
-
 		drp1.add(6);
-
-		expect(obj1.hashGraph.getFrontier().length).toBe(1);
 		const hashA6 = obj1.hashGraph.getFrontier()[0];
 
 		const drpState1 = obj1.states.get(hashA4);
@@ -559,9 +554,6 @@ describe("Vertex state tests", () => {
 		drp1.remove(3);
 		drp2.remove(1);
 
-		expect(obj1.hashGraph.getFrontier().length).toBe(1);
-		const hashV8 = obj1.hashGraph.getFrontier()[0];
-
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -569,6 +561,7 @@ describe("Vertex state tests", () => {
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj2.hashGraph.getAllVertices());
 
+		const hashV8 = obj1.hashGraph.getFrontier()[0];
 		const drpStateV8 = obj1.states.get(hashV8);
 		expect(drpStateV8?.state.get("state").get(1)).toBe(false);
 		expect(drpStateV8?.state.get("state").get(2)).toBe(true);

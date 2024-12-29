@@ -99,13 +99,11 @@ export class DRPNode {
 		operations.syncObject(this, id, peerId);
 	}
 
-	async signVertexOperation(vertex: Vertex) {
-		if (vertex.nodeId !== this.networkNode.peerId) {
+	async signVertex(vertex: Vertex) {
+		if (vertex.peerId !== this.networkNode.peerId) {
 			log.error("::signVertexOperation: Invalid peer id");
 			return "";
 		}
-		vertex.signature = await this.networkNode.sign(
-			JSON.stringify(vertex.operation),
-		);
+		vertex.signature = await this.networkNode.sign(vertex.hash);
 	}
 }

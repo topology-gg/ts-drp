@@ -16,3 +16,7 @@ jobs:
         run: |
           pnpm install --no-frozen-lockfile
           pnpm ci-test
+      
+      - shell: bash
+        run: |
+          pnpm run coverage

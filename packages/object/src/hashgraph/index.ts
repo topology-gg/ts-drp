@@ -49,7 +49,7 @@ export type VertexDistance = {
 };
 
 export class HashGraph {
-	nodeId: string;
+	peerId: string;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsType: SemanticsType;
 
@@ -74,17 +74,17 @@ export class HashGraph {
 	private currentBitsetSize = 1;
 
 	constructor(
-		nodeId: string,
+		peerId: string,
 		resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType,
 		semanticsType: SemanticsType,
 	) {
-		this.nodeId = nodeId;
+		this.peerId = peerId;
 		this.resolveConflicts = resolveConflicts;
 		this.semanticsType = semanticsType;
 
 		const rootVertex: Vertex = {
 			hash: HashGraph.rootHash,
-			nodeId: "",
+			peerId: "",
 			operation: {
 				type: OperationType.NOP,
 				value: null,
@@ -104,11 +104,11 @@ export class HashGraph {
 	addToFrontier(operation: Operation): Vertex {
 		const deps = this.getFrontier();
 		const currentTimestamp = Date.now();
-		const hash = computeHash(this.nodeId, operation, deps, currentTimestamp);
+		const hash = computeHash(this.peerId, operation, deps, currentTimestamp);
 
 		const vertex: Vertex = {
 			hash,
-			nodeId: this.nodeId,
+			peerId: this.peerId,
 			operation: operation ?? { type: OperationType.NOP },
 			dependencies: deps,
 			timestamp: currentTimestamp,
@@ -154,11 +154,11 @@ export class HashGraph {
 	addVertex(
 		operation: Operation,
 		deps: Hash[],
-		nodeId: string,
+		peerId: string,
 		timestamp: number,
 		signature: string,
 	): Hash {
-		const hash = computeHash(nodeId, operation, deps, timestamp);
+		const hash = computeHash(peerId, operation, deps, timestamp);
 		if (this.vertices.has(hash)) {
 			return hash; // Vertex already exists
 		}
@@ -182,7 +182,7 @@ export class HashGraph {
 
 		const vertex: Vertex = {
 			hash,
-			nodeId,
+			peerId,
 			operation,
 			dependencies: deps,
 			timestamp,
@@ -520,12 +520,12 @@ export class HashGraph {
 }
 
 function computeHash(
-	nodeId: string,
+	peerId: string,
 	operation: Operation,
 	deps: Hash[],
 	timestamp: number,
 ): Hash {
-	const serialized = JSON.stringify({ operation, deps, nodeId, timestamp });
+	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
 }
