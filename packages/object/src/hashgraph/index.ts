@@ -65,7 +65,7 @@ export class HashGraph {
 	);
 	*/
 	static readonly rootHash: Hash =
-		"7ca74226e2670cd08cadd5ed351fb207ff97d505cf97051abd8c35278c93a7c8";
+		"425d2b1f5243dbf23c685078034b06fbfa71dc31dcce30f614e28023f140ff13";
 	private arePredecessorsFresh = false;
 	private reachablePredecessors: Map<Hash, BitSet> = new Map();
 	private topoSortedIndex: Map<Hash, number> = new Map();
