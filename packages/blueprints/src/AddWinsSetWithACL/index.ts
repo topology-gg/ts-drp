@@ -23,10 +23,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 		if (!this.state.get(value)) this.state.set(value, true);
 	}
 
-	add(sender: string, value: T): void {
-		if (this.acl && !this.acl.isWriter(sender)) {
-			throw new Error("Only writers can add values.");
-		}
+	add(value: T): void {
 		this._add(value);
 	}
 
@@ -34,10 +31,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 		if (this.state.get(value)) this.state.set(value, false);
 	}
 
-	remove(sender: string, value: T): void {
-		if (this.acl && !this.acl.isWriter(sender)) {
-			throw new Error("Only writers can remove values.");
-		}
+	remove(value: T): void {
 		this._remove(value);
 	}
 
