@@ -1,4 +1,5 @@
-# Memory benchamrks
+# Memory benchmark
+
 `memory-benchmark.sh` aims to provide a way of measuring the memory footprint of the DRP.
 
 Usage:
