@@ -64,5 +64,3 @@ for size in ${sizes[@]}; do
 done
 
 rm out log
-
-# python3 plot.py $result_file
