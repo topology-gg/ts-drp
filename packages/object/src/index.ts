@@ -130,9 +130,6 @@ export class DRPObject implements IDRPObject {
 
 	// biome-ignore lint: value can't be unknown because of protobuf
 	callFn(fn: string, args: any) {
-		if (!this.drp) {
-			throw new Error("DRP object not initialized");
-		}
 		const preOperationState = this._computeState(this.hashGraph.getFrontier());
 
 		const drp = cloneDeep(this.originalDRP);
