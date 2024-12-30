@@ -233,7 +233,7 @@ export class DRPObject implements IDRPObject {
 		target[methodName](...args);
 	}
 
-	// compute the DRP based on all dependencies of the current vertex using partial linearization 
+	// compute the DRP based on all dependencies of the current vertex using partial linearization
 	private _computeDRP(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation | undefined,
