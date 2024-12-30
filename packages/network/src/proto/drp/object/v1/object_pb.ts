@@ -13,9 +13,10 @@ export const protobufPackage = "drp.object.v1";
 /** Supposed to be the RIBLT stuff */
 export interface Vertex {
   hash: string;
-  nodeId: string;
+  peerId: string;
   operation: Vertex_Operation | undefined;
   dependencies: string[];
+  timestamp: number;
   signature: string;
 }
 
@@ -32,7 +33,7 @@ export interface DRPObjectBase {
 }
 
 function createBaseVertex(): Vertex {
-  return { hash: "", nodeId: "", operation: undefined, dependencies: [], signature: "" };
+  return { hash: "", peerId: "", operation: undefined, dependencies: [], timestamp: 0, signature: "" };
 }
 
 export const Vertex: MessageFns<Vertex> = {
@@ -40,8 +41,8 @@ export const Vertex: MessageFns<Vertex> = {
     if (message.hash !== "") {
       writer.uint32(10).string(message.hash);
     }
-    if (message.nodeId !== "") {
-      writer.uint32(18).string(message.nodeId);
+    if (message.peerId !== "") {
+      writer.uint32(18).string(message.peerId);
     }
     if (message.operation !== undefined) {
       Vertex_Operation.encode(message.operation, writer.uint32(26).fork()).join();
@@ -49,8 +50,11 @@ export const Vertex: MessageFns<Vertex> = {
     for (const v of message.dependencies) {
       writer.uint32(34).string(v!);
     }
+    if (message.timestamp !== 0) {
+      writer.uint32(40).int64(message.timestamp);
+    }
     if (message.signature !== "") {
-      writer.uint32(42).string(message.signature);
+      writer.uint32(50).string(message.signature);
     }
     return writer;
   },
@@ -75,7 +79,7 @@ export const Vertex: MessageFns<Vertex> = {
             break;
           }
 
-          message.nodeId = reader.string();
+          message.peerId = reader.string();
           continue;
         }
         case 3: {
@@ -95,7 +99,15 @@ export const Vertex: MessageFns<Vertex> = {
           continue;
         }
         case 5: {
-          if (tag !== 42) {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.timestamp = longToNumber(reader.int64());
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
             break;
           }
 
@@ -114,11 +126,12 @@ export const Vertex: MessageFns<Vertex> = {
   fromJSON(object: any): Vertex {
     return {
       hash: isSet(object.hash) ? globalThis.String(object.hash) : "",
-      nodeId: isSet(object.nodeId) ? globalThis.String(object.nodeId) : "",
+      peerId: isSet(object.peerId) ? globalThis.String(object.peerId) : "",
       operation: isSet(object.operation) ? Vertex_Operation.fromJSON(object.operation) : undefined,
       dependencies: globalThis.Array.isArray(object?.dependencies)
         ? object.dependencies.map((e: any) => globalThis.String(e))
         : [],
+      timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
       signature: isSet(object.signature) ? globalThis.String(object.signature) : "",
     };
   },
@@ -128,14 +141,17 @@ export const Vertex: MessageFns<Vertex> = {
     if (message.hash !== "") {
       obj.hash = message.hash;
     }
-    if (message.nodeId !== "") {
-      obj.nodeId = message.nodeId;
+    if (message.peerId !== "") {
+      obj.peerId = message.peerId;
     }
     if (message.operation !== undefined) {
       obj.operation = Vertex_Operation.toJSON(message.operation);
     }
     if (message.dependencies?.length) {
       obj.dependencies = message.dependencies;
+    }
+    if (message.timestamp !== 0) {
+      obj.timestamp = Math.round(message.timestamp);
     }
     if (message.signature !== "") {
       obj.signature = message.signature;
@@ -149,11 +165,12 @@ export const Vertex: MessageFns<Vertex> = {
   fromPartial<I extends Exact<DeepPartial<Vertex>, I>>(object: I): Vertex {
     const message = createBaseVertex();
     message.hash = object.hash ?? "";
-    message.nodeId = object.nodeId ?? "";
+    message.peerId = object.peerId ?? "";
     message.operation = (object.operation !== undefined && object.operation !== null)
       ? Vertex_Operation.fromPartial(object.operation)
       : undefined;
     message.dependencies = object.dependencies?.map((e) => e) || [];
+    message.timestamp = object.timestamp ?? 0;
     message.signature = object.signature ?? "";
     return message;
   },
@@ -379,6 +396,17 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function longToNumber(int64: { toString(): string }): number {
+  const num = globalThis.Number(int64.toString());
+  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
+  }
+  return num;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

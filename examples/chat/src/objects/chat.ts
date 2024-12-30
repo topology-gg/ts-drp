@@ -8,22 +8,22 @@ import {
 
 export class Chat implements DRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
-	// store messages as strings in the format (timestamp, message, nodeId)
+	// store messages as strings in the format (timestamp, message, peerId)
 	messages: Set<string>;
 	constructor() {
 		this.messages = new Set<string>();
 	}
 
-	addMessage(timestamp: string, message: string, nodeId: string): void {
-		this._addMessage(timestamp, message, nodeId);
+	addMessage(timestamp: string, message: string, peerId: string): void {
+		this._addMessage(timestamp, message, peerId);
 	}
 
 	private _addMessage(
 		timestamp: string,
 		message: string,
-		nodeId: string,
+		peerId: string,
 	): void {
-		this.messages.add(`(${timestamp}, ${message}, ${nodeId})`);
+		this.messages.add(`(${timestamp}, ${message}, ${peerId})`);
 	}
 
 	getMessages(): Set<string> {

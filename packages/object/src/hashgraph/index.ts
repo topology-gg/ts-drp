@@ -49,7 +49,7 @@ export type VertexDistance = {
 };
 
 export class HashGraph {
-	nodeId: string;
+	peerId: string;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsType: SemanticsType;
 
@@ -59,12 +59,13 @@ export class HashGraph {
 	/*
 	computeHash(
 		"",
-		{ type: OperationType.NOP },
+		{ type: OperationType.NOP, value: null },
 		[],
-	)
+		-1,
+	);
 	*/
 	static readonly rootHash: Hash =
-		"02465e287e3d086f12c6edd856953ca5ad0f01d6707bf8e410b4a601314c1ca5";
+		"425d2b1f5243dbf23c685078034b06fbfa71dc31dcce30f614e28023f140ff13";
 	private arePredecessorsFresh = false;
 	private reachablePredecessors: Map<Hash, BitSet> = new Map();
 	private topoSortedIndex: Map<Hash, number> = new Map();
@@ -73,22 +74,23 @@ export class HashGraph {
 	private currentBitsetSize = 1;
 
 	constructor(
-		nodeId: string,
+		peerId: string,
 		resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType,
 		semanticsType: SemanticsType,
 	) {
-		this.nodeId = nodeId;
+		this.peerId = peerId;
 		this.resolveConflicts = resolveConflicts;
 		this.semanticsType = semanticsType;
 
 		const rootVertex: Vertex = {
 			hash: HashGraph.rootHash,
-			nodeId: "",
+			peerId: "",
 			operation: {
 				type: OperationType.NOP,
 				value: null,
 			},
 			dependencies: [],
+			timestamp: -1,
 			signature: "",
 		};
 		this.vertices.set(HashGraph.rootHash, rootVertex);
@@ -101,13 +103,15 @@ export class HashGraph {
 
 	addToFrontier(operation: Operation): Vertex {
 		const deps = this.getFrontier();
-		const hash = computeHash(this.nodeId, operation, deps);
+		const currentTimestamp = Date.now();
+		const hash = computeHash(this.peerId, operation, deps, currentTimestamp);
 
 		const vertex: Vertex = {
 			hash,
-			nodeId: this.nodeId,
+			peerId: this.peerId,
 			operation: operation ?? { type: OperationType.NOP },
 			dependencies: deps,
+			timestamp: currentTimestamp,
 			signature: "",
 		};
 
@@ -150,25 +154,38 @@ export class HashGraph {
 	addVertex(
 		operation: Operation,
 		deps: Hash[],
-		nodeId: string,
+		peerId: string,
+		timestamp: number,
 		signature: string,
 	): Hash {
-		const hash = computeHash(nodeId, operation, deps);
+		const hash = computeHash(peerId, operation, deps, timestamp);
 		if (this.vertices.has(hash)) {
 			return hash; // Vertex already exists
 		}
 
-		if (
-			!deps.every((dep) => this.forwardEdges.has(dep) || this.vertices.has(dep))
-		) {
-			throw new Error("Invalid dependency detected.");
+		for (const dep of deps) {
+			const vertex = this.vertices.get(dep);
+			if (vertex === undefined) {
+				throw new Error("Invalid dependency detected.");
+			}
+			if (vertex.timestamp > timestamp) {
+				// Vertex's timestamp must not be less than any of its dependencies' timestamps
+				throw new Error("Invalid timestamp detected.");
+			}
+		}
+
+		const currentTimestamp = Date.now();
+		if (timestamp > currentTimestamp) {
+			// Vertex created in the future is invalid
+			throw new Error("Invalid timestamp detected.");
 		}
 
 		const vertex: Vertex = {
 			hash,
-			nodeId,
+			peerId,
 			operation,
 			dependencies: deps,
+			timestamp,
 			signature,
 		};
 		this.vertices.set(hash, vertex);
@@ -502,12 +519,13 @@ export class HashGraph {
 	}
 }
 
-function computeHash<T>(
-	nodeId: string,
+function computeHash(
+	peerId: string,
 	operation: Operation,
 	deps: Hash[],
+	timestamp: number,
 ): Hash {
-	const serialized = JSON.stringify({ operation, deps, nodeId });
+	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
 }

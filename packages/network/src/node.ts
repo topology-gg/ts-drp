@@ -82,12 +82,12 @@ export class DRPNetworkNode {
 		const _bootstrapNodesList = this._config?.bootstrap_peers
 			? this._config.bootstrap_peers
 			: [
-					"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
-					"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
+					//"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
+					"/dns4/bootstrap2.topology.gg/tcp/50000/ws/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
 				];
 
 		const _pubsubPeerDiscovery = pubsubPeerDiscovery({
-			interval: 5_000,
+			interval: 10_000,
 			topics: ["drp::discovery"],
 		});
 
@@ -119,7 +119,7 @@ export class DRPNetworkNode {
 			addresses: {
 				listen: this._config?.addresses
 					? this._config.addresses
-					: ["/webrtc", "/p2p-circuit"],
+					: ["/p2p-circuit", "/webrtc"],
 			},
 			connectionEncrypters: [noise()],
 			connectionGater: {
@@ -132,9 +132,7 @@ export class DRPNetworkNode {
 			services: this._config?.bootstrap ? _bootstrap_services : _node_services,
 			streamMuxers: [yamux()],
 			transports: [
-				circuitRelayTransport({
-					reservationConcurrency: 1,
-				}),
+				circuitRelayTransport(),
 				webRTC(),
 				webRTCDirect(),
 				webSockets({
@@ -144,6 +142,7 @@ export class DRPNetworkNode {
 			],
 		});
 
+		log.info("running on:", this._node.getMultiaddrs());
 		if (!this._config?.bootstrap) {
 			for (const addr of this._config?.bootstrap_peers || []) {
 				try {
