@@ -202,6 +202,7 @@ export class DRPObject implements IDRPObject {
 		}
 	}
 
+	// check if the given peer has write permission
 	private _checkWriterPermission(drp: DRP, peerId: string): boolean {
 		if (drp.acl) {
 			return drp.acl.isWriter(peerId);
@@ -209,6 +210,7 @@ export class DRPObject implements IDRPObject {
 		return true;
 	}
 
+	// apply the operation to the DRP
 	private _applyOperation(drp: DRP, operation: Operation) {
 		const { type, value } = operation;
 
@@ -231,6 +233,7 @@ export class DRPObject implements IDRPObject {
 		target[methodName](...args);
 	}
 
+	// compute the DRP based on all dependencies of the current vertex using partial linearization 
 	private _computeDRP(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation | undefined,
@@ -271,6 +274,7 @@ export class DRPObject implements IDRPObject {
 		return drp;
 	}
 
+	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
 	private _getDRPState(
 		drp: DRP,
 		// biome-ignore lint: values can be anything
@@ -284,6 +288,7 @@ export class DRPObject implements IDRPObject {
 		return newState;
 	}
 
+	// compute the DRP state based on all dependencies of the current vertex
 	private _computeDRPState(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation | undefined,
@@ -293,6 +298,7 @@ export class DRPObject implements IDRPObject {
 		return this._getDRPState(drp);
 	}
 
+	// store the state of the DRP corresponding to the given vertex
 	private _setState(
 		vertex: Vertex,
 		// biome-ignore lint: values can be anything
@@ -304,6 +310,7 @@ export class DRPObject implements IDRPObject {
 		});
 	}
 
+	// update the DRP's attributes based on all the vertices in the hashgraph
 	private _updateDRPState() {
 		if (!this.drp) {
 			return;
