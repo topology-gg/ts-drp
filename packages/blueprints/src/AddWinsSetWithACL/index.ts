@@ -61,8 +61,8 @@ export class AddWinsSetWithACL<T> implements DRP {
 			return { action: ActionType.Nop };
 
 		if (
-			this.acl?.operations.includes(vertices[0].operation.type) &&
-			this.acl?.operations.includes(vertices[1].operation.type)
+			["grant", "revoke"].includes(vertices[0].operation.type) &&
+			["grant", "revoke"].includes(vertices[1].operation.type)
 		) {
 			return this.acl.resolveConflicts(vertices);
 		}

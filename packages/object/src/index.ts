@@ -160,7 +160,7 @@ export class DRPObject implements IDRPObject {
 		}
 
 		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args });
-		
+
 		const varNames: string[] = Object.keys(drp);
 		// biome-ignore lint: values can be anything
 		const newState: Map<string, any> = new Map();

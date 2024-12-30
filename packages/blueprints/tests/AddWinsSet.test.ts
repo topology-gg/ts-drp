@@ -10,26 +10,26 @@ describe("HashGraph for AddWinSet tests", () => {
 
 	test("Test: Add", () => {
 		drp.add(1);
-		let set = drp.values();
+		let set = drp.getValues();
 		expect(set).toEqual([1]);
 
 		drp.add(2);
-		set = drp.values();
+		set = drp.getValues();
 		expect(set).toEqual([1, 2]);
 	});
 
 	test("Test: Add and Remove", () => {
 		drp.add(1);
-		let set = drp.values();
+		let set = drp.getValues();
 		expect(set).toEqual([1]);
 
 		drp.add(2);
-		set = drp.values();
+		set = drp.getValues();
 		expect(set).toEqual([1, 2]);
 
 		drp.remove(1);
-		set = drp.values();
-		expect(drp.contains(1)).toBe(false);
+		set = drp.getValues();
+		expect(drp.queryContains(1)).toBe(false);
 		expect(set).toEqual([2]);
 	});
 });
