@@ -13,7 +13,6 @@ import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
-import { stat } from "node:fs";
 import { cloneDeep } from "es-toolkit";
 
 export interface IACL {
