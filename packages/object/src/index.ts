@@ -106,7 +106,9 @@ export class DRPObject implements IDRPObject {
 		const obj = this;
 		return {
 			get(target, propKey, receiver) {
-				if (typeof target[propKey as keyof object] === "function") {
+				const value = Reflect.get(target, propKey, receiver);
+
+				if (typeof value === "function") {
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
 							if ((thisArg.operations as string[]).includes(propKey as string))
@@ -118,7 +120,12 @@ export class DRPObject implements IDRPObject {
 						},
 					});
 				}
-				return Reflect.get(target, propKey, receiver);
+
+				if (propKey === "acl" && typeof value === "object" && value !== null) {
+					return new Proxy(value, this);
+				}
+
+				return value;
 			},
 		};
 	}
