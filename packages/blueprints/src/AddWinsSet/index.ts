@@ -7,7 +7,6 @@ import {
 } from "@ts-drp/object";
 
 export class AddWinsSet<T> implements DRP {
-	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
 	semanticsType = SemanticsType.pair;
 
@@ -31,11 +30,11 @@ export class AddWinsSet<T> implements DRP {
 		this._remove(value);
 	}
 
-	contains(value: T): boolean {
+	queryContains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
 
-	values(): T[] {
+	getValues(): T[] {
 		return Array.from(this.state.entries())
 			.filter(([_, exists]) => exists)
 			.map(([value, _]) => value);

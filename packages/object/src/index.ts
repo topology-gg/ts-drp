@@ -109,7 +109,12 @@ export class DRPObject implements IDRPObject {
 				if (typeof target[propKey as keyof object] === "function") {
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
-							if (!(propKey as string).startsWith("_"))
+							if (
+								!(propKey as string).startsWith("_") &&
+								!(propKey as string).startsWith("is") &&
+								!(propKey as string).startsWith("get") &&
+								!(propKey as string).startsWith("query")
+							)
 								obj.callFn(
 									propKey as string,
 									args.length === 1 ? args[0] : args,
@@ -130,12 +135,8 @@ export class DRPObject implements IDRPObject {
 		}
 		const preOperationState = this._computeState(this.hashGraph.getFrontier());
 
-		const drp = Object.create(
-			Object.getPrototypeOf(this.originalDRP),
-			Object.getOwnPropertyDescriptors(structuredClone(this.originalDRP)),
-		) as DRP;
-
-		const state = structuredClone(preOperationState);
+		const drp = cloneDeep(this.originalDRP);
+		const state = cloneDeep(preOperationState);
 
 		for (const [key, value] of state.entries()) {
 			drp[key] = value;
@@ -158,20 +159,8 @@ export class DRPObject implements IDRPObject {
 			return;
 		}
 
-		for (const [key, value] of preOperationState.entries()) {
-			console.log("before", key, value);
-			console.log("after", key, drp[key]);
-			try {
-				deepStrictEqual(value, drp[key]);
-				console.log("they are equal");
-			} catch (e) {
-				stateChanged = true;
-				console.log("they are different");
-			}
-		}
-
 		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args });
-		console.log("vertex", vertex);
+		
 		const varNames: string[] = Object.keys(drp);
 		// biome-ignore lint: values can be anything
 		const newState: Map<string, any> = new Map();

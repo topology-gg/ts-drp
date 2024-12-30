@@ -49,11 +49,11 @@ export class PseudoRandomWinsSet<T> implements DRP {
 		this._remove(value);
 	}
 
-	contains(value: T): boolean {
+	queryContains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
 
-	values(): T[] {
+	getValues(): T[] {
 		return Array.from(this.state.entries())
 			.filter(([_, exists]) => exists)
 			.map(([value, _]) => value);

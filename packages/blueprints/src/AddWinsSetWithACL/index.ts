@@ -41,11 +41,11 @@ export class AddWinsSetWithACL<T> implements DRP {
 		this._remove(value);
 	}
 
-	contains(value: T): boolean {
+	queryContains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
 
-	values(): T[] {
+	getValues(): T[] {
 		return Array.from(this.state.entries())
 			.filter(([_, exists]) => exists)
 			.map(([value, _]) => value);
@@ -62,14 +62,14 @@ export class AddWinsSetWithACL<T> implements DRP {
 
 		if (
 			this.acl?.operations.includes(vertices[0].operation.type) &&
-			this.acl?.operations.includes(vertices[0].operation.type)
+			this.acl?.operations.includes(vertices[1].operation.type)
 		) {
 			return this.acl.resolveConflicts(vertices);
 		}
 
 		if (
 			this.operations.includes(vertices[0].operation.type) &&
-			this.operations.includes(vertices[0].operation.type)
+			this.operations.includes(vertices[1].operation.type)
 		) {
 			return vertices[0].operation.type === "add"
 				? { action: ActionType.DropRight }
