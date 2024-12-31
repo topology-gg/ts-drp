@@ -653,7 +653,7 @@ describe("Operation with ACL tests", () => {
 	});
 
 	test("Node with admin permission can grant permission to other nodes", () => {
-		/*
+	  /*
 	    ROOT -- V1:GRANT("peer2")
 	  */
 
