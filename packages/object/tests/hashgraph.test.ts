@@ -1,7 +1,7 @@
+import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject, type Operation, OperationType } from "../src/index.js";
-import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -653,10 +653,10 @@ describe("Operation with ACL tests", () => {
 	});
 
 	test("Node with admin permission can grant permission to other nodes", () => {
-	  /*
+		/*
 	    ROOT -- V1:GRANT("peer2")
 	  */
-	 
+
 		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
 		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
 		drp1.acl.grant("peer1", "peer2", "publicKey2");
