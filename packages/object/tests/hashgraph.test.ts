@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
-import { PseudoRandomWinsSet } from "../../blueprints/src/PseudoRandomWinsSet/index.js";
 import { DRPObject, type Operation, OperationType } from "../src/index.js";
+import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -631,5 +631,36 @@ describe("Vertex timestamp tests", () => {
 				"",
 			),
 		).toThrowError("Invalid timestamp detected.");
+	});
+});
+
+describe("Operation with ACL tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+
+	beforeEach(async () => {
+		const peerIdToPublicKey = new Map<string, string>([
+			["peer1", "publicKey1"],
+		]);
+		obj1 = new DRPObject(
+			"peer1",
+			new AddWinsSetWithACL<number>(peerIdToPublicKey),
+		);
+		obj2 = new DRPObject(
+			"peer2",
+			new AddWinsSetWithACL<number>(peerIdToPublicKey),
+		);
+	});
+
+	test("Node with admin permission can grant permission to other nodes", () => {
+	  /*
+	    ROOT -- V1:GRANT("peer2")
+	  */
+	 
+		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
+		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.acl.isWriter("peer2")).toBe(true);
 	});
 });
