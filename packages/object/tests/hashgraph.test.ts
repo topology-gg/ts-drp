@@ -653,9 +653,9 @@ describe("Operation with ACL tests", () => {
 	});
 
 	test("Node with admin permission can grant permission to other nodes", () => {
-	  /*
-	    ROOT -- V1:GRANT("peer2")
-	  */
+		/*
+		  ROOT -- V1:GRANT("peer2")
+		*/
 
 		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
 		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
