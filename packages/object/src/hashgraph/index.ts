@@ -265,8 +265,10 @@ export class HashGraph {
 			inDegree.set(hash, 0);
 		}
 
-		for (const [_, children] of this.forwardEdges) {
+		for (const [vertex, children] of this.forwardEdges) {
+			if (!subgraph.has(vertex)) continue;
 			for (const child of children) {
+				if (!subgraph.has(child)) continue;
 				inDegree.set(child, (inDegree.get(child) || 0) + 1);
 			}
 		}
@@ -281,7 +283,7 @@ export class HashGraph {
 			result.push(current);
 
 			for (const child of this.forwardEdges.get(current) || []) {
-				if (!subgraph.has(child)) continue;
+				if (!inDegree.has(child)) continue;
 				const inDegreeValue = inDegree.get(child);
 				if (inDegreeValue === undefined) {
 					log.error("::hashgraph::Kahn: Undefined in-degree value");

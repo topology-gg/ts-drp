@@ -49,8 +49,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
 			{ type: "add", value: 2 },
+			{ type: "add", value: 1 },
 		]);
 	});
 
@@ -170,8 +170,8 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 2 },
 			{ type: "remove", value: 1 },
+			{ type: "add", value: 2 },
 		]);
 	});
 
@@ -204,8 +204,8 @@ describe("HashGraph for AddWinSet tests", () => {
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
 			{ type: "add", value: 1 },
-			{ type: "remove", value: 5 },
 			{ type: "add", value: 10 },
+			{ type: "remove", value: 5 },
 		]);
 	});
 
@@ -236,8 +236,8 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 1 },
 			{ type: "add", value: 2 },
+			{ type: "add", value: 1 },
 		]);
 	});
 
@@ -289,11 +289,11 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
+			{ type: "add", value: 1 },
 			{ type: "remove", value: 2 },
 			{ type: "add", value: 2 },
-			{ type: "add", value: 1 },
-			{ type: "add", value: 3 },
 			{ type: "remove", value: 1 },
+			{ type: "add", value: 3 },
 		]);
 	});
 
@@ -345,11 +345,11 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "remove", value: 2 },
 			{ type: "add", value: 1 },
 			{ type: "remove", value: 2 },
-			{ type: "add", value: 3 },
+			{ type: "remove", value: 2 },
 			{ type: "remove", value: 1 },
+			{ type: "add", value: 3 },
 			{ type: "add", value: 2 },
 			{ type: "remove", value: 1 },
 		]);
@@ -602,7 +602,7 @@ describe("Vertex timestamp tests", () => {
 	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", () => {
 		/*
 		        __ V1:ADD(1) __
-		       /               \  
+		       /               \
 		  ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
 		       \               /
 		        -- V3:ADD(3) --
