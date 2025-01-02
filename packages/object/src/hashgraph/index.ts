@@ -256,7 +256,7 @@ export class HashGraph {
 		return result;
 	}
 
-	kahnAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const result: Hash[] = [];
 		const inDegree = new Map<Hash, number>();
 		const queue: Hash[] = [];
@@ -284,13 +284,9 @@ export class HashGraph {
 
 			for (const child of this.forwardEdges.get(current) || []) {
 				if (!inDegree.has(child)) continue;
-				const inDegreeValue = inDegree.get(child);
-				if (inDegreeValue === undefined) {
-					log.error("::hashgraph::Kahn: Undefined in-degree value");
-					return [];
-				}
+				const inDegreeValue = inDegree.get(child) || 0;
 				inDegree.set(child, inDegreeValue - 1);
-				if (inDegree.get(child) === 0) {
+				if (inDegreeValue - 1 === 0) {
 					queue.push(child);
 				}
 			}
@@ -310,7 +306,7 @@ export class HashGraph {
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys()),
 	): Hash[] {
-		const result = this.kahnAlgorithm(origin, subgraph);
+		const result = this.kahnsAlgorithm(origin, subgraph);
 		if (!updateBitsets) return result;
 		this.reachablePredecessors.clear();
 		this.topoSortedIndex.clear();
