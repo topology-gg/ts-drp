@@ -279,6 +279,7 @@ export class HashGraph {
 			result.push(current);
 
 			for (const child of this.forwardEdges.get(current) || []) {
+				if (!subgraph.has(child)) continue;
 				if (inDegree.has(child)) {
 					const inDegreeValue = inDegree.get(child);
 					if (inDegreeValue === undefined) {
