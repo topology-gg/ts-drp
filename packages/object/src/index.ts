@@ -121,7 +121,7 @@ export class DRPObject implements IDRPObject {
 					});
 				}
 
-				if (propKey === "acl" && typeof value === "object" && value !== null) {
+				if (typeof value === "object" && value !== null && propKey === "acl") {
 					return new Proxy(
 						value,
 						obj.proxyDRPHandler(
