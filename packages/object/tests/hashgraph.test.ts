@@ -602,7 +602,7 @@ describe("Vertex timestamp tests", () => {
 	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", () => {
 		/*
 		        __ V1:ADD(1) __
-		       /               \
+		       /               \  
 		  ROOT -- V2:ADD(2) ---- V4:ADD(4) (invalid)
 		       \               /
 		        -- V3:ADD(3) --
