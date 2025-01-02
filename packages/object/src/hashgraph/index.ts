@@ -271,26 +271,31 @@ export class HashGraph {
 			}
 		}
 
+		let head = 0;
 		queue.push(origin);
 		while (queue.length > 0) {
-			const current = queue.shift();
+			const current = queue[head];
+			head++;
 			if (!current) continue;
 
 			result.push(current);
 
 			for (const child of this.forwardEdges.get(current) || []) {
 				if (!subgraph.has(child)) continue;
-				if (inDegree.has(child)) {
-					const inDegreeValue = inDegree.get(child);
-					if (inDegreeValue === undefined) {
-						log.error("::hashgraph::Kahn: Undefined in-degree value");
-						return [];
-					}
-					inDegree.set(child, inDegreeValue - 1);
-					if (inDegree.get(child) === 0) {
-						queue.push(child);
-					}
+				const inDegreeValue = inDegree.get(child);
+				if (inDegreeValue === undefined) {
+					log.error("::hashgraph::Kahn: Undefined in-degree value");
+					return [];
 				}
+				inDegree.set(child, inDegreeValue - 1);
+				if (inDegree.get(child) === 0) {
+					queue.push(child);
+				}
+			}
+
+			if (head > queue.length / 2) {
+				queue.splice(0, head);
+				head = 0;
 			}
 		}
 
