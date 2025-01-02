@@ -266,9 +266,9 @@ export class HashGraph {
 		}
 
 		for (const [vertex, children] of this.forwardEdges) {
-			if (!subgraph.has(vertex)) continue;
+			if (!inDegree.has(vertex)) continue;
 			for (const child of children) {
-				if (!subgraph.has(child)) continue;
+				if (!inDegree.has(child)) continue;
 				inDegree.set(child, (inDegree.get(child) || 0) + 1);
 			}
 		}
