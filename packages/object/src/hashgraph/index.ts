@@ -256,14 +256,53 @@ export class HashGraph {
 		return result;
 	}
 
+	kahnAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+		const result: Hash[] = [];
+		const inDegree = new Map<Hash, number>();
+		const queue: Hash[] = [];
+
+		for (const hash of subgraph.entries()) {
+			inDegree.set(hash, 0);
+		}
+
+		for (const [_, children] of this.forwardEdges) {
+			for (const child of children) {
+				inDegree.set(child, (inDegree.get(child) || 0) + 1);
+			}
+		}
+
+		queue.push(origin);
+		while (queue.length > 0) {
+			const current = queue.shift();
+			if (!current) continue;
+
+			result.push(current);
+
+			for (const child of this.forwardEdges.get(current) || []) {
+				if (inDegree.has(child)) {
+					const inDegreeValue = inDegree.get(child);
+					if (inDegreeValue === undefined) {
+						log.error("::hashgraph::Kahn: Undefined in-degree value");
+						return [];
+					}
+					inDegree.set(child, inDegreeValue - 1);
+					if (inDegree.get(child) === 0) {
+						queue.push(child);
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
 	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */
 	topologicalSort(
 		updateBitsets = false,
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys()),
 	): Hash[] {
-		const result = this.depthFirstSearch(origin, subgraph);
-		result.reverse();
+		const result = this.kahnAlgorithm(origin, subgraph);
 		if (!updateBitsets) return result;
 		this.reachablePredecessors.clear();
 		this.topoSortedIndex.clear();
