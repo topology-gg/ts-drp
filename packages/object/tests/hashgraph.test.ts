@@ -754,7 +754,7 @@ describe("Writer permission tests", () => {
 
 	test("Discard vertex if writer permission is revoked", () => {
 		/*
-		                                              __ V4:ADD(1) --
+			                                            __ V4:ADD(1) --
 			                                           /                \
 		  ROOT -- V1:GRANT(peer2) -- V2:grant(peer3)                    V6:REVOKE(peer3) -- V7:ADD(4)
 			                                           \                /
