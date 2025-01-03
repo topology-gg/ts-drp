@@ -1,6 +1,6 @@
+import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
-import { PseudoRandomWinsSet } from "../../blueprints/src/PseudoRandomWinsSet/index.js";
 import { DRPObject, type Operation, OperationType } from "../src/index.js";
 
 describe("HashGraph construction tests", () => {
@@ -631,5 +631,71 @@ describe("Vertex timestamp tests", () => {
 				"",
 			),
 		).toThrowError("Invalid timestamp detected.");
+	});
+});
+
+describe("Operation with ACL tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+
+	beforeEach(async () => {
+		const peerIdToPublicKey = new Map<string, string>([
+			["peer1", "publicKey1"],
+		]);
+		obj1 = new DRPObject(
+			"peer1",
+			new AddWinsSetWithACL<number>(peerIdToPublicKey),
+		);
+		obj2 = new DRPObject(
+			"peer2",
+			new AddWinsSetWithACL<number>(peerIdToPublicKey),
+		);
+	});
+
+	test("Node with admin permission can grant permission to other nodes", () => {
+		/*
+		  ROOT -- V1:GRANT("peer2")
+		*/
+
+		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
+
+		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.acl.isWriter("peer2")).toBe(true);
+	});
+
+	test("Node with writer permission can create vertices", () => {
+		/*
+		  ROOT -- V1:GRANT("peer2") -- V2:ADD(1)
+		*/
+		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
+
+		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		drp2.add("peer2", 1);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.contains(1)).toBe(true);
+	});
+
+	test("Revoke permission from writer", () => {
+		/*
+		  ROOT -- V1:GRANT("peer2") -- V2:ADD(1) -- V3:REVOKE("peer2")
+		*/
+		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
+
+		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		expect(drp2.acl.isWriter("peer2")).toBe(true);
+		drp2.add("peer2", 1);
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		drp1.acl.revoke("peer1", "peer2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.acl.isWriter("peer2")).toBe(false);
 	});
 });

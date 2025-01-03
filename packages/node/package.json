@@ -42,7 +42,7 @@
 		"@ts-drp/network": "0.4.4",
 		"@ts-drp/object": "0.4.4",
 		"@ts-drp/logger": "0.4.4",
-		"commander": "^12.1.0",
+		"commander": "^13.0.0",
 		"uint8arrays": "^5.1.0"
 	}
 }
