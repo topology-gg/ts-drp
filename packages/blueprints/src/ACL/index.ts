@@ -1,11 +1,11 @@
 import {
 	ActionType,
 	type DRP,
+	type DRPPublicCredential,
 	type IACL,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
-	type DRPPublicCredential,
 } from "@ts-drp/object";
 
 export enum ACLConflictResolution {
