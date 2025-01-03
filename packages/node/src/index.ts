@@ -9,7 +9,11 @@ import {
 import { type DRP, DRPObject, type Vertex } from "@ts-drp/object";
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
-import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./store/index.js";
+import {
+	type DRPCredentialConfig,
+	DRPCredentialStore,
+	DRPObjectStore,
+} from "./store/index.js";
 
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
@@ -105,7 +109,7 @@ export class DRPNode {
 	async signVertex(vertex: Vertex) {
 		if (vertex.peerId !== this.networkNode.peerId) {
 			log.error("::signVertexOperation: Invalid peer id");
-			return "";
+			return;
 		}
 		vertex.signature = await this.credentialStore.sign(vertex.hash);
 	}

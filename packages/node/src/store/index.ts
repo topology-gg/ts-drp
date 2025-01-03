@@ -78,20 +78,29 @@ export class DRPCredentialStore {
 	}
 
 	getPublicCredential(): DRPPublicCredential {
+		if (!this._ed25519PrivateKey || !this._blsPrivateKey) {
+			throw new Error("Private key not found");
+		}
 		return {
 			ed25519PublicKey: uint8ArrayToString(
-				this._ed25519PrivateKey?.publicKey.raw as Uint8Array,
+				this._ed25519PrivateKey?.publicKey.raw,
 				"base64",
 			),
 			blsPublicKey: uint8ArrayToString(
-				this._blsPrivateKey?.toPublicKey().toBytes() as Uint8Array,
+				this._blsPrivateKey?.toPublicKey().toBytes(),
 				"base64",
 			),
 		};
 	}
 
 	async sign(data: string): Promise<string> {
-		const signature = await this._ed25519PrivateKey?.sign(uint8ArrayFromString(data));
+		if (!this._ed25519PrivateKey) {
+			throw new Error("Private key not found");
+		}
+
+		const signature = await this._ed25519PrivateKey.sign(
+			uint8ArrayFromString(data),
+		);
 		return uint8ArrayToString(signature, "base64");
 	}
 }

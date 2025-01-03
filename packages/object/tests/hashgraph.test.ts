@@ -1,7 +1,12 @@
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
-import { DRPObject, type Operation, OperationType } from "../src/index.js";
+import {
+	DRPObject,
+	type DRPPublicCredential,
+	type Operation,
+	OperationType,
+} from "../src/index.js";
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -639,8 +644,14 @@ describe("Operation with ACL tests", () => {
 	let obj2: DRPObject;
 
 	beforeEach(async () => {
-		const peerIdToPublicKey = new Map<string, string>([
-			["peer1", "publicKey1"],
+		const peerIdToPublicKey = new Map<string, DRPPublicCredential>([
+			[
+				"peer1",
+				{
+					ed25519PublicKey: "publicKey1",
+					blsPublicKey: "publicKey1",
+				},
+			],
 		]);
 		obj1 = new DRPObject(
 			"peer1",
@@ -660,7 +671,10 @@ describe("Operation with ACL tests", () => {
 		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
 		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
 
-		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		drp1.acl.grant("peer1", "peer2", {
+			ed25519PublicKey: "publicKey2",
+			blsPublicKey: "publicKey2",
+		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		expect(drp2.acl.isWriter("peer2")).toBe(true);
 	});
@@ -672,7 +686,10 @@ describe("Operation with ACL tests", () => {
 		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
 		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
 
-		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		drp1.acl.grant("peer1", "peer2", {
+			ed25519PublicKey: "publicKey2",
+			blsPublicKey: "publicKey2",
+		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
 		drp2.add("peer2", 1);
@@ -687,7 +704,10 @@ describe("Operation with ACL tests", () => {
 		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
 		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
 
-		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		drp1.acl.grant("peer1", "peer2", {
+			ed25519PublicKey: "publicKey2",
+			blsPublicKey: "publicKey2",
+		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
 		expect(drp2.acl.isWriter("peer2")).toBe(true);
