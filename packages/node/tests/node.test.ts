@@ -37,6 +37,7 @@ describe("DPRNode with verify and sign signature", () => {
 					value: "value",
 				},
 				dependencies: [],
+				timestamp: Date.now(),
 				signature: "",
 			},
 		];
@@ -54,6 +55,7 @@ describe("DPRNode with verify and sign signature", () => {
 					value: 1,
 				},
 				dependencies: [],
+				timestamp: Date.now(),
 				signature: "",
 			},
 		];
@@ -71,6 +73,7 @@ describe("DPRNode with verify and sign signature", () => {
 					value: 1,
 				},
 				dependencies: [],
+				timestamp: Date.now(),
 				signature: "",
 			},
 		];
@@ -89,6 +92,7 @@ describe("DPRNode with verify and sign signature", () => {
 					value: 1,
 				},
 				dependencies: [],
+				timestamp: Date.now(),
 				signature: "",
 			},
 		];
@@ -109,6 +113,7 @@ describe("DPRNode with verify and sign signature", () => {
 					value: 1,
 				},
 				dependencies: [],
+				timestamp: Date.now(),
 				signature: "",
 			},
 		];
