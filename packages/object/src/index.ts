@@ -15,12 +15,17 @@ export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
 import { cloneDeep } from "es-toolkit";
 
+export interface DRPPublicCredential {
+	ed25519PublicKey: string;
+	blsPublicKey: string;
+}
+
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
 	isAdmin: (peerId: string) => boolean;
-	grant: (senderId: string, peerId: string, publicKey: string) => void;
+	grant: (senderId: string, peerId: string, publicKey: DRPPublicCredential) => void;
 	revoke: (senderId: string, peerId: string) => void;
-	getPeerKey: (peerId: string) => string | undefined;
+	getPeerKey: (peerId: string) => DRPPublicCredential | undefined;
 }
 
 export interface DRP {

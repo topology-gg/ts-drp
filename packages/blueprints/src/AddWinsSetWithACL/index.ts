@@ -5,6 +5,7 @@ import {
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
+	type DRPPublicCredential,
 } from "@ts-drp/object";
 import { ACL } from "../ACL/index.js";
 
@@ -14,7 +15,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 	acl: IACL & DRP;
 	semanticsType = SemanticsType.pair;
 
-	constructor(admins: Map<string, string>) {
+	constructor(admins: Map<string, DRPPublicCredential>) {
 		this.acl = new ACL(admins);
 		this.state = new Map<T, boolean>();
 	}

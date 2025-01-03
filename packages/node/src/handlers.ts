@@ -260,7 +260,7 @@ export async function verifyIncomingVertices(
 			return null;
 		}
 
-		const publicKeyBytes = uint8ArrayFromString(publicKey, "base64");
+		const publicKeyBytes = uint8ArrayFromString(publicKey.Ed25519PublicKey, "base64");
 		const data = uint8ArrayFromString(vertex.hash);
 
 		try {

@@ -296,14 +296,4 @@ export class DRPNetworkNode {
 	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
 		this._node?.handle(protocol, handler);
 	}
-
-	async sign(data: string): Promise<string> {
-		if (!this._privateKey) {
-			log.error("::signVertexOperation: Private key not found");
-			return "";
-		}
-
-		const signature = await this._privateKey.sign(uint8ArrayFromString(data));
-		return uint8ArrayToString(signature, "base64");
-	}
 }

@@ -1,4 +1,11 @@
-import type { DRPObject } from "@ts-drp/object";
+import type { DRPObject, DRPPublicCredential, Vertex } from "@ts-drp/object";
+import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
+import type { Ed25519PrivateKey } from "@libp2p/interface";
+import bls from "@chainsafe/bls";
+import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
+import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
+import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { toString as uint8ArrayToString } from "uint8arrays";
 
 export type DRPObjectStoreCallback = (
 	objectId: string,
@@ -42,5 +49,49 @@ export class DRPObjectStore {
 
 	remove(objectId: string) {
 		this._store.delete(objectId);
+	}
+}
+
+export interface DRPCredentialConfig {
+	private_key_seed?: string;
+}
+
+export class DRPCredentialStore {
+	private _config?: DRPCredentialConfig;
+	private _ed25519PrivateKey?: Ed25519PrivateKey;
+	private _blsPrivateKey?: BlsSecretKey;
+
+	constructor(config?: DRPCredentialConfig) {
+		this._config = config;
+	}
+
+	async start() {
+		if (this._config?.private_key_seed) {
+			const tmp = this._config.private_key_seed.padEnd(32, "0");
+			const seed = uint8ArrayFromString(tmp);
+			this._ed25519PrivateKey = await generateKeyPairFromSeed("Ed25519", seed);
+			this._blsPrivateKey = bls.SecretKey.fromBytes(deriveKeyFromEntropy(seed));
+		} else {
+			this._ed25519PrivateKey = await generateKeyPair("Ed25519");
+			this._blsPrivateKey = bls.SecretKey.fromKeygen();
+		}
+	}
+
+	getPublicCredential(): DRPPublicCredential {
+		return {
+			ed25519PublicKey: uint8ArrayToString(
+				this._ed25519PrivateKey?.publicKey.raw as Uint8Array,
+				"base64",
+			),
+			blsPublicKey: uint8ArrayToString(
+				this._blsPrivateKey?.toPublicKey().toBytes() as Uint8Array,
+				"base64",
+			),
+		};
+	}
+
+	async sign(data: string): Promise<string> {
+		const signature = await this._ed25519PrivateKey?.sign(uint8ArrayFromString(data));
+		return uint8ArrayToString(signature, "base64");
 	}
 }

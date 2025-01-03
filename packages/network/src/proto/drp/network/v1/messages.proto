@@ -21,6 +21,7 @@ message Message {
 message Update {
   string object_id = 1;
   repeated drp.object.v1.Vertex vertices = 2;
+  drp.object.v1.Attestation attestation = 3;
 }
 
 message Sync {
@@ -31,7 +32,8 @@ message Sync {
 message SyncAccept {
   string object_id = 1;
   repeated drp.object.v1.Vertex requested = 2;
-  repeated string requesting = 3;
+  repeated drp.object.v1.Attestation attestation = 3;
+  repeated string requesting = 4;
 }
 
 message SyncReject {}
