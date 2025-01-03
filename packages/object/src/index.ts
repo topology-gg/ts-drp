@@ -165,7 +165,7 @@ export class DRPObject implements IDRPObject {
 
 			try {
 				const drp = this._computeDRP(vertex.dependencies);
-				if (drp.acl && !drp.acl.isWriter(vertex.peerId)) {
+				if (!this._checkWriterPermission(drp, vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
 
@@ -200,6 +200,13 @@ export class DRPObject implements IDRPObject {
 		for (const callback of this.subscriptions) {
 			callback(this, origin, vertices);
 		}
+	}
+
+	private _checkWriterPermission(drp: DRP, peerId: string): boolean {
+		if (drp.acl) {
+			return drp.acl.isWriter(peerId);
+		}
+		return true;
 	}
 
 	private _applyOperation(drp: DRP, operation: Operation) {
