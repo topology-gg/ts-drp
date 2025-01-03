@@ -276,10 +276,8 @@ export class DRPObject implements IDRPObject {
 
 		for (const op of linearizedOperations) {
 			this._applyOperation(drp, op);
-			this._applyOperation(drp, op);
 		}
 		if (vertexOperation) {
-			this._applyOperation(drp, vertexOperation);
 			this._applyOperation(drp, vertexOperation);
 		}
 
