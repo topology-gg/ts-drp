@@ -14,12 +14,6 @@ export type { Vertex, Operation };
 
 export type Hash = string;
 
-export enum DepthFirstSearchState {
-	UNVISITED = 0,
-	VISITING = 1,
-	VISITED = 2,
-}
-
 export enum OperationType {
 	NOP = "-1",
 }
@@ -217,43 +211,6 @@ export class HashGraph {
 		this.frontier = this.frontier.filter((hash) => !depsSet.has(hash));
 		this.arePredecessorsFresh = false;
 		return hash;
-	}
-
-	depthFirstSearch(
-		origin: Hash,
-		subgraph: ObjectSet<Hash>,
-		visited: Map<Hash, number> = new Map(),
-	): Hash[] {
-		const result: Hash[] = [];
-		for (const hash of subgraph.entries()) {
-			visited.set(hash, DepthFirstSearchState.UNVISITED);
-		}
-		const visit = (hash: Hash) => {
-			visited.set(hash, DepthFirstSearchState.VISITING);
-
-			const children = this.forwardEdges.get(hash) || [];
-			for (const child of children) {
-				if (!subgraph.has(child)) continue;
-				if (visited.get(child) === DepthFirstSearchState.VISITING) {
-					log.error("::hashgraph::DFS: Cycle detected");
-					return;
-				}
-				if (visited.get(child) === undefined) {
-					log.error("::hashgraph::DFS: Undefined child");
-					return;
-				}
-				if (visited.get(child) === DepthFirstSearchState.UNVISITED) {
-					visit(child);
-				}
-			}
-
-			result.push(hash);
-			visited.set(hash, DepthFirstSearchState.VISITED);
-		};
-
-		visit(origin);
-
-		return result;
 	}
 
 	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
@@ -511,18 +468,16 @@ export class HashGraph {
 			}
 		}
 
-		const visited = new Map<Hash, number>();
-		this.depthFirstSearch(
+		const topoOrder = this.kahnsAlgorithm(
 			HashGraph.rootHash,
 			new ObjectSet(this.vertices.keys()),
-			visited,
 		);
+
 		for (const vertex of this.getAllVertices()) {
-			if (!visited.has(vertex.hash)) {
+			if (!topoOrder.includes(vertex.hash)) {
 				return false;
 			}
 		}
-
 		return true;
 	}
 
