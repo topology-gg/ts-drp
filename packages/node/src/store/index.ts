@@ -1,4 +1,4 @@
-import type { DRPObject, DRPPublicCredential, Vertex } from "@ts-drp/object";
+import type { DRPObject, DRPPublicCredential } from "@ts-drp/object";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
 import bls from "@chainsafe/bls";
