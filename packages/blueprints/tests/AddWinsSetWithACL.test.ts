@@ -6,7 +6,14 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	let drp: AddWinsSetWithACL<number>;
 
 	beforeEach(() => {
-		drp = new AddWinsSetWithACL(new Map([["peer1", "publicKey1"]]));
+		drp = new AddWinsSetWithACL(
+			new Map([
+				[
+					"peer1",
+					{ ed25519PublicKey: "publicKey1", blsPublicKey: "publicKey1" },
+				],
+			]),
+		);
 	});
 
 	test("Admin nodes should have admin privileges", () => {
@@ -18,13 +25,19 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Grant write permissions to a new writer", () => {
-		drp.acl.grant("peer1", "peer3", "publicKey3");
+		drp.acl.grant("peer1", "peer3", {
+			ed25519PublicKey: "publicKey3",
+			blsPublicKey: "publicKey3",
+		});
 
 		expect(drp.acl.isWriter("peer3")).toBe(true);
 	});
 
 	test("Revoke write permissions from a writer", () => {
-		drp.acl.grant("peer1", "peer3", "publicKey3");
+		drp.acl.grant("peer1", "peer3", {
+			ed25519PublicKey: "publicKey3",
+			blsPublicKey: "publicKey3",
+		});
 		drp.acl.revoke("peer1", "peer3");
 
 		expect(drp.acl.isWriter("peer3")).toBe(false);
