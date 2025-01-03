@@ -177,10 +177,7 @@ export class DRPObject implements IDRPObject {
 					vertex.signature,
 				);
 
-				const args = Array.isArray(vertex.operation.value)
-					? vertex.operation.value
-					: [vertex.operation.value];
-				drp[vertex.operation.type](...args);
+				this._applyOperation(drp, vertex.operation);
 				this._setState(vertex, this._getDRPState(drp));
 			} catch (e) {
 				missing.push(vertex.hash);

@@ -675,7 +675,7 @@ describe("Operation with ACL tests", () => {
 		drp1.acl.grant("peer1", "peer2", "publicKey2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		drp2.add("peer2", 1);
+		drp2.add(1);
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		expect(drp1.contains(1)).toBe(true);
 	});
