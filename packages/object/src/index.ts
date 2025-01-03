@@ -102,11 +102,16 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
-	proxyDRPHandler(): ProxyHandler<object> {
+	proxyDRPHandler(parentProp?: string): ProxyHandler<object> {
 		const obj = this;
 		return {
 			get(target, propKey, receiver) {
-				if (typeof target[propKey as keyof object] === "function") {
+				const value = Reflect.get(target, propKey, receiver);
+
+				if (typeof value === "function") {
+					const fullPropKey = parentProp
+						? `${parentProp}.${String(propKey)}`
+						: String(propKey);
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
 							if (
@@ -115,15 +120,22 @@ export class DRPObject implements IDRPObject {
 								!(propKey as string).startsWith("get") &&
 								!(propKey as string).startsWith("query")
 							)
-								obj.callFn(
-									propKey as string,
-									args.length === 1 ? args[0] : args,
-								);
+								obj.callFn(fullPropKey, args.length === 1 ? args[0] : args);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
 					});
 				}
-				return Reflect.get(target, propKey, receiver);
+
+				if (typeof value === "object" && value !== null && propKey === "acl") {
+					return new Proxy(
+						value,
+						obj.proxyDRPHandler(
+							parentProp ? `${parentProp}.${String(propKey)}` : String(propKey),
+						),
+					);
+				}
+
+				return value;
 			},
 		};
 	}
@@ -222,6 +234,28 @@ export class DRPObject implements IDRPObject {
 		}
 	}
 
+	private _applyOperation(drp: DRP, operation: Operation) {
+		const { type, value } = operation;
+
+		const typeParts = type.split(".");
+		// biome-ignore lint: target can be anything
+		let target: any = drp;
+		for (let i = 0; i < typeParts.length - 1; i++) {
+			target = target[typeParts[i]];
+			if (!target) {
+				throw new Error(`Invalid operation type: ${type}`);
+			}
+		}
+
+		const methodName = typeParts[typeParts.length - 1];
+		if (typeof target[methodName] !== "function") {
+			throw new Error(`${type} is not a function`);
+		}
+
+		const args = Array.isArray(value) ? value : [value];
+		target[methodName](...args);
+	}
+
 	private _computeState(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation | undefined,
@@ -254,14 +288,10 @@ export class DRPObject implements IDRPObject {
 		}
 
 		for (const op of linearizedOperations) {
-			const args = Array.isArray(op.value) ? op.value : [op.value];
-			drp[op.type](...args);
+			this._applyOperation(drp, op);
 		}
 		if (vertexOperation) {
-			const args = Array.isArray(vertexOperation.value)
-				? vertexOperation.value
-				: [vertexOperation.value];
-			drp[vertexOperation.type](...args);
+			this._applyOperation(drp, vertexOperation);
 		}
 
 		const varNames: string[] = Object.keys(drp);

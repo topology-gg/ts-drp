@@ -14,12 +14,6 @@ export type { Vertex, Operation };
 
 export type Hash = string;
 
-export enum DepthFirstSearchState {
-	UNVISITED = 0,
-	VISITING = 1,
-	VISITED = 2,
-}
-
 export enum OperationType {
 	NOP = "-1",
 }
@@ -219,39 +213,46 @@ export class HashGraph {
 		return hash;
 	}
 
-	depthFirstSearch(
-		origin: Hash,
-		subgraph: ObjectSet<Hash>,
-		visited: Map<Hash, number> = new Map(),
-	): Hash[] {
+	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const result: Hash[] = [];
-		for (const hash of subgraph.entries()) {
-			visited.set(hash, DepthFirstSearchState.UNVISITED);
-		}
-		const visit = (hash: Hash) => {
-			visited.set(hash, DepthFirstSearchState.VISITING);
+		const inDegree = new Map<Hash, number>();
+		const queue: Hash[] = [];
 
-			const children = this.forwardEdges.get(hash) || [];
+		for (const hash of subgraph.entries()) {
+			inDegree.set(hash, 0);
+		}
+
+		for (const [vertex, children] of this.forwardEdges) {
+			if (!inDegree.has(vertex)) continue;
 			for (const child of children) {
-				if (!subgraph.has(child)) continue;
-				if (visited.get(child) === DepthFirstSearchState.VISITING) {
-					log.error("::hashgraph::DFS: Cycle detected");
-					return;
-				}
-				if (visited.get(child) === undefined) {
-					log.error("::hashgraph::DFS: Undefined child");
-					return;
-				}
-				if (visited.get(child) === DepthFirstSearchState.UNVISITED) {
-					visit(child);
+				if (!inDegree.has(child)) continue;
+				inDegree.set(child, (inDegree.get(child) || 0) + 1);
+			}
+		}
+
+		let head = 0;
+		queue.push(origin);
+		while (queue.length > 0) {
+			const current = queue[head];
+			head++;
+			if (!current) continue;
+
+			result.push(current);
+
+			for (const child of this.forwardEdges.get(current) || []) {
+				if (!inDegree.has(child)) continue;
+				const inDegreeValue = inDegree.get(child) || 0;
+				inDegree.set(child, inDegreeValue - 1);
+				if (inDegreeValue - 1 === 0) {
+					queue.push(child);
 				}
 			}
 
-			result.push(hash);
-			visited.set(hash, DepthFirstSearchState.VISITED);
-		};
-
-		visit(origin);
+			if (head > queue.length / 2) {
+				queue.splice(0, head);
+				head = 0;
+			}
+		}
 
 		return result;
 	}
@@ -262,8 +263,7 @@ export class HashGraph {
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys()),
 	): Hash[] {
-		const result = this.depthFirstSearch(origin, subgraph);
-		result.reverse();
+		const result = this.kahnsAlgorithm(origin, subgraph);
 		if (!updateBitsets) return result;
 		this.reachablePredecessors.clear();
 		this.topoSortedIndex.clear();
@@ -468,18 +468,16 @@ export class HashGraph {
 			}
 		}
 
-		const visited = new Map<Hash, number>();
-		this.depthFirstSearch(
+		const topoOrder = this.kahnsAlgorithm(
 			HashGraph.rootHash,
 			new ObjectSet(this.vertices.keys()),
-			visited,
 		);
+
 		for (const vertex of this.getAllVertices()) {
-			if (!visited.has(vertex.hash)) {
+			if (!topoOrder.includes(vertex.hash)) {
 				return false;
 			}
 		}
-
 		return true;
 	}
 
