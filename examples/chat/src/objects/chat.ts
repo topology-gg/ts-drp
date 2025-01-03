@@ -26,7 +26,7 @@ export class Chat implements DRP {
 		this.messages.add(`(${timestamp}, ${message}, ${peerId})`);
 	}
 
-	getMessages(): Set<string> {
+	query_messages(): Set<string> {
 		return this.messages;
 	}
 

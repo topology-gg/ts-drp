@@ -255,7 +255,7 @@ export async function verifyIncomingVertices(
 
 		const signature = uint8ArrayFromString(vertex.signature, "base64");
 
-		const publicKey = acl.getPeerKey(vertex.peerId);
+		const publicKey = acl.query_getPeerKey(vertex.peerId);
 		if (!publicKey) {
 			return null;
 		}

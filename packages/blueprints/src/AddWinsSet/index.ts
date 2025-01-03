@@ -30,11 +30,11 @@ export class AddWinsSet<T> implements DRP {
 		this._remove(value);
 	}
 
-	queryContains(value: T): boolean {
+	query_contains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
 
-	getValues(): T[] {
+	query_getValues(): T[] {
 		return Array.from(this.state.entries())
 			.filter(([_, exists]) => exists)
 			.map(([value, _]) => value);

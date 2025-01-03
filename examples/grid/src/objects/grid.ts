@@ -52,11 +52,11 @@ export class Grid implements DRP {
 		}
 	}
 
-	getUsers(): string[] {
+	query_users(): string[] {
 		return [...this.positions.keys()];
 	}
 
-	getUserPosition(
+	query_userPosition(
 		userColorString: string,
 	): { x: number; y: number } | undefined {
 		const position = this.positions.get(userColorString);

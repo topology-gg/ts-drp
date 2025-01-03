@@ -82,7 +82,7 @@ const render = () => {
 		: `Your frens in GRID: [${objectPeers.map((peer) => `<strong style="color: ${getColorForPeerId(peer)};">${formatPeerId(peer)}</strong>`).join(", ")}]`;
 
 	if (!gridDRP) return;
-	const users = gridDRP.getUsers();
+	const users = gridDRP.query_users();
 	const element_grid = <HTMLDivElement>document.getElementById("grid");
 	element_grid.innerHTML = "";
 
@@ -119,7 +119,7 @@ const render = () => {
 
 	for (const userColorString of users) {
 		const [id, color] = userColorString.split(":");
-		const position = gridDRP.getUserPosition(userColorString);
+		const position = gridDRP.query_userPosition(userColorString);
 
 		if (position) {
 			const div = document.createElement("div");

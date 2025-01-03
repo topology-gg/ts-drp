@@ -58,7 +58,7 @@ export class Canvas implements DRP {
 		this.canvas[offset[0]][offset[1]].paint(rgb);
 	}
 
-	getPixel(x: number, y: number): Pixel {
+	query_pixel(x: number, y: number): Pixel {
 		return this.canvas[x][y];
 	}
 

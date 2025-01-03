@@ -46,7 +46,7 @@ function paint_pixel(pixel: HTMLDivElement) {
 		random_int(256),
 	];
 	canvasDRP.paint([x, y], painting);
-	const [r, g, b] = canvasDRP.getPixel(x, y).color();
+	const [r, g, b] = canvasDRP.query_pixel(x, y).color();
 	pixel.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
 }
 
