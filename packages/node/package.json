@@ -8,12 +8,7 @@
 	},
 	"type": "module",
 	"types": "./dist/src/index.d.ts",
-	"files": [
-		"src",
-		"dist",
-		"!dist/test",
-		"!**/*.tsbuildinfo"
-	],
+	"files": ["src", "dist", "!dist/test", "!**/*.tsbuildinfo"],
 	"exports": {
 		".": {
 			"types": "./dist/src/index.d.ts",

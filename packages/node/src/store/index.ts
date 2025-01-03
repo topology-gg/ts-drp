@@ -1,5 +1,5 @@
-import bls from "@chainsafe/bls/herumi";
 import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
+import bls from "@chainsafe/bls/herumi";
 import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";

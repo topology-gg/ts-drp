@@ -35,7 +35,11 @@ export class ACL implements IACL, DRP {
 		this._writers.set(peerId, publicKey);
 	}
 
-	grant(senderId: string, peerId: string, publicKey: DRPPublicCredential): void {
+	grant(
+		senderId: string,
+		peerId: string,
+		publicKey: DRPPublicCredential,
+	): void {
 		if (!this.isAdmin(senderId)) {
 			throw new Error("Only admin nodes can grant permissions.");
 		}
