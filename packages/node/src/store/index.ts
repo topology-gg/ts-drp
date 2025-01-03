@@ -1,11 +1,11 @@
-import type { DRPObject, DRPPublicCredential } from "@ts-drp/object";
+import bls from "@chainsafe/bls/herumi";
+import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
+import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
-import bls from "@chainsafe/bls";
-import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
-import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
-import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import type { DRPObject, DRPPublicCredential } from "@ts-drp/object";
 import { toString as uint8ArrayToString } from "uint8arrays";
+import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 export type DRPObjectStoreCallback = (
 	objectId: string,
@@ -93,7 +93,7 @@ export class DRPCredentialStore {
 		};
 	}
 
-	async sign(data: string): Promise<string> {
+	async signWithEd25519(data: string): Promise<string> {
 		if (!this._ed25519PrivateKey) {
 			throw new Error("Private key not found");
 		}
@@ -101,6 +101,17 @@ export class DRPCredentialStore {
 		const signature = await this._ed25519PrivateKey.sign(
 			uint8ArrayFromString(data),
 		);
+		return uint8ArrayToString(signature, "base64");
+	}
+
+	signWithBls(data: string): string {
+		if (!this._blsPrivateKey) {
+			throw new Error("Private key not found");
+		}
+
+		const signature = this._blsPrivateKey
+			.sign(uint8ArrayFromString(data))
+			.toBytes();
 		return uint8ArrayToString(signature, "base64");
 	}
 }

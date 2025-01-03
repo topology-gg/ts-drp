@@ -112,6 +112,6 @@ export class DRPNode {
 			log.error("::signVertexOperation: Invalid peer id");
 			return;
 		}
-		vertex.signature = await this.credentialStore.sign(vertex.hash);
+		vertex.signature = await this.credentialStore.signWithEd25519(vertex.hash);
 	}
 }

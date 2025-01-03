@@ -21,7 +21,10 @@ describe("DPRNode with verify and sign signature", () => {
 	beforeEach(async () => {
 		drp = new AddWinsSetWithACL(
 			new Map([
-				[drpNode.networkNode.peerId, drpNode.credentialStore.getPublicCredential() || ""],
+				[
+					drpNode.networkNode.peerId,
+					drpNode.credentialStore.getPublicCredential() || "",
+				],
 			]),
 		);
 		drpObject = new DRPObject(drpNode.networkNode.peerId, drp);

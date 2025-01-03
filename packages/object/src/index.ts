@@ -23,7 +23,11 @@ export interface DRPPublicCredential {
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
 	isAdmin: (peerId: string) => boolean;
-	grant: (senderId: string, peerId: string, publicKey: DRPPublicCredential) => void;
+	grant: (
+		senderId: string,
+		peerId: string,
+		publicKey: DRPPublicCredential,
+	) => void;
 	revoke: (senderId: string, peerId: string) => void;
 	getPeerKey: (peerId: string) => DRPPublicCredential | undefined;
 }
