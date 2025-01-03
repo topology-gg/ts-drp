@@ -163,6 +163,9 @@ export class HashGraph {
 			return hash; // Vertex already exists
 		}
 
+		console.log("hash", hash);
+		console.log("deps", deps);
+		console.log("current hash", this.vertices);
 		for (const dep of deps) {
 			const vertex = this.vertices.get(dep);
 			if (vertex === undefined) {

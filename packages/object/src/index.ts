@@ -1,11 +1,12 @@
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import {
+	ActionType,
 	type Hash,
 	HashGraph,
 	type Operation,
 	type ResolveConflictsType,
-	type SemanticsType,
+	SemanticsType,
 	type Vertex,
 } from "./hashgraph/index.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
@@ -55,6 +56,14 @@ export interface DRPObjectConfig {
 }
 
 export let log: Logger;
+
+export class EmptyDRP implements DRP {
+	operations: string[] = [];
+	semanticsType: SemanticsType = SemanticsType.pair;
+	resolveConflicts(): ResolveConflictsType {
+		return { action: ActionType.Nop };
+	}
+}
 
 export class DRPObject implements IDRPObject {
 	peerId: string;
@@ -204,6 +213,12 @@ export class DRPObject implements IDRPObject {
 
 		const drp = cloneDeep(this.originalDRP);
 
+		console.log("here");
+		console.log("lca", lca);
+		console.log(this.vertices);
+		console.log(vertexDependencies);
+		console.log(this.states);
+
 		const fetchedState = this.states.get(lca);
 		if (!fetchedState) {
 			throw new Error("State is undefined");
@@ -230,7 +245,7 @@ export class DRPObject implements IDRPObject {
 		// biome-ignore lint: values can be anything
 		const newState: Map<string, any> = new Map();
 		for (const varName of varNames) {
-			newState.set(varName, drp[varName]);
+			newState.set(varName, drp[varName]);	
 		}
 		return newState;
 	}

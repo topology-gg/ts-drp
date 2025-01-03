@@ -1,5 +1,5 @@
 import { NetworkPb } from "@ts-drp/network";
-import { type DRPObject, ObjectPb } from "@ts-drp/object";
+import { DRPObject, EmptyDRP, ObjectPb } from "@ts-drp/object";
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
@@ -31,6 +31,8 @@ export async function subscribeObject(node: DRPNode, objectId: string) {
 	node.networkNode.addGroupMessageHandler(objectId, async (e) =>
 		drpMessagesHandler(node, undefined, e.detail.msg.data),
 	);
+	node.objectStore.subscribe(objectId, () => {});
+	node.objectStore.put(objectId, new DRPObject(node.networkNode.peerId, new EmptyDRP()));
 }
 
 export function unsubscribeObject(
