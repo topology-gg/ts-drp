@@ -290,13 +290,10 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 1 },
-			{ type: "add", value: 3 },
+			{ type: "remove", value: 1 },
 			{ type: "add", value: 2 },
-			{ type: "add", value: 1 },
 			{ type: "add", value: 3 },
 			{ type: "remove", value: 1 },
-			{ type: "add", value: 3 },
 		]);
 	});
 
@@ -348,7 +345,6 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 3 },
 			{ type: "remove", value: 1 },
 			{ type: "add", value: 3 },
 			{ type: "add", value: 2 },
