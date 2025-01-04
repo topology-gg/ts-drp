@@ -11,12 +11,11 @@ import {
 	circuitRelayServer,
 	circuitRelayTransport,
 } from "@libp2p/circuit-relay-v2";
-import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
+import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify } from "@libp2p/identify";
 import type {
-	Ed25519PrivateKey,
 	EventCallback,
 	PubSub,
 	Stream,
@@ -30,10 +29,8 @@ import { webTransport } from "@libp2p/webtransport";
 import { multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
-import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
-import type { Vertex } from "./proto/drp/object/v1/object_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -55,8 +52,7 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: PubSub<GossipsubEvents>;
-	private _privateKey?: Ed25519PrivateKey;
-	publicKey?: string;
+
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
@@ -65,19 +61,14 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
+		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			this._privateKey = await generateKeyPairFromSeed(
+			privateKey = await generateKeyPairFromSeed(
 				"Ed25519",
 				uint8ArrayFromString(tmp),
 			);
-		} else {
-			this._privateKey = await generateKeyPair("Ed25519");
 		}
-		this.publicKey = uint8ArrayToString(
-			this._privateKey.publicKey.raw,
-			"base64",
-		);
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
 			? this._config.bootstrap_peers
@@ -115,7 +106,7 @@ export class DRPNetworkNode {
 		};
 
 		this._node = await createLibp2p({
-			privateKey: this._privateKey,
+			privateKey,
 			addresses: {
 				listen: this._config?.addresses
 					? this._config.addresses
