@@ -236,7 +236,7 @@ export class DRPObject implements IDRPObject {
 	// compute the DRP based on all dependencies of the current vertex using partial linearization
 	private _computeDRP(
 		vertexDependencies: Hash[],
-		vertexOperation?: Operation | undefined,
+		vertexOperation?: Operation,
 	): DRP {
 		const subgraph: ObjectSet<Hash> = new ObjectSet();
 		const lca =
@@ -278,22 +278,24 @@ export class DRPObject implements IDRPObject {
 	private _getDRPState(
 		drp: DRP,
 		// biome-ignore lint: values can be anything
-	): Map<string, any> {
+	): DRPState {
 		const varNames: string[] = Object.keys(drp);
 		// biome-ignore lint: values can be anything
-		const newState: Map<string, any> = new Map();
+		const drpState: DRPState = {
+			state: new Map(),
+		};
 		for (const varName of varNames) {
-			newState.set(varName, drp[varName]);
+			drpState.state.set(varName, drp[varName]);
 		}
-		return newState;
+		return drpState;
 	}
 
 	// compute the DRP state based on all dependencies of the current vertex
 	private _computeDRPState(
 		vertexDependencies: Hash[],
-		vertexOperation?: Operation | undefined,
+		vertexOperation?: Operation,
 		// biome-ignore lint: values can be anything
-	): Map<string, any> {
+	): DRPState {
 		const drp = this._computeDRP(vertexDependencies, vertexOperation);
 		return this._getDRPState(drp);
 	}
@@ -302,12 +304,12 @@ export class DRPObject implements IDRPObject {
 	private _setState(
 		vertex: Vertex,
 		// biome-ignore lint: values can be anything
-		state?: Map<string, any>,
+		drpState?: DRPState,
 	) {
-		this.states.set(vertex.hash, {
-			state:
-				state ?? this._computeDRPState(vertex.dependencies, vertex.operation),
-		});
+		this.states.set(
+			vertex.hash,
+			drpState ?? this._computeDRPState(vertex.dependencies, vertex.operation),
+		);
 	}
 
 	// update the DRP's attributes based on all the vertices in the hashgraph
@@ -317,7 +319,7 @@ export class DRPObject implements IDRPObject {
 		}
 		const currentDRP = this.drp as DRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
-		for (const [key, value] of newState.entries()) {
+		for (const [key, value] of newState.state.entries()) {
 			if (key in currentDRP && typeof currentDRP[key] !== "function") {
 				currentDRP[key] = value;
 			}
