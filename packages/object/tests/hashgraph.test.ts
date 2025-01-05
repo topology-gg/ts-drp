@@ -675,7 +675,7 @@ describe("Operation with ACL tests", () => {
 		drp1.acl.grant("peer1", "peer2", "publicKey2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		drp2.add("peer2", 1);
+		drp2.add(1);
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		expect(drp1.contains(1)).toBe(true);
 	});
@@ -691,11 +691,103 @@ describe("Operation with ACL tests", () => {
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
 		expect(drp2.acl.isWriter("peer2")).toBe(true);
-		drp2.add("peer2", 1);
+		drp2.add(1);
 
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		drp1.acl.revoke("peer1", "peer2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		expect(drp2.acl.isWriter("peer2")).toBe(false);
+	});
+});
+
+describe("Writer permission tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	let obj3: DRPObject;
+
+	beforeEach(async () => {
+		const peerIdToPublicKeyMap = new Map([["peer1", "publicKey1"]]);
+		obj1 = new DRPObject("peer1", new AddWinsSetWithACL(peerIdToPublicKeyMap));
+		obj2 = new DRPObject("peer2", new AddWinsSetWithACL(peerIdToPublicKeyMap));
+		obj3 = new DRPObject("peer3", new AddWinsSetWithACL(peerIdToPublicKeyMap));
+	});
+
+	test("Node without writer permission can generate vertex locally", () => {
+		const drp = obj1.drp as AddWinsSetWithACL<number>;
+		drp.add(1);
+		drp.add(2);
+
+		expect(drp.contains(1)).toBe(true);
+		expect(drp.contains(2)).toBe(true);
+	});
+
+	test("Discard vertex if creator does not have write permission", () => {
+		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
+
+		drp1.add(1);
+		drp2.add(2);
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.contains(2)).toBe(false);
+	});
+
+	test("Accept vertex if creator has write permission", () => {
+		/*
+		  ROOT -- V1:ADD(1) -- V2:GRANT(peer2) -- V3:ADD(4)
+		*/
+		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
+
+		drp1.add(1);
+		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		expect(drp1.acl.isAdmin("peer1")).toBe(true);
+
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.contains(1)).toBe(true);
+		expect(drp2.acl.isWriter("peer2")).toBe(true);
+
+		drp2.add(4);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.contains(4)).toBe(true);
+	});
+
+	test("Discard vertex if writer permission is revoked", () => {
+		/*
+		                                              __ V4:ADD(1) --
+		                                             /                \
+		  ROOT -- V1:GRANT(peer2) -- V2:grant(peer3)                   V6:REVOKE(peer3) -- V7:ADD(4)
+		                                             \                /
+		                                              -- V5:ADD(2) --
+		*/
+		const drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
+		const drp3 = obj3.drp as AddWinsSetWithACL<number>;
+
+		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		drp1.acl.grant("peer1", "peer3", "publicKey3");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		obj3.merge(obj1.hashGraph.getAllVertices());
+
+		drp2.add(1);
+		drp3.add(2);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj1.merge(obj3.hashGraph.getAllVertices());
+		obj2.merge(obj3.hashGraph.getAllVertices());
+		obj3.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.contains(1)).toBe(true);
+		expect(drp1.contains(2)).toBe(true);
+
+		drp1.acl.revoke("peer1", "peer3");
+		obj3.merge(obj1.hashGraph.getAllVertices());
+		drp3.add(3);
+		obj2.merge(obj3.hashGraph.getAllVertices());
+		expect(drp2.contains(3)).toBe(false);
+
+		drp2.add(4);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj1.merge(obj3.hashGraph.getAllVertices());
+		expect(drp1.contains(3)).toBe(false);
+		expect(drp1.contains(4)).toBe(true);
 	});
 });
