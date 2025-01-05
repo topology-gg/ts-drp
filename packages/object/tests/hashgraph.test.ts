@@ -713,12 +713,12 @@ describe("Writer permission tests", () => {
 	});
 
 	test("Node without writer permission can generate vertex locally", () => {
-		const drp2 = obj1.drp as AddWinsSetWithACL<number>;
-		drp2.add(1);
-		drp2.add(2);
+		const drp = obj1.drp as AddWinsSetWithACL<number>;
+		drp.add(1);
+		drp.add(2);
 
-		expect(drp2.contains(1)).toBe(true);
-		expect(drp2.contains(2)).toBe(true);
+		expect(drp.contains(1)).toBe(true);
+		expect(drp.contains(2)).toBe(true);
 	});
 
 	test("Discard vertex if creator does not have write permission", () => {
