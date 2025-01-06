@@ -15,14 +15,6 @@ export class Chat implements DRP {
 	}
 
 	addMessage(timestamp: string, message: string, peerId: string): void {
-		this._addMessage(timestamp, message, peerId);
-	}
-
-	private _addMessage(
-		timestamp: string,
-		message: string,
-		peerId: string,
-	): void {
 		this.messages.add(`(${timestamp}, ${message}, ${peerId})`);
 	}
 

@@ -19,20 +19,12 @@ export class AddWinsSetWithACL<T> implements DRP {
 		this.state = new Map<T, boolean>();
 	}
 
-	private _add(value: T): void {
+	add(value: T): void {
 		if (!this.state.get(value)) this.state.set(value, true);
 	}
 
-	add(value: T): void {
-		this._add(value);
-	}
-
-	private _remove(value: T): void {
-		if (this.state.get(value)) this.state.set(value, false);
-	}
-
 	remove(value: T): void {
-		this._remove(value);
+		if (this.state.get(value)) this.state.set(value, false);
 	}
 
 	query_contains(value: T): boolean {

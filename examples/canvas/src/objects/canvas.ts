@@ -26,18 +26,6 @@ export class Canvas implements DRP {
 		size: [number, number],
 		rgb: [number, number, number],
 	): void {
-		this._splash(offset, size, rgb);
-	}
-
-	paint(offset: [number, number], rgb: [number, number, number]): void {
-		this._paint(offset, rgb);
-	}
-
-	private _splash(
-		offset: [number, number],
-		size: [number, number],
-		rgb: [number, number, number],
-	): void {
 		if (offset[0] < 0 || this.width < offset[0]) return;
 		if (offset[1] < 0 || this.height < offset[1]) return;
 
@@ -48,10 +36,7 @@ export class Canvas implements DRP {
 		}
 	}
 
-	private _paint(
-		offset: [number, number],
-		rgb: [number, number, number],
-	): void {
+	paint(offset: [number, number], rgb: [number, number, number]): void {
 		if (offset[0] < 0 || this.canvas.length < offset[0]) return;
 		if (offset[1] < 0 || this.canvas[offset[0]].length < offset[1]) return;
 
