@@ -213,12 +213,6 @@ export class DRPObject implements IDRPObject {
 
 		const drp = cloneDeep(this.originalDRP);
 
-		console.log("here");
-		console.log("lca", lca);
-		console.log(this.vertices);
-		console.log(vertexDependencies);
-		console.log(this.states);
-
 		const fetchedState = this.states.get(lca);
 		if (!fetchedState) {
 			throw new Error("State is undefined");
@@ -245,14 +239,21 @@ export class DRPObject implements IDRPObject {
 		// biome-ignore lint: values can be anything
 		const newState: Map<string, any> = new Map();
 		for (const varName of varNames) {
-			newState.set(varName, drp[varName]);	
+			newState.set(varName, drp[varName]);
 		}
 		return newState;
 	}
 
 	private _setState(vertex: Vertex) {
-		const newState = this._computeState(vertex.dependencies, vertex.operation);
-		this.states.set(vertex.hash, { state: newState });
+		try {
+			const newState = this._computeState(
+				vertex.dependencies,
+				vertex.operation,
+			);
+			this.states.set(vertex.hash, { state: newState });
+		} catch (e) {
+			throw new Error(`Error computing state: ${e}`);
+		}
 	}
 
 	private _updateDRPState() {
