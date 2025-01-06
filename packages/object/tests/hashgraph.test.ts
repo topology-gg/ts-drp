@@ -737,11 +737,11 @@ describe("Writer permission tests", () => {
 
 		drp1.add(1);
 		drp1.acl.grant("peer1", "peer2", "publicKey2");
-		expect(drp1.acl.isAdmin("peer1")).toBe(true);
+		expect(drp1.acl.query_isAdmin("peer1")).toBe(true);
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		expect(drp2.query_contains(1)).toBe(true);
-		expect(drp2.acl.isWriter("peer2")).toBe(true);
+		expect(drp2.acl.query_isWriter("peer2")).toBe(true);
 
 		drp2.add(4);
 		obj1.merge(obj2.hashGraph.getAllVertices());

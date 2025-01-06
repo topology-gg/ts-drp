@@ -231,7 +231,7 @@ export class DRPObject implements IDRPObject {
 	// check if the given peer has write permission
 	private _checkWriterPermission(drp: DRP, peerId: string): boolean {
 		if (drp.acl) {
-			return drp.acl.isWriter(peerId);
+			return drp.acl.query_isWriter(peerId);
 		}
 		return true;
 	}
