@@ -63,6 +63,7 @@ export class DRPObject implements IDRPObject {
 	bytecode: Uint8Array;
 	vertices: ObjectPb.Vertex[];
 	drp: ProxyHandler<DRP> | null;
+	acl?: IACL & DRP;
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	states: Map<string, DRPState>;
@@ -72,6 +73,7 @@ export class DRPObject implements IDRPObject {
 	constructor(
 		peerId: string,
 		drp: DRP,
+		acl?: IACL & DRP,
 		id?: string,
 		abi?: string,
 		config?: DRPObjectConfig,
@@ -90,6 +92,7 @@ export class DRPObject implements IDRPObject {
 		this.bytecode = new Uint8Array();
 		this.vertices = [];
 		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler()) : null;
+		this.acl = acl;
 		this.hashGraph = new HashGraph(
 			peerId,
 			drp?.resolveConflicts?.bind(drp ?? this),
