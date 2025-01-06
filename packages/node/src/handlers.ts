@@ -1,6 +1,6 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
@@ -45,10 +45,23 @@ export async function drpMessagesHandler(
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC_REJECT:
 			syncRejectHandler(node, message.data);
 			break;
+		case NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
+			attestationUpdateHandler(node, message.data, message.sender);
+			break;
 		default:
 			log.error("::messageHandler: Invalid operation");
 			break;
 	}
+}
+
+async function attestationUpdateHandler(node: DRPNode, data: Uint8Array, sender: string) {
+	const attestationUpdate = NetworkPb.AttestationUpdate.decode(data);
+	const object = node.objectStore.get(attestationUpdate.objectId);
+	if (!object) {
+		log.error("::attestationUpdateHandler: Object not found");
+		return;
+	}
+	
 }
 
 /*

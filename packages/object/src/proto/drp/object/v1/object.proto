@@ -19,6 +19,11 @@ message Vertex {
 }
 
 message Attestation {
+  string data = 1;
+  string signature = 2;
+}
+
+message AggregatedAttestation {
   bytes aggregation_bits = 1;
   string data = 2;
   string signature = 3;

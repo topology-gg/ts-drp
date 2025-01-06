@@ -9,7 +9,8 @@ enum MessageType {
   MESSAGE_TYPE_SYNC			= 2;
   MESSAGE_TYPE_SYNC_ACCEPT	= 3;
   MESSAGE_TYPE_SYNC_REJECT	= 4;
-  MESSAGE_TYPE_CUSTOM		= 5;
+  MESSAGE_TYPE_ATTESTATION_UPDATE   = 5;
+  MESSAGE_TYPE_CUSTOM		= 6;
 }
 
 message Message {
@@ -21,7 +22,12 @@ message Message {
 message Update {
   string object_id = 1;
   repeated drp.object.v1.Vertex vertices = 2;
-  drp.object.v1.Attestation attestation = 3;
+  repeated drp.object.v1.Attestation attestation = 3;
+}
+
+message AttestationUpdate {
+  string object_id = 1;
+  drp.object.v1.Attestation attestation = 2;
 }
 
 message Sync {
@@ -32,7 +38,7 @@ message Sync {
 message SyncAccept {
   string object_id = 1;
   repeated drp.object.v1.Vertex requested = 2;
-  repeated drp.object.v1.Attestation attestation = 3;
+  repeated drp.object.v1.AggregatedAttestation attestation = 3;
   repeated string requesting = 4;
 }
 
