@@ -190,6 +190,11 @@ export class DRPObject implements IDRPObject {
 			}
 
 			try {
+				const drp = this._computeDRP(vertex.dependencies);
+				if (!this._checkWriterPermission(drp, vertex.peerId)) {
+					throw new Error(`${vertex.peerId} does not have write permission.`);
+				}
+
 				this.hashGraph.addVertex(
 					vertex.operation,
 					vertex.dependencies,
@@ -198,7 +203,8 @@ export class DRPObject implements IDRPObject {
 					vertex.signature,
 				);
 
-				this._setState(vertex);
+				this._applyOperation(drp, vertex.operation);
+				this._setState(vertex, this._getDRPState(drp));
 			} catch (e) {
 				missing.push(vertex.hash);
 			}
@@ -222,6 +228,15 @@ export class DRPObject implements IDRPObject {
 		}
 	}
 
+	// check if the given peer has write permission
+	private _checkWriterPermission(drp: DRP, peerId: string): boolean {
+		if (drp.acl) {
+			return drp.acl.isWriter(peerId);
+		}
+		return true;
+	}
+
+	// apply the operation to the DRP
 	private _applyOperation(drp: DRP, operation: Operation) {
 		const { type, value } = operation;
 
@@ -244,6 +259,7 @@ export class DRPObject implements IDRPObject {
 		target[methodName](...args);
 	}
 
+	// compute the DRP based on all dependencies of the current vertex using partial linearization
 	private _computeDRP(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation,
@@ -284,6 +300,7 @@ export class DRPObject implements IDRPObject {
 		return drp;
 	}
 
+	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
 	private _getDRPState(drp: DRP): DRPState {
 		const varNames: string[] = Object.keys(drp);
 		const drpState: DRPState = {
@@ -310,6 +327,7 @@ export class DRPObject implements IDRPObject {
 		);
 	}
 
+	// update the DRP's attributes based on all the vertices in the hashgraph
 	private _updateDRPState() {
 		if (!this.drp) {
 			return;
