@@ -246,7 +246,7 @@ export class DRPObject implements IDRPObject {
 
 	private _computeDRP(
 		vertexDependencies: Hash[],
-		vertexOperation?: Operation | undefined,
+		vertexOperation?: Operation,
 	): DRP {
 		const subgraph: ObjectSet<Hash> = new ObjectSet();
 		const lca =
@@ -284,32 +284,30 @@ export class DRPObject implements IDRPObject {
 		return drp;
 	}
 
-	// biome-ignore lint: values can be anything
-	private _getDRPState(drp: DRP): Map<string, any> {
+	private _getDRPState(drp: DRP): DRPState {
 		const varNames: string[] = Object.keys(drp);
-		// biome-ignore lint: values can be anything
-		const newState: Map<string, any> = new Map();
+		const drpState: DRPState = {
+			state: new Map(),
+		};
 		for (const varName of varNames) {
-			newState.set(varName, drp[varName]);
+			drpState.state.set(varName, drp[varName]);
 		}
-		return newState;
+		return drpState;
 	}
 
 	private _computeDRPState(
 		vertexDependencies: Hash[],
-		vertexOperation?: Operation | undefined,
-		// biome-ignore lint: values can be anything
-	): Map<string, any> {
+		vertexOperation?: Operation,
+	): DRPState {
 		const drp = this._computeDRP(vertexDependencies, vertexOperation);
 		return this._getDRPState(drp);
 	}
 
-	// biome-ignore lint: values can be anything
-	private _setState(vertex: Vertex, state?: Map<string, any>) {
-		this.states.set(vertex.hash, {
-			state:
-				state ?? this._computeDRPState(vertex.dependencies, vertex.operation),
-		});
+	private _setState(vertex: Vertex, drpState?: DRPState) {
+		this.states.set(
+			vertex.hash,
+			drpState ?? this._computeDRPState(vertex.dependencies, vertex.operation),
+		);
 	}
 
 	private _updateDRPState() {
@@ -318,7 +316,7 @@ export class DRPObject implements IDRPObject {
 		}
 		const currentDRP = this.drp as DRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
-		for (const [key, value] of newState.entries()) {
+		for (const [key, value] of newState.state.entries()) {
 			if (key in currentDRP && typeof currentDRP[key] !== "function") {
 				currentDRP[key] = value;
 			}
