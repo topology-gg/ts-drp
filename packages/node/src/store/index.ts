@@ -101,14 +101,11 @@ export class DRPCredentialStore {
 		return uint8ArrayToString(signature, "base64");
 	}
 
-	signWithBls(data: string): string {
+	signWithBls(data: string): Uint8Array {
 		if (!this._blsPrivateKey) {
 			throw new Error("Private key not found");
 		}
 
-		const signature = this._blsPrivateKey
-			.sign(uint8ArrayFromString(data))
-			.toBytes();
-		return uint8ArrayToString(signature, "base64");
+		return this._blsPrivateKey.sign(uint8ArrayFromString(data)).toBytes();
 	}
 }

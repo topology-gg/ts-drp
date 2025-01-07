@@ -54,7 +54,11 @@ export async function drpMessagesHandler(
 	}
 }
 
-async function attestationUpdateHandler(node: DRPNode, data: Uint8Array, sender: string) {
+async function attestationUpdateHandler(
+	node: DRPNode,
+	data: Uint8Array,
+	sender: string,
+) {
 	const attestationUpdate = NetworkPb.AttestationUpdate.decode(data);
 	const object = node.objectStore.get(attestationUpdate.objectId);
 	if (!object) {
@@ -105,6 +109,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	}
 
 	await signGeneratedVertices(node, object.vertices);
+	await voteGeneratedVertices(node, object, object.vertices);
 
 	const requested: Set<ObjectPb.Vertex> = new Set(object.vertices);
 	const requesting: string[] = [];
@@ -161,6 +166,7 @@ async function syncAcceptHandler(
 	}
 
 	await signGeneratedVertices(node, object.vertices);
+	await voteGeneratedVertices(node, object, object.vertices);
 	// send missing vertices
 	const requested: ObjectPb.Vertex[] = [];
 	for (const h of syncAcceptMessage.requesting) {
@@ -235,6 +241,29 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 	});
 
 	await Promise.all(signPromises);
+}
+
+async function voteGeneratedVertices(
+	node: DRPNode,
+	obj: DRPObject,
+	vertices: Vertex[],
+) {
+	const votePromises = vertices.map(async (vertex) => {
+		if (vertex.peerId !== node.networkNode.peerId || vertex.signature !== "") {
+			return;
+		}
+
+		const attestationStore = obj.attestations.get(vertex.hash);
+		if (attestationStore?.canVote(node.networkNode.peerId)) {
+			await attestationStore.addVote(
+				node.networkNode.peerId,
+				vertex.hash,
+				node.credentialStore.signWithBls(vertex.hash),
+			);
+		}
+	});
+
+	await Promise.all(votePromises);
 }
 
 export async function verifyIncomingVertices(

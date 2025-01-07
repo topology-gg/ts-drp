@@ -25,7 +25,11 @@ export class AttestationStore {
 		this.participants = new BitSet(peerIds.length);
 	}
 
-	async vote(voterPeerId: string, hash: Hash, signature: Uint8Array) {
+	canVote(voterPeerId: string) {
+		return this.voterIndices.has(voterPeerId);
+	}
+
+	async addVote(voterPeerId: string, hash: Hash, signature: Uint8Array) {
 		const index = this.voterIndices.get(voterPeerId);
 		if (index === undefined) {
 			throw new Error("Peer not found in voter list");

@@ -172,7 +172,6 @@ export class DRPObject implements IDRPObject {
 	 */
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
 		const missing = [];
-		const merged = [];
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
@@ -196,8 +195,6 @@ export class DRPObject implements IDRPObject {
 				this._applyOperation(drp, vertex.operation);
 				this._setState(vertex, this._getDRPState(drp));
 				this._initializeAttestationStore(vertex.hash);
-
-				merged.push(vertex);
 			} catch (e) {
 				missing.push(vertex.hash);
 			}
