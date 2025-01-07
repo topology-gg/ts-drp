@@ -1,5 +1,6 @@
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
+import { PrefixOperation } from "@topology-foundation/object/src/index.js";
 import { type DRP, DRPObject } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
@@ -7,8 +8,6 @@ import {
 	verifyIncomingVertices,
 } from "../src/handlers.js";
 import { DRPNode, type DRPNodeConfig } from "../src/index.js";
-import { prefix } from 'loglevel-plugin-prefix';
-import { PrefixOperation } from "@topology-foundation/object/src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
@@ -109,7 +108,7 @@ describe("DPRNode with verify and sign signature", () => {
 				operation: {
 					type: "add",
 					value: 1,
-					prefix: PrefixOperation.drp
+					prefix: PrefixOperation.drp,
 				},
 				dependencies: [],
 				signature: "",
