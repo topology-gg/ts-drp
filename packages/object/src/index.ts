@@ -159,15 +159,6 @@ export class DRPObject implements IDRPObject {
 					});
 				}
 
-				if (typeof value === "object" && value !== null && propKey === "acl") {
-					return new Proxy(
-						value,
-						obj.proxyDRPHandler(
-							parentProp ? `${parentProp}.${String(propKey)}` : String(propKey),
-						),
-					);
-				}
-
 				return value;
 			},
 		};

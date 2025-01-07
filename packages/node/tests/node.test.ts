@@ -7,6 +7,8 @@ import {
 	verifyIncomingVertices,
 } from "../src/handlers.js";
 import { DRPNode, type DRPNodeConfig } from "../src/index.js";
+import { prefix } from 'loglevel-plugin-prefix';
+import { PrefixOperation } from "@topology-foundation/object/src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
@@ -107,6 +109,7 @@ describe("DPRNode with verify and sign signature", () => {
 				operation: {
 					type: "add",
 					value: 1,
+					prefix: PrefixOperation.drp
 				},
 				dependencies: [],
 				signature: "",
