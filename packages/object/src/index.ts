@@ -271,7 +271,6 @@ export class DRPObject implements IDRPObject {
 		const { type, value } = operation;
 
 		const typeParts = type.split(".");
-
 		// biome-ignore lint: target can be anything
 		let target: any = drp;
 		for (let i = 0; i < typeParts.length - 1; i++) {
