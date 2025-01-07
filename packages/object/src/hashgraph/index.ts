@@ -82,7 +82,7 @@ export class HashGraph {
 			operation: {
 				type: OperationType.NOP,
 				value: null,
-				prefix: PrefixOperation.drp,
+				prefix: "",
 			},
 			dependencies: [],
 			timestamp: -1,
