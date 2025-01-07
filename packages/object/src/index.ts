@@ -222,7 +222,7 @@ export class DRPObject implements IDRPObject {
 	private _initializeAttestationStore(hash: Hash) {
 		const acl = this.states.get(hash)?.state.get("acl") as IACL | undefined;
 		if (acl !== undefined && !this.attestations.has(hash)) {
-			this.attestations.set(hash, new AttestationStore(acl.getWriters()));
+			this.attestations.set(hash, new AttestationStore(hash, acl.getWriters()));
 		}
 	}
 

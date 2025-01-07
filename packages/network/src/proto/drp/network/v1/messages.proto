@@ -22,12 +22,12 @@ message Message {
 message Update {
   string object_id = 1;
   repeated drp.object.v1.Vertex vertices = 2;
-  repeated drp.object.v1.Attestation attestation = 3;
+  repeated drp.object.v1.Attestation attestations = 3;
 }
 
 message AttestationUpdate {
   string object_id = 1;
-  drp.object.v1.Attestation attestation = 2;
+  repeated drp.object.v1.Attestation attestations = 2;
 }
 
 message Sync {

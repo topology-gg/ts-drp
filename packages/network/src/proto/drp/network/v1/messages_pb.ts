@@ -82,12 +82,12 @@ export interface Message {
 export interface Update {
   objectId: string;
   vertices: Vertex[];
-  attestation: Attestation[];
+  attestations: Attestation[];
 }
 
 export interface AttestationUpdate {
   objectId: string;
-  attestation: Attestation | undefined;
+  attestations: Attestation[];
 }
 
 export interface Sync {
@@ -198,7 +198,7 @@ export const Message: MessageFns<Message> = {
 };
 
 function createBaseUpdate(): Update {
-  return { objectId: "", vertices: [], attestation: [] };
+  return { objectId: "", vertices: [], attestations: [] };
 }
 
 export const Update: MessageFns<Update> = {
@@ -209,7 +209,7 @@ export const Update: MessageFns<Update> = {
     for (const v of message.vertices) {
       Vertex.encode(v!, writer.uint32(18).fork()).join();
     }
-    for (const v of message.attestation) {
+    for (const v of message.attestations) {
       Attestation.encode(v!, writer.uint32(26).fork()).join();
     }
     return writer;
@@ -243,7 +243,7 @@ export const Update: MessageFns<Update> = {
             break;
           }
 
-          message.attestation.push(Attestation.decode(reader, reader.uint32()));
+          message.attestations.push(Attestation.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -259,8 +259,8 @@ export const Update: MessageFns<Update> = {
     return {
       objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       vertices: globalThis.Array.isArray(object?.vertices) ? object.vertices.map((e: any) => Vertex.fromJSON(e)) : [],
-      attestation: globalThis.Array.isArray(object?.attestation)
-        ? object.attestation.map((e: any) => Attestation.fromJSON(e))
+      attestations: globalThis.Array.isArray(object?.attestations)
+        ? object.attestations.map((e: any) => Attestation.fromJSON(e))
         : [],
     };
   },
@@ -273,8 +273,8 @@ export const Update: MessageFns<Update> = {
     if (message.vertices?.length) {
       obj.vertices = message.vertices.map((e) => Vertex.toJSON(e));
     }
-    if (message.attestation?.length) {
-      obj.attestation = message.attestation.map((e) => Attestation.toJSON(e));
+    if (message.attestations?.length) {
+      obj.attestations = message.attestations.map((e) => Attestation.toJSON(e));
     }
     return obj;
   },
@@ -286,13 +286,13 @@ export const Update: MessageFns<Update> = {
     const message = createBaseUpdate();
     message.objectId = object.objectId ?? "";
     message.vertices = object.vertices?.map((e) => Vertex.fromPartial(e)) || [];
-    message.attestation = object.attestation?.map((e) => Attestation.fromPartial(e)) || [];
+    message.attestations = object.attestations?.map((e) => Attestation.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseAttestationUpdate(): AttestationUpdate {
-  return { objectId: "", attestation: undefined };
+  return { objectId: "", attestations: [] };
 }
 
 export const AttestationUpdate: MessageFns<AttestationUpdate> = {
@@ -300,8 +300,8 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
     if (message.objectId !== "") {
       writer.uint32(10).string(message.objectId);
     }
-    if (message.attestation !== undefined) {
-      Attestation.encode(message.attestation, writer.uint32(18).fork()).join();
+    for (const v of message.attestations) {
+      Attestation.encode(v!, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -326,7 +326,7 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
             break;
           }
 
-          message.attestation = Attestation.decode(reader, reader.uint32());
+          message.attestations.push(Attestation.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -341,7 +341,9 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
   fromJSON(object: any): AttestationUpdate {
     return {
       objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
-      attestation: isSet(object.attestation) ? Attestation.fromJSON(object.attestation) : undefined,
+      attestations: globalThis.Array.isArray(object?.attestations)
+        ? object.attestations.map((e: any) => Attestation.fromJSON(e))
+        : [],
     };
   },
 
@@ -350,8 +352,8 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
     if (message.objectId !== "") {
       obj.objectId = message.objectId;
     }
-    if (message.attestation !== undefined) {
-      obj.attestation = Attestation.toJSON(message.attestation);
+    if (message.attestations?.length) {
+      obj.attestations = message.attestations.map((e) => Attestation.toJSON(e));
     }
     return obj;
   },
@@ -362,9 +364,7 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
   fromPartial<I extends Exact<DeepPartial<AttestationUpdate>, I>>(object: I): AttestationUpdate {
     const message = createBaseAttestationUpdate();
     message.objectId = object.objectId ?? "";
-    message.attestation = (object.attestation !== undefined && object.attestation !== null)
-      ? Attestation.fromPartial(object.attestation)
-      : undefined;
+    message.attestations = object.attestations?.map((e) => Attestation.fromPartial(e)) || [];
     return message;
   },
 };

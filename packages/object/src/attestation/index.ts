@@ -5,12 +5,15 @@ import bls from "@chainsafe/bls/herumi";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 export class AttestationStore {
+	private data: string;
 	private voterCredentials: DRPPublicCredential[];
 	private voterIndices: Map<string, number>;
 	private participants: BitSet;
 	private aggregatedSignature?: Uint8Array;
 
-	constructor(voters: Map<string, DRPPublicCredential>) {
+	constructor(hash: Hash, voters: Map<string, DRPPublicCredential>) {
+		this.data = hash;
+
 		// deterministic order
 		const peerIds = Array.from(voters.keys()).sort();
 		this.voterCredentials = peerIds.map((peerId) =>
@@ -29,7 +32,7 @@ export class AttestationStore {
 		return this.voterIndices.has(voterPeerId);
 	}
 
-	async addVote(voterPeerId: string, hash: Hash, signature: Uint8Array) {
+	async addVote(voterPeerId: string, signature: Uint8Array) {
 		const index = this.voterIndices.get(voterPeerId);
 		if (index === undefined) {
 			throw new Error("Peer not found in voter list");
@@ -44,7 +47,7 @@ export class AttestationStore {
 		if (
 			!(await bls.asyncVerify(
 				this.voterCredentials[index].blsPublicKey,
-				uint8ArrayFromString(hash),
+				uint8ArrayFromString(this.data),
 				signature,
 			))
 		) {

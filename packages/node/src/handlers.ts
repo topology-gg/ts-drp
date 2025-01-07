@@ -3,6 +3,7 @@ import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
 import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
+import { toString as uint8ArrayToString } from "uint8arrays";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -65,6 +66,12 @@ async function attestationUpdateHandler(
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
+
+	for (const attestation of attestationUpdate.attestations) {
+		object.attestations
+			.get(attestation.data)
+			?.addVote(sender, uint8ArrayFromString(attestation.signature, "base64"));
+	}
 }
 
 /*
@@ -88,6 +95,43 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
+	} else {
+		for (const attestation of updateMessage.attestations) {
+			object.attestations
+				.get(attestation.data)
+				?.addVote(
+					sender,
+					uint8ArrayFromString(attestation.signature, "base64"),
+				);
+		}
+		await voteGeneratedVertices(node, object, verifiedVertices);
+
+		// generate the attestations
+		const attestations: ObjectPb.Attestation[] = [];
+		for (const vertex of verifiedVertices) {
+			const attestationStore = object.attestations.get(vertex.hash);
+			if (attestationStore?.canVote(node.networkNode.peerId)) {
+				attestations.push({
+					data: vertex.hash,
+					signature: uint8ArrayToString(
+						node.credentialStore.signWithBls(vertex.hash),
+						"base64",
+					),
+				});
+			}
+		}
+
+		// broadcast the attestations
+		const message = NetworkPb.Message.create({
+			sender: node.networkNode.peerId,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
+			data: NetworkPb.AttestationUpdate.encode(
+				NetworkPb.AttestationUpdate.create({
+					objectId: object.id,
+					attestations: attestations,
+				}),
+			).finish(),
+		});
 	}
 
 	node.objectStore.put(object.id, object);
@@ -249,15 +293,10 @@ async function voteGeneratedVertices(
 	vertices: Vertex[],
 ) {
 	const votePromises = vertices.map(async (vertex) => {
-		if (vertex.peerId !== node.networkNode.peerId || vertex.signature !== "") {
-			return;
-		}
-
 		const attestationStore = obj.attestations.get(vertex.hash);
 		if (attestationStore?.canVote(node.networkNode.peerId)) {
 			await attestationStore.addVote(
 				node.networkNode.peerId,
-				vertex.hash,
 				node.credentialStore.signWithBls(vertex.hash),
 			);
 		}
