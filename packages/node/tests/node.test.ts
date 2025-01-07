@@ -27,7 +27,6 @@ describe("DPRNode with verify and sign signature", () => {
 			]),
 		);
 		drpObject = new DRPObject(drpNode.networkNode.peerId, drp, acl);
-		console.log(drpObject.acl);
 	});
 
 	test("Node will not sign vertex if it is not the creator", async () => {
@@ -116,7 +115,6 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: "",
 			},
 		];
-		console.log(drpObject.acl);
 		const verifiedVertices = await verifyIncomingVertices(drpObject, vertices);
 		expect(verifiedVertices.length).toBe(0);
 	});
