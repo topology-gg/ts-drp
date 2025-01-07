@@ -14,6 +14,7 @@ import { ObjectSet } from "./utils/objectSet.js";
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
 import { cloneDeep } from "es-toolkit";
+import { isACLInterface } from "./helper.js";
 
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
@@ -59,16 +60,6 @@ export enum PrefixOperation {
 	acl = "acl",
 	drp = "drp",
 }
-
-export const isACLInterface = (target: object): boolean => {
-	return (
-		typeof (target as IACL).isWriter === "function" &&
-		typeof (target as IACL).isAdmin === "function" &&
-		typeof (target as IACL).grant === "function" &&
-		typeof (target as IACL).revoke === "function" &&
-		typeof (target as IACL).getPeerKey === "function"
-	);
-};
 
 export class DRPObject implements IDRPObject {
 	peerId: string;

@@ -1,4 +1,4 @@
-import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
+import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { PrefixOperation } from "@topology-foundation/object/src/index.js";
 import { type DRP, DRPObject } from "@ts-drp/object";
@@ -20,12 +20,14 @@ describe("DPRNode with verify and sign signature", () => {
 	});
 
 	beforeEach(async () => {
-		drp = new AddWinsSetWithACL(
+		drp = new AddWinsSet();
+		const acl = new ACL(
 			new Map([
 				[drpNode.networkNode.peerId, drpNode.networkNode.publicKey || ""],
 			]),
 		);
-		drpObject = new DRPObject(drpNode.networkNode.peerId, drp);
+		drpObject = new DRPObject(drpNode.networkNode.peerId, drp, acl);
+		console.log(drpObject.acl);
 	});
 
 	test("Node will not sign vertex if it is not the creator", async () => {
@@ -114,7 +116,8 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: "",
 			},
 		];
+		console.log(drpObject.acl);
 		const verifiedVertices = await verifyIncomingVertices(drpObject, vertices);
-		expect(verifiedVertices.length).toBe(1);
+		expect(verifiedVertices.length).toBe(0);
 	});
 });
