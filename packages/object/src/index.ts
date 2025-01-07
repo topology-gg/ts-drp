@@ -56,6 +56,21 @@ export interface DRPObjectConfig {
 
 export let log: Logger;
 
+export enum PrefixOperation {
+	acl = "acl",
+	drp = "drp",
+}
+
+export const isACLInterface = (target: object): boolean => {
+	return (
+		typeof (target as IACL).isWriter === "function" &&
+		typeof (target as IACL).isAdmin === "function" &&
+		typeof (target as IACL).grant === "function" &&
+		typeof (target as IACL).revoke === "function" &&
+		typeof (target as IACL).getPeerKey === "function"
+	);
+};
+
 export class DRPObject implements IDRPObject {
 	peerId: string;
 	id: string;
@@ -63,17 +78,19 @@ export class DRPObject implements IDRPObject {
 	bytecode: Uint8Array;
 	vertices: ObjectPb.Vertex[];
 	drp: ProxyHandler<DRP> | null;
-	acl?: IACL & DRP;
+	acl: ProxyHandler<IACL & DRP> | null;
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	states: Map<string, DRPState>;
+	statesAcl: Map<string, DRPState>;
 	originalDRP: DRP;
+	originalACL: IACL & DRP;
 	subscriptions: DRPObjectCallback[];
 
 	constructor(
 		peerId: string,
 		drp: DRP,
-		acl?: IACL & DRP,
+		acl: IACL & DRP,
 		id?: string,
 		abi?: string,
 		config?: DRPObjectConfig,
@@ -92,16 +109,27 @@ export class DRPObject implements IDRPObject {
 		this.bytecode = new Uint8Array();
 		this.vertices = [];
 		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler()) : null;
-		this.acl = acl;
+		this.acl = acl ? new Proxy(acl, this.proxyDRPHandler()) : null;
 		this.hashGraph = new HashGraph(
 			peerId,
-			drp?.resolveConflicts?.bind(drp ?? this),
+			this.resolveConflicts.bind(this),
 			drp?.semanticsType,
 		);
 		this.subscriptions = [];
 		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		this.statesAcl = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.originalDRP = cloneDeep(drp);
+		this.originalACL = cloneDeep(acl);
 		this.vertices = this.hashGraph.getAllVertices();
+	}
+
+	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
+		if (this.acl) {
+			const acl = this.acl as IACL & DRP;
+			acl.resolveConflicts(vertices);
+		}
+		const drp = this.drp as DRP;
+		return drp.resolveConflicts(vertices);
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
@@ -110,6 +138,10 @@ export class DRPObject implements IDRPObject {
 		return {
 			get(target, propKey, receiver) {
 				const value = Reflect.get(target, propKey, receiver);
+				let prefix = PrefixOperation.drp;
+				if (isACLInterface(target)) {
+					prefix = PrefixOperation.acl;
+				}
 
 				if (typeof value === "function") {
 					const fullPropKey = parentProp
@@ -118,7 +150,11 @@ export class DRPObject implements IDRPObject {
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
 							if ((thisArg.operations as string[]).includes(propKey as string))
-								obj.callFn(fullPropKey, args.length === 1 ? args[0] : args);
+								obj.callFn(
+									fullPropKey,
+									args.length === 1 ? args[0] : args,
+									prefix,
+								);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
 					});
@@ -139,8 +175,12 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// biome-ignore lint: value can't be unknown because of protobuf
-	callFn(fn: string, args: any) {
-		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args });
+	callFn(fn: string, args: any, prefix: PrefixOperation = PrefixOperation.drp) {
+		const vertex = this.hashGraph.addToFrontier({
+			type: fn,
+			value: args,
+			prefix: prefix,
+		});
 		this._setState(vertex);
 
 		const serializedVertex = ObjectPb.Vertex.create({
@@ -160,6 +200,7 @@ export class DRPObject implements IDRPObject {
 	 */
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
 		const missing = [];
+		let needUpdateACLState = false;
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
@@ -167,10 +208,14 @@ export class DRPObject implements IDRPObject {
 			}
 
 			try {
-				const drp = this._computeDRP(vertex.dependencies);
-				if (!this._checkWriterPermission(drp, vertex.peerId)) {
+				const drp =
+					vertex.operation.prefix === PrefixOperation.acl
+						? this._computeACL(vertex.dependencies)
+						: this._computeDRP(vertex.dependencies);
+				if (!this._checkWriterPermission(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
+				needUpdateACLState = vertex.operation.prefix === PrefixOperation.acl;
 
 				this.hashGraph.addVertex(
 					vertex.operation,
@@ -181,14 +226,20 @@ export class DRPObject implements IDRPObject {
 				);
 
 				this._applyOperation(drp, vertex.operation);
-				this._setState(vertex, this._getDRPState(drp));
+				if (vertex.operation.prefix === PrefixOperation.acl) {
+					this._setACLState(vertex, this._getDRPState(drp));
+					this._setDRPState(vertex);
+				} else {
+					this._setACLState(vertex);
+					this._setDRPState(vertex, this._getDRPState(drp));
+				}
 			} catch (e) {
 				missing.push(vertex.hash);
 			}
 		}
 
 		this.vertices = this.hashGraph.getAllVertices();
-
+		this._updateACLState();
 		this._updateDRPState();
 		this._notify("merge", this.vertices);
 
@@ -206,11 +257,10 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// check if the given peer has write permission
-	private _checkWriterPermission(drp: DRP, peerId: string): boolean {
-		if (drp.acl) {
-			return drp.acl.isWriter(peerId);
-		}
-		return true;
+	private _checkWriterPermission(peerId: string): boolean {
+		return this.acl
+			? Reflect.get(this.acl, "isWriter").call(this.acl, peerId)
+			: true;
 	}
 
 	// apply the operation to the DRP
@@ -268,13 +318,54 @@ export class DRPObject implements IDRPObject {
 		}
 
 		for (const op of linearizedOperations) {
-			this._applyOperation(drp, op);
+			op.prefix === PrefixOperation.drp && this._applyOperation(drp, op);
 		}
 		if (vertexOperation) {
-			this._applyOperation(drp, vertexOperation);
+			vertexOperation.prefix === PrefixOperation.drp &&
+				this._applyOperation(drp, vertexOperation);
 		}
 
 		return drp;
+	}
+
+	private _computeACL(
+		vertexDependencies: Hash[],
+		vertexOperation?: Operation,
+	): DRP {
+		const subgraph: ObjectSet<Hash> = new ObjectSet();
+		const lca =
+			vertexDependencies.length === 1
+				? vertexDependencies[0]
+				: this.hashGraph.lowestCommonAncestorMultipleVertices(
+						vertexDependencies,
+						subgraph,
+					);
+		const linearizedOperations =
+			vertexDependencies.length === 1
+				? []
+				: this.hashGraph.linearizeOperations(lca, subgraph);
+
+		const acl = cloneDeep(this.originalACL);
+
+		const fetchedState = this.statesAcl.get(lca);
+		if (!fetchedState) {
+			throw new Error("State is undefined");
+		}
+
+		const state = cloneDeep(fetchedState);
+
+		for (const [key, value] of state.state) {
+			acl[key] = value;
+		}
+		for (const op of linearizedOperations) {
+			op.prefix === PrefixOperation.acl && this._applyOperation(acl, op);
+		}
+		if (vertexOperation) {
+			vertexOperation.prefix === PrefixOperation.acl &&
+				this._applyOperation(acl, vertexOperation);
+		}
+
+		return acl;
 	}
 
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
@@ -303,8 +394,40 @@ export class DRPObject implements IDRPObject {
 		return this._getDRPState(drp);
 	}
 
+	private _computeACLState(
+		vertexDependencies: Hash[],
+		vertexOperation?: Operation,
+		// biome-ignore lint: values can be anything
+	): DRPState {
+		const drp = this._computeACL(vertexDependencies, vertexOperation);
+		return this._getDRPState(drp);
+	}
+
 	// store the state of the DRP corresponding to the given vertex
 	private _setState(
+		vertex: Vertex,
+		// biome-ignore lint: values can be anything
+		drpState?: DRPState,
+	) {
+		this._setACLState(vertex, drpState);
+		this._setDRPState(vertex, drpState);
+	}
+
+	private _setACLState(
+		vertex: Vertex,
+		// biome-ignore lint: values can be anything
+		drpState?: DRPState,
+	) {
+		if (this.acl) {
+			this.statesAcl.set(
+				vertex.hash,
+				drpState ??
+					this._computeACLState(vertex.dependencies, vertex.operation),
+			);
+		}
+	}
+
+	private _setDRPState(
 		vertex: Vertex,
 		// biome-ignore lint: values can be anything
 		drpState?: DRPState,
@@ -325,6 +448,19 @@ export class DRPObject implements IDRPObject {
 		for (const [key, value] of newState.state.entries()) {
 			if (key in currentDRP && typeof currentDRP[key] !== "function") {
 				currentDRP[key] = value;
+			}
+		}
+	}
+
+	private _updateACLState() {
+		if (!this.acl) {
+			return;
+		}
+		const currentACL = this.acl as IACL & DRP;
+		const newState = this._computeACLState(this.hashGraph.getFrontier());
+		for (const [key, value] of newState.state.entries()) {
+			if (key in currentACL && typeof currentACL[key] !== "function") {
+				currentACL[key] = value;
 			}
 		}
 	}

@@ -78,7 +78,7 @@ export class DRPNode {
 		sync?: boolean,
 		peerId?: string,
 	) {
-		const object = new DRPObject(this.networkNode.peerId, drp, id, abi);
+		const object = new DRPObject(this.networkNode.peerId, drp, null, id, abi);
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
 		if (sync) {
