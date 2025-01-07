@@ -1,5 +1,5 @@
 import * as crypto from "node:crypto";
-import { log, PrefixOperation } from "../index.js";
+import { PrefixOperation, log } from "../index.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import type {
