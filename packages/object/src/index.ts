@@ -27,7 +27,6 @@ export interface DRP {
 	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	acl?: IACL & DRP;
 	// biome-ignore lint: attributes can be anything
 	[key: string]: any;
 }
