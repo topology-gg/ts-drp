@@ -1,6 +1,6 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
@@ -61,7 +61,6 @@ async function attestationUpdateHandler(node: DRPNode, data: Uint8Array, sender:
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
-	
 }
 
 /*

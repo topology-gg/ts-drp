@@ -86,10 +86,7 @@ export class DRPCredentialStore {
 				this._ed25519PrivateKey?.publicKey.raw,
 				"base64",
 			),
-			blsPublicKey: uint8ArrayToString(
-				this._blsPrivateKey?.toPublicKey().toBytes(),
-				"base64",
-			),
+			blsPublicKey: this._blsPrivateKey?.toPublicKey().toBytes(),
 		};
 	}
 

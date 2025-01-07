@@ -10,6 +10,7 @@ import {
 } from "./hashgraph/index.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "./utils/objectSet.js";
+import { AttestationStore } from "./attestation/index.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
@@ -17,10 +18,11 @@ import { cloneDeep } from "es-toolkit";
 
 export interface DRPPublicCredential {
 	ed25519PublicKey: string;
-	blsPublicKey: string;
+	blsPublicKey: Uint8Array;
 }
 
 export interface IACL {
+	getWriters: () => Map<string, DRPPublicCredential>;
 	isWriter: (peerId: string) => boolean;
 	isAdmin: (peerId: string) => boolean;
 	grant: (
@@ -75,6 +77,8 @@ export class DRPObject implements IDRPObject {
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	states: Map<string, DRPState>;
+	// mapping from vertex hash to attestation state
+	attestations: Map<string, AttestationStore>;
 	originalDRP: DRP;
 	subscriptions: DRPObjectCallback[];
 
@@ -106,6 +110,7 @@ export class DRPObject implements IDRPObject {
 		);
 		this.subscriptions = [];
 		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		this.attestations = new Map();
 		this.originalDRP = cloneDeep(drp);
 		this.vertices = this.hashGraph.getAllVertices();
 	}
@@ -148,6 +153,7 @@ export class DRPObject implements IDRPObject {
 	callFn(fn: string, args: any) {
 		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args });
 		this._setState(vertex);
+		this._initializeAttestationStore(vertex.hash);
 
 		const serializedVertex = ObjectPb.Vertex.create({
 			hash: vertex.hash,
@@ -166,6 +172,7 @@ export class DRPObject implements IDRPObject {
 	 */
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
 		const missing = [];
+		const merged = [];
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
@@ -188,6 +195,9 @@ export class DRPObject implements IDRPObject {
 
 				this._applyOperation(drp, vertex.operation);
 				this._setState(vertex, this._getDRPState(drp));
+				this._initializeAttestationStore(vertex.hash);
+
+				merged.push(vertex);
 			} catch (e) {
 				missing.push(vertex.hash);
 			}
@@ -208,6 +218,14 @@ export class DRPObject implements IDRPObject {
 	private _notify(origin: string, vertices: ObjectPb.Vertex[]) {
 		for (const callback of this.subscriptions) {
 			callback(this, origin, vertices);
+		}
+	}
+
+	// initialize the attestation store for the given vertex hash
+	private _initializeAttestationStore(hash: Hash) {
+		const acl = this.states.get(hash)?.state.get("acl") as IACL | undefined;
+		if (acl !== undefined && !this.attestations.has(hash)) {
+			this.attestations.set(hash, new AttestationStore(acl.getWriters()));
 		}
 	}
 

@@ -62,6 +62,10 @@ export class ACL implements IACL, DRP {
 		this._revoke(peerId);
 	}
 
+	getWriters(): Map<string, DRPPublicCredential> {
+		return new Map(this._writers);
+	}
+
 	isAdmin(peerId: string): boolean {
 		return this._admins.has(peerId);
 	}
