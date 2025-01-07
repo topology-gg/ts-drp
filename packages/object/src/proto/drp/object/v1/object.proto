@@ -9,6 +9,7 @@ message Vertex {
   message Operation {
     string type = 1;
     google.protobuf.Value value = 2;
+    string prefix = 3;
   }
   string hash = 1;
   string peer_id = 2;
