@@ -1,11 +1,11 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
 import {
-	PrefixOperation,
 	type DRP,
 	type DRPObject,
 	type IACL,
 	type ObjectPb,
+	PrefixOperation,
 	type Vertex,
 } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";

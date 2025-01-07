@@ -1,7 +1,7 @@
+import type { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import { bench, describe } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject, type Hash } from "../src/index.js";
-import type { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 
 describe("AreCausallyDependent benchmark", async () => {
 	const samples = 100000;
