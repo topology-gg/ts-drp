@@ -1,5 +1,4 @@
-import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
-import { beforeEach, describe, expect, expectTypeOf, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject, type Operation, OperationType } from "../src/index.js";
 import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";

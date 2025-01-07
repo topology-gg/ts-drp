@@ -1,6 +1,13 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import { PrefixOperation, type DRP, type DRPObject, type IACL, type ObjectPb, type Vertex } from "@ts-drp/object";
+import {
+	PrefixOperation,
+	type DRP,
+	type DRPObject,
+	type IACL,
+	type ObjectPb,
+	type Vertex,
+} from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
@@ -230,7 +237,9 @@ export async function verifyIncomingVertices(
 	incomingVertices: ObjectPb.Vertex[],
 ): Promise<Vertex[]> {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
-		const prefix = vertex.operation ? vertex.operation.prefix : PrefixOperation.drp;
+		const prefix = vertex.operation
+			? vertex.operation.prefix
+			: PrefixOperation.drp;
 		return {
 			hash: vertex.hash,
 			peerId: vertex.peerId,

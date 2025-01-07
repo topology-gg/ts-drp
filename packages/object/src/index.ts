@@ -368,12 +368,8 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
-	private _getDRPState(
-		drp: DRP,
-		// biome-ignore lint: values can be anything
-	): DRPState {
+	private _getDRPState(drp: DRP): DRPState {
 		const varNames: string[] = Object.keys(drp);
-		// biome-ignore lint: values can be anything
 		const drpState: DRPState = {
 			state: new Map(),
 		};
@@ -387,7 +383,6 @@ export class DRPObject implements IDRPObject {
 	private _computeDRPState(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation,
-		// biome-ignore lint: values can be anything
 	): DRPState {
 		const drp = this._computeDRP(vertexDependencies, vertexOperation);
 		return this._getDRPState(drp);
@@ -396,27 +391,18 @@ export class DRPObject implements IDRPObject {
 	private _computeACLState(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation,
-		// biome-ignore lint: values can be anything
 	): DRPState {
 		const drp = this._computeACL(vertexDependencies, vertexOperation);
 		return this._getDRPState(drp);
 	}
 
 	// store the state of the DRP corresponding to the given vertex
-	private _setState(
-		vertex: Vertex,
-		// biome-ignore lint: values can be anything
-		drpState?: DRPState,
-	) {
+	private _setState(vertex: Vertex, drpState?: DRPState) {
 		this._setACLState(vertex, drpState);
 		this._setDRPState(vertex, drpState);
 	}
 
-	private _setACLState(
-		vertex: Vertex,
-		// biome-ignore lint: values can be anything
-		drpState?: DRPState,
-	) {
+	private _setACLState(vertex: Vertex, drpState?: DRPState) {
 		if (this.acl) {
 			this.statesAcl.set(
 				vertex.hash,
@@ -426,11 +412,7 @@ export class DRPObject implements IDRPObject {
 		}
 	}
 
-	private _setDRPState(
-		vertex: Vertex,
-		// biome-ignore lint: values can be anything
-		drpState?: DRPState,
-	) {
+	private _setDRPState(vertex: Vertex, drpState?: DRPState) {
 		this.states.set(
 			vertex.hash,
 			drpState ?? this._computeDRPState(vertex.dependencies, vertex.operation),
