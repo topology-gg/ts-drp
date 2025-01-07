@@ -38,7 +38,6 @@ message Sync {
 message SyncAccept {
   string object_id = 1;
   repeated drp.object.v1.Vertex requested = 2;
-  repeated drp.object.v1.AggregatedAttestation attestation = 3;
   repeated string requesting = 4;
 }
 

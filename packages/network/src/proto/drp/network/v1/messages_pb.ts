@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { AggregatedAttestation, Attestation, Vertex } from "../../object/v1/object_pb.js";
+import { Attestation, Vertex } from "../../object/v1/object_pb.js";
 
 export const protobufPackage = "drp.network.v1";
 
@@ -98,7 +98,6 @@ export interface Sync {
 export interface SyncAccept {
   objectId: string;
   requested: Vertex[];
-  attestation: AggregatedAttestation[];
   requesting: string[];
 }
 
@@ -448,7 +447,7 @@ export const Sync: MessageFns<Sync> = {
 };
 
 function createBaseSyncAccept(): SyncAccept {
-  return { objectId: "", requested: [], attestation: [], requesting: [] };
+  return { objectId: "", requested: [], requesting: [] };
 }
 
 export const SyncAccept: MessageFns<SyncAccept> = {
@@ -458,9 +457,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     }
     for (const v of message.requested) {
       Vertex.encode(v!, writer.uint32(18).fork()).join();
-    }
-    for (const v of message.attestation) {
-      AggregatedAttestation.encode(v!, writer.uint32(26).fork()).join();
     }
     for (const v of message.requesting) {
       writer.uint32(34).string(v!);
@@ -491,14 +487,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
           message.requested.push(Vertex.decode(reader, reader.uint32()));
           continue;
         }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.attestation.push(AggregatedAttestation.decode(reader, reader.uint32()));
-          continue;
-        }
         case 4: {
           if (tag !== 34) {
             break;
@@ -522,9 +510,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
       requested: globalThis.Array.isArray(object?.requested)
         ? object.requested.map((e: any) => Vertex.fromJSON(e))
         : [],
-      attestation: globalThis.Array.isArray(object?.attestation)
-        ? object.attestation.map((e: any) => AggregatedAttestation.fromJSON(e))
-        : [],
       requesting: globalThis.Array.isArray(object?.requesting)
         ? object.requesting.map((e: any) => globalThis.String(e))
         : [],
@@ -539,9 +524,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     if (message.requested?.length) {
       obj.requested = message.requested.map((e) => Vertex.toJSON(e));
     }
-    if (message.attestation?.length) {
-      obj.attestation = message.attestation.map((e) => AggregatedAttestation.toJSON(e));
-    }
     if (message.requesting?.length) {
       obj.requesting = message.requesting;
     }
@@ -555,7 +537,6 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     const message = createBaseSyncAccept();
     message.objectId = object.objectId ?? "";
     message.requested = object.requested?.map((e) => Vertex.fromPartial(e)) || [];
-    message.attestation = object.attestation?.map((e) => AggregatedAttestation.fromPartial(e)) || [];
     message.requesting = object.requesting?.map((e) => e) || [];
     return message;
   },

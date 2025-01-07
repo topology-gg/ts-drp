@@ -23,12 +23,6 @@ message Attestation {
   string signature = 2;
 }
 
-message AggregatedAttestation {
-  bytes aggregation_bits = 1;
-  string data = 2;
-  string signature = 3;
-}
-
 message DRPObjectBase {
   string id = 1;
   optional string abi = 2;
