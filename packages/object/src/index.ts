@@ -45,9 +45,11 @@ export type DRPObjectCallback = (
 ) => void;
 
 export interface IDRPObject extends ObjectPb.DRPObjectBase {
-	drp: ProxyHandler<DRP> | null;
+	drp: ProxyHandler<DRP> | DRP | null;
 	hashGraph: HashGraph;
 	subscriptions: DRPObjectCallback[];
+
+	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];
 }
 
 // snake_casing to match the JSON config
@@ -62,6 +64,51 @@ export class EmptyDRP implements DRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
 	resolveConflicts(): ResolveConflictsType {
 		return { action: ActionType.Nop };
+	}
+}
+
+export class EmptyDRPObject implements IDRPObject {
+	drp: DRP;
+	hashGraph: HashGraph;
+	subscriptions: DRPObjectCallback[];
+	id: string;
+	vertices: Vertex[];
+
+	constructor(objectId: string) {
+		this.id = objectId;
+		this.drp = new EmptyDRP();
+		this.hashGraph = new HashGraph(
+			"",
+			this.drp.resolveConflicts,
+			this.drp.semanticsType,
+		);
+		this.subscriptions = [];
+		this.vertices = [];
+	}
+
+	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		const missing = [];
+		for (const vertex of vertices) {
+			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+				continue;
+			}
+
+			try {
+				this.hashGraph.addVertex(
+					vertex.operation,
+					vertex.dependencies,
+					vertex.peerId,
+					vertex.timestamp,
+					vertex.signature,
+				);
+			} catch (e) {
+				missing.push(vertex.hash);
+			}
+		}
+
+		this.vertices = this.hashGraph.getAllVertices();
+
+		return [missing.length === 0, missing];
 	}
 }
 
@@ -224,6 +271,7 @@ export class DRPObject implements IDRPObject {
 		const { type, value } = operation;
 
 		const typeParts = type.split(".");
+
 		// biome-ignore lint: target can be anything
 		let target: any = drp;
 		for (let i = 0; i < typeParts.length - 1; i++) {
@@ -315,10 +363,15 @@ export class DRPObject implements IDRPObject {
 		// biome-ignore lint: values can be anything
 		drpState?: DRPState,
 	) {
-		this.states.set(
-			vertex.hash,
-			drpState ?? this._computeDRPState(vertex.dependencies, vertex.operation),
-		);
+		try {
+			this.states.set(
+				vertex.hash,
+				drpState ??
+					this._computeDRPState(vertex.dependencies, vertex.operation),
+			);
+		} catch (e) {
+			throw new Error(`Failed to set state for vertex ${vertex.hash}: ${e}`);
+		}
 	}
 
 	// update the DRP's attributes based on all the vertices in the hashgraph
