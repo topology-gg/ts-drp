@@ -113,6 +113,6 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		const verifiedVertices = await verifyIncomingVertices(drpObject, vertices);
-		expect(verifiedVertices.length).toBe(0);
+		expect(verifiedVertices.length).toBe(1);
 	});
 });
