@@ -297,6 +297,9 @@ importers:
       '@ts-drp/logger':
         specifier: ^0.4.4
         version: link:../logger
+      uint8arrays:
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
       '@bufbuild/protobuf':
         specifier: ^2.0.0

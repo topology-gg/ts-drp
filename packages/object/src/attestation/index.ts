@@ -1,8 +1,9 @@
-import type { Hash } from "../hashgraph/index.js";
-import { BitSet } from "../hashgraph/bitset.js";
-import type { DRPPublicCredential } from "../index.js";
 import bls from "@chainsafe/bls/herumi";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { BitSet } from "../hashgraph/bitset.js";
+import type { Hash } from "../hashgraph/index.js";
+import type { DRPPublicCredential } from "../index.js";
+
 
 export class AttestationStore {
 	private data: string;
@@ -39,11 +40,11 @@ export class AttestationStore {
 		}
 
 		if (this.participants.get(index)) {
-            // voter already voted
+			// voter already voted
 			return;
 		}
 
-        // verify signature validity
+		// verify signature validity
 		if (
 			!(await bls.asyncVerify(
 				this.voterCredentials[index].blsPublicKey,
