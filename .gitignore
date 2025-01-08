@@ -7,3 +7,6 @@ node_modules/
 **/tsconfig.tsbuildinfo
 coverage/*
 .vscode/*
+
+# macOS
+.DS_Store

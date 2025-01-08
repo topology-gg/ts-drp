@@ -6,6 +6,7 @@
 		"build": "vite build",
 		"clean": "rm -rf dist/ node_modules/",
 		"dev": "vite serve",
+		"local": "vite serve --mode local-node",
 		"start": "vite preview --host --port 5173"
 	},
 	"dependencies": {

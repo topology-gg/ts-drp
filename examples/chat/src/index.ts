@@ -2,7 +2,13 @@ import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
 import { Chat } from "./objects/chat";
 
-const node = new DRPNode();
+const node = new DRPNode({
+	network_config: import.meta.env.VITE_BOOTSTRAP_PEERS
+		? {
+			bootstrap_peers: [import.meta.env.VITE_BOOTSTRAP_PEERS],
+		}
+		: {},
+});
 let drpObject: DRPObject;
 let chatDRP: Chat;
 let peers: string[] = [];

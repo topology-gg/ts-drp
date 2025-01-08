@@ -3,7 +3,13 @@ import type { DRPObject } from "@ts-drp/object";
 import { Grid } from "./objects/grid";
 import { hslToRgb, rgbToHex, rgbToHsl } from "./util/color";
 
-const node = new DRPNode();
+const node = new DRPNode({
+	network_config: import.meta.env.VITE_BOOTSTRAP_PEERS
+		? {
+			bootstrap_peers: [import.meta.env.VITE_BOOTSTRAP_PEERS],
+		}
+		: {},
+});
 let drpObject: DRPObject;
 let gridDRP: Grid;
 let peers: string[] = [];
