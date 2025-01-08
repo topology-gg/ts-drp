@@ -1,11 +1,13 @@
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
-import { type DRP, DRPObject } from "@ts-drp/object";
+import { type DRP, DRPObject, type Vertex } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
 	signGeneratedVertices,
 	verifyIncomingVertices,
+	voteGeneratedVertices,
 } from "../src/handlers.js";
+import { DRPCredentialStore } from "../src/store/index.js";
 import { DRPNode, type DRPNodeConfig } from "../src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
@@ -23,7 +25,7 @@ describe("DPRNode with verify and sign signature", () => {
 			new Map([
 				[
 					drpNode.networkNode.peerId,
-					drpNode.credentialStore.getPublicCredential() || "",
+					drpNode.credentialStore.getPublicCredential(),
 				],
 			]),
 		);
@@ -117,5 +119,89 @@ describe("DPRNode with verify and sign signature", () => {
 		];
 		const verifiedVertices = await verifyIncomingVertices(drpObject, vertices);
 		expect(verifiedVertices.length).toBe(0);
+	});
+});
+
+describe("DRPNode voting tests", () => {
+	let drp: AddWinsSetWithACL<number>;
+	let drpNode: DRPNode;
+	let drpObject: DRPObject;
+	let adminCredentialStore: DRPCredentialStore;
+
+	beforeAll(async () => {
+		drpNode = new DRPNode();
+		adminCredentialStore = new DRPCredentialStore();
+		await drpNode.start();
+		await adminCredentialStore.start();
+	});
+
+	beforeEach(async () => {
+		drpObject = new DRPObject(
+			drpNode.networkNode.peerId,
+			new AddWinsSetWithACL(
+				new Map([["admin", adminCredentialStore.getPublicCredential()]]),
+			),
+		);
+		drp = drpObject.drp as AddWinsSetWithACL<number>;
+	});
+
+	test("Nodes in writer set are able to vote", async () => {
+		/*
+		  ROOT -- GRANT(A) ---- A:ADD(1)
+		*/
+
+		drp.acl.grant(
+			"admin",
+			drpNode.networkNode.peerId,
+			drpNode.credentialStore.getPublicCredential(),
+		);
+		drp.add(1);
+
+		const V1 = drpObject.vertices.find(
+			(v) => v.operation?.value === 1,
+		) as Vertex;
+
+		expect(V1 !== undefined).toBe(true);
+
+		await voteGeneratedVertices(drpNode, drpObject, [V1]);
+
+		expect(
+			drpObject.attestations.get(V1.hash)?.canVote(drpNode.networkNode.peerId),
+		).toBe(true);
+
+		expect(drpObject.attestations.get(V1.hash)?.aggregatedSignature).toEqual(
+			drpNode.credentialStore.signWithBls(V1.hash),
+		);
+	});
+
+	test("Other nodes are not able to vote", async () => {
+		/*
+		  ROOT -- GRANT(A) ---- A:ADD(1) ---- REVOKE(A) ---- A:ADD(2)
+		*/
+
+		drp.acl.grant(
+			"admin",
+			drpNode.networkNode.peerId,
+			drpNode.credentialStore.getPublicCredential(),
+		);
+		drp.add(1);
+		drp.acl.revoke("admin", drpNode.networkNode.peerId);
+		drp.add(2);
+
+		const V2 = drpObject.vertices.find(
+			(v) => v.operation?.value === 2,
+		) as Vertex;
+
+		expect(V2 !== undefined).toBe(true);
+
+		await voteGeneratedVertices(drpNode, drpObject, [V2]);
+
+		expect(
+			drpObject.attestations.get(V2.hash)?.canVote(drpNode.networkNode.peerId),
+		).toBe(false);
+
+		expect(
+			drpObject.attestations.get(V2.hash)?.aggregatedSignature === undefined,
+		).toBe(true);
 	});
 });

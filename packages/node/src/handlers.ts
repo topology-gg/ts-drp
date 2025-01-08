@@ -281,7 +281,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 	await Promise.all(signPromises);
 }
 
-async function voteGeneratedVertices(
+export async function voteGeneratedVertices(
 	node: DRPNode,
 	obj: DRPObject,
 	vertices: Vertex[],

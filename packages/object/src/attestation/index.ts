@@ -8,8 +8,8 @@ export class AttestationStore {
 	private data: string;
 	private voterCredentials: DRPPublicCredential[];
 	private voterIndices: Map<string, number>;
-	private participants: BitSet;
-	private aggregatedSignature?: Uint8Array;
+	participants: BitSet;
+	aggregatedSignature?: Uint8Array;
 
 	constructor(hash: Hash, voters: Map<string, DRPPublicCredential>) {
 		this.data = hash;
