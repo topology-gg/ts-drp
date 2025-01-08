@@ -12,7 +12,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 					"peer1",
 					{
 						ed25519PublicKey: "publicKey1",
-						blsPublicKey: new Uint8Array(),
+						blsPublicKey: "publicKey1",
 					},
 				],
 			]),
@@ -30,7 +30,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	test("Grant write permissions to a new writer", () => {
 		drp.acl.grant("peer1", "peer3", {
 			ed25519PublicKey: "publicKey3",
-			blsPublicKey: new Uint8Array(),
+			blsPublicKey: "publicKey3",
 		});
 
 		expect(drp.acl.isWriter("peer3")).toBe(true);
@@ -39,7 +39,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	test("Revoke write permissions from a writer", () => {
 		drp.acl.grant("peer1", "peer3", {
 			ed25519PublicKey: "publicKey3",
-			blsPublicKey: new Uint8Array(),
+			blsPublicKey: "publicKey3",
 		});
 		drp.acl.revoke("peer1", "peer3");
 
