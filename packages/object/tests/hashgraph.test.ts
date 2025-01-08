@@ -51,8 +51,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 2, prefix: "drp" },
-			{ type: "add", value: 1, prefix: "drp" },
+			{ type: "add", value: 2, vertexType: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
 		] as Operation[]);
 	});
 
@@ -68,7 +68,7 @@ describe("HashGraph construction tests", () => {
 			{
 				type: "root",
 				value: null,
-				prefix: "drp",
+				vertexType: "drp",
 			},
 			[],
 			"",
@@ -79,7 +79,7 @@ describe("HashGraph construction tests", () => {
 			{
 				type: "add",
 				value: 1,
-				prefix: "drp",
+				vertexType: "drp",
 			},
 			[hash],
 			"",
@@ -89,7 +89,9 @@ describe("HashGraph construction tests", () => {
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
-		const expectedOps: Operation[] = [{ type: "add", value: 1, prefix: "drp" }];
+		const expectedOps: Operation[] = [
+			{ type: "add", value: 1, vertexType: "drp" },
+		];
 		expect(linearOps).toEqual(expectedOps);
 	});
 });
@@ -132,9 +134,9 @@ describe("HashGraph for AddWinSet tests", () => {
 			{
 				type: "add",
 				value: 1,
-				prefix: "drp",
+				vertexType: "drp",
 			},
-			{ type: "remove", value: 1, prefix: "drp" },
+			{ type: "remove", value: 1, vertexType: "drp" },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -162,8 +164,8 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "add", value: 1, prefix: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -192,9 +194,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "remove", value: 1, prefix: "drp" },
-			{ type: "add", value: 2, prefix: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "remove", value: 1, vertexType: "drp" },
+			{ type: "add", value: 2, vertexType: "drp" },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -226,10 +228,10 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "add", value: 10, prefix: "drp" },
-			{ type: "remove", value: 5, prefix: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "add", value: 10, vertexType: "drp" },
+			{ type: "remove", value: 5, vertexType: "drp" },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -260,9 +262,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "add", value: 2, prefix: "drp" },
-			{ type: "add", value: 1, prefix: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "add", value: 2, vertexType: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -314,12 +316,12 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "remove", value: 2, prefix: "drp" },
-			{ type: "add", value: 2, prefix: "drp" },
-			{ type: "remove", value: 1, prefix: "drp" },
-			{ type: "add", value: 3, prefix: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "remove", value: 2, vertexType: "drp" },
+			{ type: "add", value: 2, vertexType: "drp" },
+			{ type: "remove", value: 1, vertexType: "drp" },
+			{ type: "add", value: 3, vertexType: "drp" },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -371,14 +373,14 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "remove", value: 2, prefix: "drp" },
-			{ type: "remove", value: 2, prefix: "drp" },
-			{ type: "remove", value: 1, prefix: "drp" },
-			{ type: "add", value: 3, prefix: "drp" },
-			{ type: "add", value: 2, prefix: "drp" },
-			{ type: "remove", value: 1, prefix: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "remove", value: 2, vertexType: "drp" },
+			{ type: "remove", value: 2, vertexType: "drp" },
+			{ type: "remove", value: 1, vertexType: "drp" },
+			{ type: "add", value: 3, vertexType: "drp" },
+			{ type: "add", value: 2, vertexType: "drp" },
+			{ type: "remove", value: 1, vertexType: "drp" },
 		]);
 	});
 
@@ -410,9 +412,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ type: "add", value: 1, prefix: "drp" },
-			{ type: "add", value: 2, prefix: "drp" },
-			{ type: "remove", value: 2, prefix: "drp" },
+			{ type: "add", value: 1, vertexType: "drp" },
+			{ type: "add", value: 2, vertexType: "drp" },
+			{ type: "remove", value: 2, vertexType: "drp" },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -449,7 +451,7 @@ describe("HashGraph for undefined operations tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		// Should only have one, since we skipped the undefined operations
-		expect(linearOps).toEqual([{ type: "add", value: 2, prefix: "drp" }]);
+		expect(linearOps).toEqual([{ type: "add", value: 2, vertexType: "drp" }]);
 	});
 
 	test("Test: addToFrontier with undefined operation return Vertex with NoOp operation", () => {
@@ -650,7 +652,7 @@ describe("Vertex timestamp tests", () => {
 				{
 					type: "add",
 					value: 1,
-					prefix: "drp",
+					vertexType: "drp",
 				},
 				obj1.hashGraph.getFrontier(),
 				"",
@@ -685,7 +687,7 @@ describe("Vertex timestamp tests", () => {
 				{
 					type: "add",
 					value: 1,
-					prefix: "drp",
+					vertexType: "drp",
 				},
 				obj1.hashGraph.getFrontier(),
 				"",

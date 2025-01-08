@@ -1,5 +1,5 @@
 import * as crypto from "node:crypto";
-import { PrefixOperation, log } from "../index.js";
+import { VertexTypeOperation, log } from "../index.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import type {
@@ -82,7 +82,7 @@ export class HashGraph {
 			operation: {
 				type: OperationType.NOP,
 				value: null,
-				prefix: "",
+				vertexType: "",
 			},
 			dependencies: [],
 			timestamp: -1,

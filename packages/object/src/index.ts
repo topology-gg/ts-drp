@@ -56,7 +56,7 @@ export interface DRPObjectConfig {
 
 export let log: Logger;
 
-export enum PrefixOperation {
+export enum VertexTypeOperation {
 	acl = "acl",
 	drp = "drp",
 }
@@ -128,9 +128,9 @@ export class DRPObject implements IDRPObject {
 		return {
 			get(target, propKey, receiver) {
 				const value = Reflect.get(target, propKey, receiver);
-				let prefix = PrefixOperation.drp;
+				let prefix = VertexTypeOperation.drp;
 				if (isACLInterface(target)) {
-					prefix = PrefixOperation.acl;
+					prefix = VertexTypeOperation.acl;
 				}
 
 				if (typeof value === "function") {
@@ -156,11 +156,11 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// biome-ignore lint: value can't be unknown because of protobuf
-	callFn(fn: string, args: any, prefix: PrefixOperation = PrefixOperation.drp) {
+	callFn(fn: string, args: any, vertexType: VertexTypeOperation = VertexTypeOperation.drp) {
 		const vertex = this.hashGraph.addToFrontier({
 			type: fn,
 			value: args,
-			prefix: prefix,
+			vertexType: vertexType,
 		});
 		this._setState(vertex);
 
@@ -181,7 +181,6 @@ export class DRPObject implements IDRPObject {
 	 */
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
 		const missing = [];
-		let needUpdateACLState = false;
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
@@ -190,13 +189,12 @@ export class DRPObject implements IDRPObject {
 
 			try {
 				const drp =
-					vertex.operation.prefix === PrefixOperation.acl
+					vertex.operation.vertexType === VertexTypeOperation.acl
 						? this._computeACL(vertex.dependencies)
 						: this._computeDRP(vertex.dependencies);
 				if (!this._checkWriterPermission(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
-				needUpdateACLState = vertex.operation.prefix === PrefixOperation.acl;
 
 				this.hashGraph.addVertex(
 					vertex.operation,
@@ -207,7 +205,7 @@ export class DRPObject implements IDRPObject {
 				);
 
 				this._applyOperation(drp, vertex.operation);
-				if (vertex.operation.prefix === PrefixOperation.acl) {
+				if (vertex.operation.vertexType === VertexTypeOperation.acl) {
 					this._setACLState(vertex, this._getDRPState(drp));
 					this._setDRPState(vertex);
 				} else {
@@ -299,10 +297,10 @@ export class DRPObject implements IDRPObject {
 		}
 
 		for (const op of linearizedOperations) {
-			op.prefix === PrefixOperation.drp && this._applyOperation(drp, op);
+			op.vertexType === VertexTypeOperation.drp && this._applyOperation(drp, op);
 		}
 		if (vertexOperation) {
-			vertexOperation.prefix === PrefixOperation.drp &&
+			vertexOperation.vertexType === VertexTypeOperation.drp &&
 				this._applyOperation(drp, vertexOperation);
 		}
 
@@ -339,10 +337,10 @@ export class DRPObject implements IDRPObject {
 			acl[key] = value;
 		}
 		for (const op of linearizedOperations) {
-			op.prefix === PrefixOperation.acl && this._applyOperation(acl, op);
+			op.vertexType === VertexTypeOperation.acl && this._applyOperation(acl, op);
 		}
 		if (vertexOperation) {
-			vertexOperation.prefix === PrefixOperation.acl &&
+			vertexOperation.vertexType === VertexTypeOperation.acl &&
 				this._applyOperation(acl, vertexOperation);
 		}
 

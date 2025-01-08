@@ -5,7 +5,7 @@ import {
 	type DRPObject,
 	type IACL,
 	type ObjectPb,
-	PrefixOperation,
+	VertexTypeOperation,
 	type Vertex,
 } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
@@ -237,16 +237,14 @@ export async function verifyIncomingVertices(
 	incomingVertices: ObjectPb.Vertex[],
 ): Promise<Vertex[]> {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
-		const prefix = vertex.operation
-			? vertex.operation.prefix
-			: PrefixOperation.drp;
+		const vertexType = vertex.operation ? vertex.operation.vertexType : "";
 		return {
 			hash: vertex.hash,
 			peerId: vertex.peerId,
 			operation: {
 				type: vertex.operation?.type ?? "",
 				value: vertex.operation?.value,
-				prefix,
+				vertexType: vertexType,
 			},
 			dependencies: vertex.dependencies,
 			timestamp: vertex.timestamp,

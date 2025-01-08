@@ -23,7 +23,7 @@ export interface Vertex {
 export interface Vertex_Operation {
   type: string;
   value: any | undefined;
-  prefix: string;
+  vertexType: string;
 }
 
 export interface DRPObjectBase {
@@ -178,7 +178,7 @@ export const Vertex: MessageFns<Vertex> = {
 };
 
 function createBaseVertex_Operation(): Vertex_Operation {
-  return { type: "", value: undefined, prefix: "" };
+  return { type: "", value: undefined, vertexType: "" };
 }
 
 export const Vertex_Operation: MessageFns<Vertex_Operation> = {
@@ -189,8 +189,8 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
     if (message.value !== undefined) {
       Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
     }
-    if (message.prefix !== "") {
-      writer.uint32(26).string(message.prefix);
+    if (message.vertexType !== "") {
+      writer.uint32(26).string(message.vertexType);
     }
     return writer;
   },
@@ -223,7 +223,7 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
             break;
           }
 
-          message.prefix = reader.string();
+          message.vertexType = reader.string();
           continue;
         }
       }
@@ -239,7 +239,7 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
     return {
       type: isSet(object.type) ? globalThis.String(object.type) : "",
       value: isSet(object?.value) ? object.value : undefined,
-      prefix: isSet(object.prefix) ? globalThis.String(object.prefix) : "",
+      vertexType: isSet(object.vertexType) ? globalThis.String(object.vertexType) : "",
     };
   },
 
@@ -251,8 +251,8 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
     if (message.value !== undefined) {
       obj.value = message.value;
     }
-    if (message.prefix !== "") {
-      obj.prefix = message.prefix;
+    if (message.vertexType !== "") {
+      obj.vertexType = message.vertexType;
     }
     return obj;
   },
@@ -264,7 +264,7 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
     const message = createBaseVertex_Operation();
     message.type = object.type ?? "";
     message.value = object.value ?? undefined;
-    message.prefix = object.prefix ?? "";
+    message.vertexType = object.vertexType ?? "";
     return message;
   },
 };
