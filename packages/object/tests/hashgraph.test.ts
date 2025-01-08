@@ -501,17 +501,17 @@ describe("Vertex state tests", () => {
 
 		const vertices = obj1.hashGraph.topologicalSort();
 
-		const drpState1 = obj1.states.get(vertices[1]);
+		const drpState1 = obj1.drpStates.get(vertices[1]);
 		expect(drpState1?.state.get("state").get(1)).toBe(true);
 		expect(drpState1?.state.get("state").get(2)).toBe(undefined);
 		expect(drpState1?.state.get("state").get(3)).toBe(undefined);
 
-		const drpState2 = obj1.states.get(vertices[2]);
+		const drpState2 = obj1.drpStates.get(vertices[2]);
 		expect(drpState2?.state.get("state").get(1)).toBe(true);
 		expect(drpState2?.state.get("state").get(2)).toBe(true);
 		expect(drpState2?.state.get("state").get(3)).toBe(undefined);
 
-		const drpState3 = obj1.states.get(vertices[3]);
+		const drpState3 = obj1.drpStates.get(vertices[3]);
 		expect(drpState3?.state.get("state").get(1)).toBe(true);
 		expect(drpState3?.state.get("state").get(2)).toBe(true);
 		expect(drpState3?.state.get("state").get(3)).toBe(true);
@@ -549,21 +549,21 @@ describe("Vertex state tests", () => {
 		drp1.add(6);
 		const hashA6 = obj1.hashGraph.getFrontier()[0];
 
-		const drpState1 = obj1.states.get(hashA4);
+		const drpState1 = obj1.drpStates.get(hashA4);
 		expect(drpState1?.state.get("state").get(1)).toBe(true);
 		expect(drpState1?.state.get("state").get(2)).toBe(true);
 		expect(drpState1?.state.get("state").get(3)).toBe(undefined);
 		expect(drpState1?.state.get("state").get(4)).toBe(true);
 		expect(drpState1?.state.get("state").get(5)).toBe(undefined);
 
-		const drpState2 = obj1.states.get(hashC5);
+		const drpState2 = obj1.drpStates.get(hashC5);
 		expect(drpState2?.state.get("state").get(1)).toBe(undefined);
 		expect(drpState2?.state.get("state").get(2)).toBe(true);
 		expect(drpState2?.state.get("state").get(3)).toBe(true);
 		expect(drpState2?.state.get("state").get(4)).toBe(undefined);
 		expect(drpState2?.state.get("state").get(5)).toBe(true);
 
-		const drpState3 = obj1.states.get(hashA6);
+		const drpState3 = obj1.drpStates.get(hashA6);
 		expect(drpState3?.state.get("state").get(1)).toBe(true);
 		expect(drpState3?.state.get("state").get(2)).toBe(true);
 		expect(drpState3?.state.get("state").get(3)).toBe(true);
@@ -612,7 +612,7 @@ describe("Vertex state tests", () => {
 		obj3.merge(obj2.hashGraph.getAllVertices());
 
 		const hashV8 = obj1.hashGraph.getFrontier()[0];
-		const drpStateV8 = obj1.states.get(hashV8);
+		const drpStateV8 = obj1.drpStates.get(hashV8);
 		expect(drpStateV8?.state.get("state").get(1)).toBe(false);
 		expect(drpStateV8?.state.get("state").get(2)).toBe(true);
 		expect(drpStateV8?.state.get("state").get(3)).toBe(undefined);

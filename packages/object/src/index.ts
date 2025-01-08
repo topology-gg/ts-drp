@@ -75,8 +75,8 @@ export class DRPObject implements IDRPObject {
 	acl: ProxyHandler<IACL & DRP> | null;
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
-	states: Map<string, DRPState>;
-	statesAcl: Map<string, DRPState>;
+	drpStates: Map<string, DRPState>;
+	aclStates: Map<string, DRPState>;
 	originalDRP: DRP;
 	originalACL: IACL & DRP;
 	subscriptions: DRPObjectCallback[];
@@ -114,8 +114,8 @@ export class DRPObject implements IDRPObject {
 			drp?.semanticsType,
 		);
 		this.subscriptions = [];
-		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.statesAcl = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.originalDRP = cloneDeep(drp);
 		this.originalACL = cloneDeep(acl);
 		this.vertices = this.hashGraph.getAllVertices();
@@ -127,7 +127,6 @@ export class DRPObject implements IDRPObject {
 			vertices.some((v) => v.operation?.vertexType === VertexTypeOperation.acl)
 		) {
 			const acl = this.acl as IACL & DRP;
-
 			return acl.resolveConflicts(vertices);
 		}
 		const drp = this.drp as DRP;
@@ -165,7 +164,7 @@ export class DRPObject implements IDRPObject {
 		fn: string,
 		// biome-ignore lint: value can't be unknown because of protobuf
 		args: any,
-		vertexType: VertexTypeOperation = VertexTypeOperation.drp,
+		vertexType: VertexTypeOperation,
 	) {
 		const vertex = this.hashGraph.addToFrontier({
 			type: fn,
@@ -287,7 +286,7 @@ export class DRPObject implements IDRPObject {
 
 		const drp = cloneDeep(this.originalDRP);
 
-		const fetchedState = this.states.get(lca);
+		const fetchedState = this.drpStates.get(lca);
 		if (!fetchedState) {
 			throw new Error("State is undefined");
 		}
@@ -320,7 +319,7 @@ export class DRPObject implements IDRPObject {
 
 		const acl = cloneDeep(this.originalACL);
 
-		const fetchedState = this.statesAcl.get(lca);
+		const fetchedState = this.aclStates.get(lca);
 		if (!fetchedState) {
 			throw new Error("State is undefined");
 		}
@@ -410,7 +409,7 @@ export class DRPObject implements IDRPObject {
 		drpState?: DRPState,
 	) {
 		if (this.acl) {
-			this.statesAcl.set(
+			this.aclStates.set(
 				vertex.hash,
 				drpState ??
 					this._computeACLState(
@@ -427,7 +426,7 @@ export class DRPObject implements IDRPObject {
 		preCompute?: LcaAndOperations,
 		drpState?: DRPState,
 	) {
-		this.states.set(
+		this.drpStates.set(
 			vertex.hash,
 			drpState ??
 				this._computeDRPState(
