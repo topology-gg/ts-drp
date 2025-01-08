@@ -20,7 +20,7 @@ message Vertex {
 
 message Attestation {
   string data = 1;
-  string signature = 2;
+  bytes signature = 2;
 }
 
 message DRPObjectBase {

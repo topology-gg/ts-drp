@@ -27,7 +27,7 @@ export interface Vertex_Operation {
 
 export interface Attestation {
   data: string;
-  signature: string;
+  signature: Uint8Array;
 }
 
 export interface DRPObjectBase {
@@ -258,7 +258,7 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
 };
 
 function createBaseAttestation(): Attestation {
-  return { data: "", signature: "" };
+  return { data: "", signature: new Uint8Array(0) };
 }
 
 export const Attestation: MessageFns<Attestation> = {
@@ -266,8 +266,8 @@ export const Attestation: MessageFns<Attestation> = {
     if (message.data !== "") {
       writer.uint32(10).string(message.data);
     }
-    if (message.signature !== "") {
-      writer.uint32(18).string(message.signature);
+    if (message.signature.length !== 0) {
+      writer.uint32(18).bytes(message.signature);
     }
     return writer;
   },
@@ -292,7 +292,7 @@ export const Attestation: MessageFns<Attestation> = {
             break;
           }
 
-          message.signature = reader.string();
+          message.signature = reader.bytes();
           continue;
         }
       }
@@ -307,7 +307,7 @@ export const Attestation: MessageFns<Attestation> = {
   fromJSON(object: any): Attestation {
     return {
       data: isSet(object.data) ? globalThis.String(object.data) : "",
-      signature: isSet(object.signature) ? globalThis.String(object.signature) : "",
+      signature: isSet(object.signature) ? bytesFromBase64(object.signature) : new Uint8Array(0),
     };
   },
 
@@ -316,8 +316,8 @@ export const Attestation: MessageFns<Attestation> = {
     if (message.data !== "") {
       obj.data = message.data;
     }
-    if (message.signature !== "") {
-      obj.signature = message.signature;
+    if (message.signature.length !== 0) {
+      obj.signature = base64FromBytes(message.signature);
     }
     return obj;
   },
@@ -328,7 +328,7 @@ export const Attestation: MessageFns<Attestation> = {
   fromPartial<I extends Exact<DeepPartial<Attestation>, I>>(object: I): Attestation {
     const message = createBaseAttestation();
     message.data = object.data ?? "";
-    message.signature = object.signature ?? "";
+    message.signature = object.signature ?? new Uint8Array(0);
     return message;
   },
 };

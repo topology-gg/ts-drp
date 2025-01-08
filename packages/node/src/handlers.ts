@@ -70,7 +70,7 @@ async function attestationUpdateHandler(
 	for (const attestation of attestationUpdate.attestations) {
 		object.attestations
 			.get(attestation.data)
-			?.addVote(sender, uint8ArrayFromString(attestation.signature, "base64"));
+			?.addVote(sender, attestation.signature);
 	}
 }
 
@@ -99,10 +99,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		for (const attestation of updateMessage.attestations) {
 			object.attestations
 				.get(attestation.data)
-				?.addVote(
-					sender,
-					uint8ArrayFromString(attestation.signature, "base64"),
-				);
+				?.addVote(sender, attestation.signature);
 		}
 		await voteGeneratedVertices(node, object, verifiedVertices);
 
@@ -113,10 +110,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 			if (attestationStore?.canVote(node.networkNode.peerId)) {
 				attestations.push({
 					data: vertex.hash,
-					signature: uint8ArrayToString(
-						node.credentialStore.signWithBls(vertex.hash),
-						"base64",
-					),
+					signature: node.credentialStore.signWithBls(vertex.hash),
 				});
 			}
 		}
