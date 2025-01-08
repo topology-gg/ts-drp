@@ -7,8 +7,8 @@ import {
 	verifyIncomingVertices,
 	voteGeneratedVertices,
 } from "../src/handlers.js";
-import { DRPCredentialStore } from "../src/store/index.js";
 import { DRPNode, type DRPNodeConfig } from "../src/index.js";
+import { DRPCredentialStore } from "../src/store/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
