@@ -150,7 +150,9 @@ export class DRPObject implements IDRPObject {
 
 		let stateChanged = false;
 		for (const key of Object.keys(preOperationDRP)) {
-			if (!deepStrictEqual(preOperationDRP[key], drp[key])) {
+			try {
+				deepStrictEqual(preOperationDRP[key], drp[key]);
+			} catch {
 				stateChanged = true;
 				break;
 			}
