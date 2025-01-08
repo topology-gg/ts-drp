@@ -38,6 +38,7 @@ describe("DPRNode with verify and sign signature", () => {
 				},
 				dependencies: [],
 				signature: "",
+				timestamp: 0,
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
@@ -55,6 +56,7 @@ describe("DPRNode with verify and sign signature", () => {
 				},
 				dependencies: [],
 				signature: "",
+				timestamp: 0,
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
@@ -72,6 +74,7 @@ describe("DPRNode with verify and sign signature", () => {
 				},
 				dependencies: [],
 				signature: "",
+				timestamp: 0,
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
@@ -90,6 +93,7 @@ describe("DPRNode with verify and sign signature", () => {
 				},
 				dependencies: [],
 				signature: "",
+				timestamp: 0,
 			},
 		];
 
@@ -110,6 +114,7 @@ describe("DPRNode with verify and sign signature", () => {
 				},
 				dependencies: [],
 				signature: "",
+				timestamp: 0,
 			},
 		];
 		const verifiedVertices = await verifyIncomingVertices(drpObject, vertices);
