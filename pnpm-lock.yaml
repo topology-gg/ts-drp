@@ -291,6 +291,9 @@ importers:
 
   packages/object:
     dependencies:
+      '@chainsafe/bls':
+        specifier: ^8.1.0
+        version: 8.1.0
       '@ts-drp/logger':
         specifier: ^0.4.4
         version: link:../logger
