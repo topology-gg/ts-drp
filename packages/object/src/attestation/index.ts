@@ -4,7 +4,6 @@ import { BitSet } from "../hashgraph/bitset.js";
 import type { Hash } from "../hashgraph/index.js";
 import type { DRPPublicCredential } from "../index.js";
 
-
 export class AttestationStore {
 	private data: string;
 	private voterCredentials: DRPPublicCredential[];
