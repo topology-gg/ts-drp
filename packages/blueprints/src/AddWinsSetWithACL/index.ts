@@ -14,7 +14,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 	acl: IACL & DRP;
 	semanticsType = SemanticsType.pair;
 
-	constructor(admins: Map<string, string>) {
+	constructor(admins: Map<string, Uint8Array>) {
 		this.acl = new ACL(admins);
 		this.state = new Map<T, boolean>();
 	}
