@@ -30,10 +30,8 @@ import { webTransport } from "@libp2p/webtransport";
 import { multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
-import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
-import type { Vertex } from "./proto/drp/object/v1/object_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -56,7 +54,7 @@ export class DRPNetworkNode {
 	private _node?: Libp2p;
 	private _pubsub?: PubSub<GossipsubEvents>;
 	private _privateKey?: Ed25519PrivateKey;
-	publicKey?: string;
+	publicKey?: Uint8Array;
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
@@ -74,10 +72,7 @@ export class DRPNetworkNode {
 		} else {
 			this._privateKey = await generateKeyPair("Ed25519");
 		}
-		this.publicKey = uint8ArrayToString(
-			this._privateKey.publicKey.raw,
-			"base64",
-		);
+		this.publicKey = this._privateKey.publicKey.raw;
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
 			? this._config.bootstrap_peers
@@ -297,13 +292,12 @@ export class DRPNetworkNode {
 		this._node?.handle(protocol, handler);
 	}
 
-	async sign(data: string): Promise<string> {
+	async sign(data: string): Promise<Uint8Array> {
 		if (!this._privateKey) {
-			log.error("::signVertexOperation: Private key not found");
-			return "";
+			throw new Error("Private key not initialized");
 		}
 
 		const signature = await this._privateKey.sign(uint8ArrayFromString(data));
-		return uint8ArrayToString(signature, "base64");
+		return signature;
 	}
 }
