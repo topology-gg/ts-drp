@@ -114,14 +114,14 @@ export class DRPObject implements IDRPObject {
 						: String(propKey);
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
+							if ((propKey as string).startsWith("query_")) {
+								return Reflect.apply(applyTarget, thisArg, args);
+							}
 							const callerName = new Error().stack
 								?.split("\n")[2]
 								?.trim()
 								.split(" ")[1];
-							if (
-								!(propKey as string).startsWith("query_") &&
-								!callerName?.startsWith("Proxy.")
-							)
+							if (!callerName?.startsWith("Proxy."))
 								obj.callFn(fullPropKey, args.length === 1 ? args[0] : args);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
