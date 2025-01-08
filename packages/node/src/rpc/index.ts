@@ -8,14 +8,14 @@ import type { ServerUnaryCall, sendUnaryData } from "@grpc/grpc-js";
 import { type DRPNode, log } from "../index.js";
 import { DrpRpcServiceService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
 import type {
+	AddCustomGroupRequest,
+	GenericRespone,
 	GetDRPHashGraphRequest,
 	GetDRPHashGraphResponse,
 	SendCustomMessageRequest,
 	SendGroupMessageRequest,
 	SubscribeDRPRequest,
 	UnsubscribeDRPRequest,
-	GenericRespone,
-	AddCustomGroupRequest,
 } from "../proto/drp/node/v1/rpc_pb.js";
 
 export function init(node: DRPNode) {
