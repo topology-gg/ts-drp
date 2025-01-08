@@ -6,7 +6,7 @@ import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ServerUnaryCall, sendUnaryData } from "@grpc/grpc-js";
 import { type DRPNode, log } from "../index.js";
-import { DrpRpcServiceService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
+import { DrpRpcService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
 import type {
 	AddCustomGroupRequest,
 	GenericRespone,
@@ -161,7 +161,7 @@ export function init(node: DRPNode) {
 
 	const server = new grpc.Server();
 	reflectionService.addToServer(server);
-	server.addService(DrpRpcServiceService, {
+	server.addService(DrpRpcService, {
 		subscribeDRP,
 		unsubscribeDRP,
 		getDRPHashGraph,

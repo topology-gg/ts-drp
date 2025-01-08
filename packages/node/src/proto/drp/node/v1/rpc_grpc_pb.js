@@ -1,18 +1,20 @@
 // GENERATED CODE -- DO NOT EDIT!
 
-'use strict';
-var grpc = require('grpc');
-var drp_node_v1_rpc_pb = require('../../../drp/node/v1/rpc_pb.js');
+import * as drp_node_v1_rpc_pb from './rpc_pb.js';
 
 function serialize_drp_node_v1_AddCustomGroupRequest(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.AddCustomGroupRequest)) {
-    throw new Error('Expected argument of type drp.node.v1.AddCustomGroupRequest');
+    throw new Error(
+      'Expected argument of type drp.node.v1.AddCustomGroupRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_AddCustomGroupRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.AddCustomGroupRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.AddCustomGroupRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_GenericRespone(arg) {
@@ -23,88 +25,117 @@ function serialize_drp_node_v1_GenericRespone(arg) {
 }
 
 function deserialize_drp_node_v1_GenericRespone(buffer_arg) {
-  return drp_node_v1_rpc_pb.GenericRespone.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.GenericRespone.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_GetDRPHashGraphRequest(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.GetDRPHashGraphRequest)) {
-    throw new Error('Expected argument of type drp.node.v1.GetDRPHashGraphRequest');
+    throw new Error(
+      'Expected argument of type drp.node.v1.GetDRPHashGraphRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_GetDRPHashGraphRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.GetDRPHashGraphRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.GetDRPHashGraphRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_GetDRPHashGraphResponse(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.GetDRPHashGraphResponse)) {
-    throw new Error('Expected argument of type drp.node.v1.GetDRPHashGraphResponse');
+    throw new Error(
+      'Expected argument of type drp.node.v1.GetDRPHashGraphResponse'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_GetDRPHashGraphResponse(buffer_arg) {
-  return drp_node_v1_rpc_pb.GetDRPHashGraphResponse.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.GetDRPHashGraphResponse.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_SendCustomMessageRequest(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.SendCustomMessageRequest)) {
-    throw new Error('Expected argument of type drp.node.v1.SendCustomMessageRequest');
+    throw new Error(
+      'Expected argument of type drp.node.v1.SendCustomMessageRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_SendCustomMessageRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SendCustomMessageRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.SendCustomMessageRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_SendGroupMessageRequest(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.SendGroupMessageRequest)) {
-    throw new Error('Expected argument of type drp.node.v1.SendGroupMessageRequest');
+    throw new Error(
+      'Expected argument of type drp.node.v1.SendGroupMessageRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_SendGroupMessageRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SendGroupMessageRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.SendGroupMessageRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_SubscribeDRPRequest(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.SubscribeDRPRequest)) {
-    throw new Error('Expected argument of type drp.node.v1.SubscribeDRPRequest');
+    throw new Error(
+      'Expected argument of type drp.node.v1.SubscribeDRPRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_SubscribeDRPRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SubscribeDRPRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.SubscribeDRPRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_SyncDRPObjectRequest(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.SyncDRPObjectRequest)) {
-    throw new Error('Expected argument of type drp.node.v1.SyncDRPObjectRequest');
+    throw new Error(
+      'Expected argument of type drp.node.v1.SyncDRPObjectRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_SyncDRPObjectRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SyncDRPObjectRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.SyncDRPObjectRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
 function serialize_drp_node_v1_UnsubscribeDRPRequest(arg) {
   if (!(arg instanceof drp_node_v1_rpc_pb.UnsubscribeDRPRequest)) {
-    throw new Error('Expected argument of type drp.node.v1.UnsubscribeDRPRequest');
+    throw new Error(
+      'Expected argument of type drp.node.v1.UnsubscribeDRPRequest'
+    );
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_drp_node_v1_UnsubscribeDRPRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.UnsubscribeDRPRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return drp_node_v1_rpc_pb.UnsubscribeDRPRequest.deserializeBinary(
+    new Uint8Array(buffer_arg)
+  );
 }
 
-
-var DrpRpcServiceService = exports.DrpRpcServiceService = {
+export const DrpRpcService = {
   subscribeDRP: {
     path: '/drp.node.v1.DrpRpcService/SubscribeDRP',
     requestStream: false,
@@ -183,5 +214,3 @@ var DrpRpcServiceService = exports.DrpRpcServiceService = {
     responseDeserialize: deserialize_drp_node_v1_GenericRespone,
   },
 };
-
-exports.DrpRpcServiceClient = grpc.makeGenericClientConstructor(DrpRpcServiceService);
