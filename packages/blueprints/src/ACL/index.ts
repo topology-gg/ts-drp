@@ -17,11 +17,11 @@ export class ACL implements IACL, DRP {
 	semanticsType = SemanticsType.pair;
 
 	private _conflictResolution: ACLConflictResolution;
-	private _admins: Map<string, string>;
-	private _writers: Map<string, string>;
+	private _admins: Map<string, Uint8Array>;
+	private _writers: Map<string, Uint8Array>;
 
 	constructor(
-		admins: Map<string, string>,
+		admins: Map<string, Uint8Array>,
 		conflictResolution?: ACLConflictResolution,
 	) {
 		this._admins = new Map(Array.from(admins, ([key, value]) => [key, value]));
@@ -30,11 +30,11 @@ export class ACL implements IACL, DRP {
 			conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
-	private _grant(peerId: string, publicKey: string): void {
+	private _grant(peerId: string, publicKey: Uint8Array): void {
 		this._writers.set(peerId, publicKey);
 	}
 
-	grant(senderId: string, peerId: string, publicKey: string): void {
+	grant(senderId: string, peerId: string, publicKey: Uint8Array): void {
 		if (!this.isAdmin(senderId)) {
 			throw new Error("Only admin nodes can grant permissions.");
 		}
@@ -65,7 +65,7 @@ export class ACL implements IACL, DRP {
 		return this._writers.has(peerId);
 	}
 
-	getPeerKey(peerId: string): string | undefined {
+	getPeerKey(peerId: string): Uint8Array | undefined {
 		return this._writers.get(peerId);
 	}
 

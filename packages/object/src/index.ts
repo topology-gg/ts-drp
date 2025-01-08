@@ -18,9 +18,9 @@ import { cloneDeep } from "es-toolkit";
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
 	isAdmin: (peerId: string) => boolean;
-	grant: (senderId: string, peerId: string, publicKey: string) => void;
+	grant: (senderId: string, peerId: string, publicKey: Uint8Array) => void;
 	revoke: (senderId: string, peerId: string) => void;
-	getPeerKey: (peerId: string) => string | undefined;
+	getPeerKey: (peerId: string) => Uint8Array | undefined;
 }
 
 export interface DRP {
