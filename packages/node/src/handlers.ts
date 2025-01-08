@@ -230,14 +230,13 @@ export async function verifyIncomingVertices(
 	incomingVertices: ObjectPb.Vertex[],
 ): Promise<Vertex[]> {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {
-		const vertexType = vertex.operation ? vertex.operation.vertexType : "";
 		return {
 			hash: vertex.hash,
 			peerId: vertex.peerId,
 			operation: {
 				type: vertex.operation?.type ?? "",
 				value: vertex.operation?.value,
-				vertexType: vertexType,
+				vertexType: vertex.operation?.vertexType ?? "",
 			},
 			dependencies: vertex.dependencies,
 			timestamp: vertex.timestamp,

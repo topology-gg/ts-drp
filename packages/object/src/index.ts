@@ -126,19 +126,14 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
-	proxyDRPHandler(
-		vertexType: VertexTypeOperation,
-		parentProp?: string,
-	): ProxyHandler<object> {
+	proxyDRPHandler(vertexType: VertexTypeOperation): ProxyHandler<object> {
 		const obj = this;
 		return {
 			get(target, propKey, receiver) {
 				const value = Reflect.get(target, propKey, receiver);
 
 				if (typeof value === "function") {
-					const fullPropKey = parentProp
-						? `${parentProp}.${String(propKey)}`
-						: String(propKey);
+					const fullPropKey = String(propKey);
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
 							if ((thisArg.operations as string[]).includes(propKey as string))
