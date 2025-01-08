@@ -18,7 +18,7 @@ import { cloneDeep } from "es-toolkit";
 
 export interface DRPPublicCredential {
 	ed25519PublicKey: string;
-	blsPublicKey: Uint8Array;
+	blsPublicKey: string;
 }
 
 export interface IACL {
@@ -222,6 +222,7 @@ export class DRPObject implements IDRPObject {
 	private _initializeAttestationStore(hash: Hash) {
 		const acl = this.states.get(hash)?.state.get("acl") as IACL | undefined;
 		if (acl !== undefined && !this.attestations.has(hash)) {
+			// voter set equals writer set
 			this.attestations.set(hash, new AttestationStore(hash, acl.getWriters()));
 		}
 	}

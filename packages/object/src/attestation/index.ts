@@ -46,7 +46,10 @@ export class AttestationStore {
 		// verify signature validity
 		if (
 			!(await bls.asyncVerify(
-				this.voterCredentials[index].blsPublicKey,
+				uint8ArrayFromString(
+					this.voterCredentials[index].blsPublicKey,
+					"base64",
+				),
 				uint8ArrayFromString(this.data),
 				signature,
 			))
