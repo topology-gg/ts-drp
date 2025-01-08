@@ -459,7 +459,7 @@ export const SyncAccept: MessageFns<SyncAccept> = {
       Vertex.encode(v!, writer.uint32(18).fork()).join();
     }
     for (const v of message.requesting) {
-      writer.uint32(34).string(v!);
+      writer.uint32(26).string(v!);
     }
     return writer;
   },
@@ -487,8 +487,8 @@ export const SyncAccept: MessageFns<SyncAccept> = {
           message.requested.push(Vertex.decode(reader, reader.uint32()));
           continue;
         }
-        case 4: {
-          if (tag !== 34) {
+        case 3: {
+          if (tag !== 26) {
             break;
           }
 

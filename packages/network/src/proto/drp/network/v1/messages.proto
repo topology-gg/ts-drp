@@ -38,7 +38,7 @@ message Sync {
 message SyncAccept {
   string object_id = 1;
   repeated drp.object.v1.Vertex requested = 2;
-  repeated string requesting = 4;
+  repeated string requesting = 3;
 }
 
 message SyncReject {}
