@@ -53,6 +53,11 @@ export interface DRPObjectConfig {
 	log_config?: LoggerOptions;
 }
 
+export interface LcaAndOperations {
+	lca: string;
+	linearizedOperations: Operation[];
+}
+
 export let log: Logger;
 
 export enum VertexTypeOperation {
@@ -117,9 +122,13 @@ export class DRPObject implements IDRPObject {
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
-		if (this.acl) {
+		if (
+			this.acl &&
+			vertices.some((v) => v.operation?.vertexType === VertexTypeOperation.acl)
+		) {
 			const acl = this.acl as IACL & DRP;
-			acl.resolveConflicts(vertices);
+
+			return acl.resolveConflicts(vertices);
 		}
 		const drp = this.drp as DRP;
 		return drp.resolveConflicts(vertices);
@@ -189,10 +198,11 @@ export class DRPObject implements IDRPObject {
 			}
 
 			try {
+				const preComputeLca = this.computeLCA(vertex.dependencies);
 				const drp =
 					vertex.operation.vertexType === VertexTypeOperation.acl
-						? this._computeACL(vertex.dependencies)
-						: this._computeDRP(vertex.dependencies);
+						? this._computeACL(vertex.dependencies, preComputeLca)
+						: this._computeDRP(vertex.dependencies, preComputeLca);
 				if (!this._checkWriterPermission(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
@@ -207,11 +217,11 @@ export class DRPObject implements IDRPObject {
 
 				this._applyOperation(drp, vertex.operation);
 				if (vertex.operation.vertexType === VertexTypeOperation.acl) {
-					this._setACLState(vertex, this._getDRPState(drp));
-					this._setDRPState(vertex);
+					this._setACLState(vertex, preComputeLca, this._getDRPState(drp));
+					this._setDRPState(vertex, preComputeLca);
 				} else {
-					this._setACLState(vertex);
-					this._setDRPState(vertex, this._getDRPState(drp));
+					this._setACLState(vertex, preComputeLca);
+					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				}
 			} catch (e) {
 				missing.push(vertex.hash);
@@ -269,20 +279,11 @@ export class DRPObject implements IDRPObject {
 	// compute the DRP based on all dependencies of the current vertex using partial linearization
 	private _computeDRP(
 		vertexDependencies: Hash[],
+		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
 	): DRP {
-		const subgraph: ObjectSet<Hash> = new ObjectSet();
-		const lca =
-			vertexDependencies.length === 1
-				? vertexDependencies[0]
-				: this.hashGraph.lowestCommonAncestorMultipleVertices(
-						vertexDependencies,
-						subgraph,
-					);
-		const linearizedOperations =
-			vertexDependencies.length === 1
-				? []
-				: this.hashGraph.linearizeOperations(lca, subgraph);
+		const { lca, linearizedOperations } =
+			preCompute ?? this.computeLCA(vertexDependencies);
 
 		const drp = cloneDeep(this.originalDRP);
 
@@ -311,20 +312,11 @@ export class DRPObject implements IDRPObject {
 
 	private _computeACL(
 		vertexDependencies: Hash[],
+		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
 	): DRP {
-		const subgraph: ObjectSet<Hash> = new ObjectSet();
-		const lca =
-			vertexDependencies.length === 1
-				? vertexDependencies[0]
-				: this.hashGraph.lowestCommonAncestorMultipleVertices(
-						vertexDependencies,
-						subgraph,
-					);
-		const linearizedOperations =
-			vertexDependencies.length === 1
-				? []
-				: this.hashGraph.linearizeOperations(lca, subgraph);
+		const { lca, linearizedOperations } =
+			preCompute ?? this.computeLCA(vertexDependencies);
 
 		const acl = cloneDeep(this.originalACL);
 
@@ -350,6 +342,22 @@ export class DRPObject implements IDRPObject {
 		return acl;
 	}
 
+	private computeLCA(vertexDependencies: string[]) {
+		const subgraph: ObjectSet<Hash> = new ObjectSet();
+		const lca =
+			vertexDependencies.length === 1
+				? vertexDependencies[0]
+				: this.hashGraph.lowestCommonAncestorMultipleVertices(
+						vertexDependencies,
+						subgraph,
+					);
+		const linearizedOperations =
+			vertexDependencies.length === 1
+				? []
+				: this.hashGraph.linearizeOperations(lca, subgraph);
+		return { lca, linearizedOperations };
+	}
+
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
 	private _getDRPState(drp: DRP): DRPState {
 		const varNames: string[] = Object.keys(drp);
@@ -365,40 +373,68 @@ export class DRPObject implements IDRPObject {
 	// compute the DRP state based on all dependencies of the current vertex
 	private _computeDRPState(
 		vertexDependencies: Hash[],
+		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
 	): DRPState {
-		const drp = this._computeDRP(vertexDependencies, vertexOperation);
+		const drp = this._computeDRP(
+			vertexDependencies,
+			preCompute,
+			vertexOperation,
+		);
 		return this._getDRPState(drp);
 	}
 
 	private _computeACLState(
 		vertexDependencies: Hash[],
+		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
 	): DRPState {
-		const drp = this._computeACL(vertexDependencies, vertexOperation);
+		const drp = this._computeACL(
+			vertexDependencies,
+			preCompute,
+			vertexOperation,
+		);
 		return this._getDRPState(drp);
 	}
 
 	// store the state of the DRP corresponding to the given vertex
 	private _setState(vertex: Vertex, drpState?: DRPState) {
-		this._setACLState(vertex, drpState);
-		this._setDRPState(vertex, drpState);
+		const preCompute = this.computeLCA(vertex.dependencies);
+		this._setACLState(vertex, preCompute, drpState);
+		this._setDRPState(vertex, preCompute, drpState);
 	}
 
-	private _setACLState(vertex: Vertex, drpState?: DRPState) {
+	private _setACLState(
+		vertex: Vertex,
+		preCompute?: LcaAndOperations,
+		drpState?: DRPState,
+	) {
 		if (this.acl) {
 			this.statesAcl.set(
 				vertex.hash,
 				drpState ??
-					this._computeACLState(vertex.dependencies, vertex.operation),
+					this._computeACLState(
+						vertex.dependencies,
+						preCompute,
+						vertex.operation,
+					),
 			);
 		}
 	}
 
-	private _setDRPState(vertex: Vertex, drpState?: DRPState) {
+	private _setDRPState(
+		vertex: Vertex,
+		preCompute?: LcaAndOperations,
+		drpState?: DRPState,
+	) {
 		this.states.set(
 			vertex.hash,
-			drpState ?? this._computeDRPState(vertex.dependencies, vertex.operation),
+			drpState ??
+				this._computeDRPState(
+					vertex.dependencies,
+					preCompute,
+					vertex.operation,
+				),
 		);
 	}
 
