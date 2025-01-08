@@ -17,10 +17,10 @@ export * from "./hashgraph/index.js";
 import { cloneDeep } from "es-toolkit";
 
 export interface IACL {
-	query_isWriter: (peerId: string) => boolean;
-	query_isAdmin: (peerId: string) => boolean;
 	grant: (senderId: string, peerId: string, publicKey: string) => void;
 	revoke: (senderId: string, peerId: string) => void;
+	query_isWriter: (peerId: string) => boolean;
+	query_isAdmin: (peerId: string) => boolean;
 	query_getPeerKey: (peerId: string) => string | undefined;
 }
 
@@ -150,9 +150,7 @@ export class DRPObject implements IDRPObject {
 
 		let stateChanged = false;
 		for (const key of Object.keys(preOperationDRP)) {
-			try {
-				deepStrictEqual(preOperationDRP[key], drp[key]);
-			} catch (e) {
+			if (!deepStrictEqual(preOperationDRP[key], drp[key])) {
 				stateChanged = true;
 				break;
 			}
