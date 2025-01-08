@@ -215,11 +215,17 @@ export function drpObjectChangesHandler(
 
 export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 	const signPromises = vertices.map(async (vertex) => {
-		if (vertex.peerId !== node.networkNode.peerId || vertex.signature !== "") {
+		if (
+			vertex.peerId !== node.networkNode.peerId ||
+			vertex.signature.length !== 0
+		) {
 			return;
 		}
-
-		await node.signVertex(vertex);
+		try {
+			await node.signVertex(vertex);
+		} catch (error) {
+			log.error("Error signing vertex:", vertex.hash, error);
+		}
 	});
 
 	await Promise.all(signPromises);
@@ -249,24 +255,21 @@ export async function verifyIncomingVertices(
 	}
 	const acl = drp.acl;
 	const verificationPromises = vertices.map(async (vertex) => {
-		if (vertex.signature === "") {
+		if (vertex.signature.length === 0) {
 			return null;
 		}
-
-		const signature = uint8ArrayFromString(vertex.signature, "base64");
 
 		const publicKey = acl.getPeerKey(vertex.peerId);
 		if (!publicKey) {
 			return null;
 		}
 
-		const publicKeyBytes = uint8ArrayFromString(publicKey, "base64");
 		const data = uint8ArrayFromString(vertex.hash);
 
 		try {
 			const cryptoKey = await crypto.subtle.importKey(
 				"raw",
-				publicKeyBytes,
+				publicKey,
 				{ name: "Ed25519" },
 				true,
 				["verify"],
@@ -275,7 +278,7 @@ export async function verifyIncomingVertices(
 			const isValid = await crypto.subtle.verify(
 				{ name: "Ed25519" },
 				cryptoKey,
-				signature,
+				vertex.signature,
 				data,
 			);
 
