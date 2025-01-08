@@ -14,7 +14,6 @@ import { ObjectSet } from "./utils/objectSet.js";
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
 import { cloneDeep } from "es-toolkit";
-import { isACLInterface } from "./helper.js";
 
 export interface IACL {
 	isWriter: (peerId: string) => boolean;
@@ -98,8 +97,12 @@ export class DRPObject implements IDRPObject {
 		this.abi = abi ?? "";
 		this.bytecode = new Uint8Array();
 		this.vertices = [];
-		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler()) : null;
-		this.acl = acl ? new Proxy(acl, this.proxyDRPHandler()) : null;
+		this.drp = drp
+			? new Proxy(drp, this.proxyDRPHandler(VertexTypeOperation.drp))
+			: null;
+		this.acl = acl
+			? new Proxy(acl, this.proxyDRPHandler(VertexTypeOperation.acl))
+			: null;
 		this.hashGraph = new HashGraph(
 			peerId,
 			this.resolveConflicts.bind(this),
@@ -123,15 +126,14 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
-	proxyDRPHandler(parentProp?: string): ProxyHandler<object> {
+	proxyDRPHandler(
+		vertexType: VertexTypeOperation,
+		parentProp?: string,
+	): ProxyHandler<object> {
 		const obj = this;
 		return {
 			get(target, propKey, receiver) {
 				const value = Reflect.get(target, propKey, receiver);
-				let prefix = VertexTypeOperation.drp;
-				if (isACLInterface(target)) {
-					prefix = VertexTypeOperation.acl;
-				}
 
 				if (typeof value === "function") {
 					const fullPropKey = parentProp
@@ -143,7 +145,7 @@ export class DRPObject implements IDRPObject {
 								obj.callFn(
 									fullPropKey,
 									args.length === 1 ? args[0] : args,
-									prefix,
+									vertexType,
 								);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
@@ -155,8 +157,12 @@ export class DRPObject implements IDRPObject {
 		};
 	}
 
-	// biome-ignore lint: value can't be unknown because of protobuf
-	callFn(fn: string, args: any, vertexType: VertexTypeOperation = VertexTypeOperation.drp) {
+	callFn(
+		fn: string,
+		// biome-ignore lint: value can't be unknown because of protobuf
+		args: any,
+		vertexType: VertexTypeOperation = VertexTypeOperation.drp,
+	) {
 		const vertex = this.hashGraph.addToFrontier({
 			type: fn,
 			value: args,
@@ -297,7 +303,8 @@ export class DRPObject implements IDRPObject {
 		}
 
 		for (const op of linearizedOperations) {
-			op.vertexType === VertexTypeOperation.drp && this._applyOperation(drp, op);
+			op.vertexType === VertexTypeOperation.drp &&
+				this._applyOperation(drp, op);
 		}
 		if (vertexOperation) {
 			vertexOperation.vertexType === VertexTypeOperation.drp &&
@@ -337,7 +344,8 @@ export class DRPObject implements IDRPObject {
 			acl[key] = value;
 		}
 		for (const op of linearizedOperations) {
-			op.vertexType === VertexTypeOperation.acl && this._applyOperation(acl, op);
+			op.vertexType === VertexTypeOperation.acl &&
+				this._applyOperation(acl, op);
 		}
 		if (vertexOperation) {
 			vertexOperation.vertexType === VertexTypeOperation.acl &&
