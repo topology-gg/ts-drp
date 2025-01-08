@@ -101,9 +101,13 @@ export class DRPNode {
 
 	async signVertex(vertex: Vertex) {
 		if (vertex.peerId !== this.networkNode.peerId) {
-			log.error("::signVertexOperation: Invalid peer id");
-			return "";
+			throw new Error("Invalid peerId");
 		}
-		vertex.signature = await this.networkNode.sign(vertex.hash);
+
+		try {
+			vertex.signature = await this.networkNode.sign(vertex.hash);
+		} catch (error) {
+			throw new Error(`Failed to sign vertex ${vertex.hash}: ${error}`);
+		}
 	}
 }
