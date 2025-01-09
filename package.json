@@ -28,7 +28,6 @@
 		"proto-gen:object": "buf generate packages/object/src/proto -o packages/object/src/proto",
 		"release": "release-it",
 		"test": "vitest",
-		"ci-test": "vitest --exclude **/node.test.ts",
 		"watch": "pnpm --parallel --filter '@ts-drp/*' watch"
 	},
 	"devDependencies": {
