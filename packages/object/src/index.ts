@@ -197,30 +197,39 @@ export class DRPObject implements IDRPObject {
 			}
 
 			try {
-				const preComputeLca = this.computeLCA(vertex.dependencies);
-				const drp =
-					vertex.operation.vertexType === VertexTypeOperation.acl
-						? this._computeACL(vertex.dependencies, preComputeLca)
-						: this._computeDRP(vertex.dependencies, preComputeLca);
 				if (!this._checkWriterPermission(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
+				const preComputeLca = this.computeLCA(vertex.dependencies);
 
-				this.hashGraph.addVertex(
-					vertex.operation,
-					vertex.dependencies,
-					vertex.peerId,
-					vertex.timestamp,
-					vertex.signature,
-				);
+				if (vertex.operation.vertexType === VertexTypeOperation.drp) {
+					const drp = this._computeDRP(vertex.dependencies, preComputeLca);
 
-				this._applyOperation(drp, vertex.operation);
-				if (vertex.operation.vertexType === VertexTypeOperation.acl) {
-					this._setACLState(vertex, preComputeLca, this._getDRPState(drp));
-					this._setDRPState(vertex, preComputeLca);
-				} else {
+					this.hashGraph.addVertex(
+						vertex.operation,
+						vertex.dependencies,
+						vertex.peerId,
+						vertex.timestamp,
+						vertex.signature,
+					);
+					this._applyOperation(drp, vertex.operation);
+
 					this._setACLState(vertex, preComputeLca);
 					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
+				} else {
+					const drp = this._computeACL(vertex.dependencies, preComputeLca);
+
+					this.hashGraph.addVertex(
+						vertex.operation,
+						vertex.dependencies,
+						vertex.peerId,
+						vertex.timestamp,
+						vertex.signature,
+					);
+					this._applyOperation(drp, vertex.operation);
+
+					this._setACLState(vertex, preComputeLca, this._getDRPState(drp));
+					this._setDRPState(vertex, preComputeLca);
 				}
 			} catch (e) {
 				missing.push(vertex.hash);
