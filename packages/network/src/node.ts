@@ -117,7 +117,11 @@ export class DRPNetworkNode {
 
 		const _bootstrap_services = {
 			..._node_services,
-			relay: circuitRelayServer(),
+			relay: circuitRelayServer({
+				reservations: {
+					maxReservations: Number.POSITIVE_INFINITY,
+				},
+			}),
 		};
 
 		this._node = await createLibp2p({
