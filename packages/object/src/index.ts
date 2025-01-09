@@ -1,5 +1,7 @@
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { cloneDeep } from "es-toolkit";
+import { deepEqual } from "fast-equals";
 import {
 	type Hash,
 	HashGraph,
@@ -10,8 +12,6 @@ import {
 } from "./hashgraph/index.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "./utils/objectSet.js";
-import { cloneDeep } from "es-toolkit";
-import { deepEqual } from "fast-equals";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
