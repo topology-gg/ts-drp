@@ -22,6 +22,7 @@ import type {
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
+import { ping } from "@libp2p/ping";
 import { pubsubPeerDiscovery } from "@libp2p/pubsub-peer-discovery";
 import { webRTC, webRTCDirect } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
@@ -101,6 +102,7 @@ export class DRPNetworkNode {
 			: [_pubsubPeerDiscovery];
 
 		const _node_services = {
+			ping: ping(),
 			autonat: autoNAT(),
 			dcutr: dcutr(),
 			identify: identify(),
