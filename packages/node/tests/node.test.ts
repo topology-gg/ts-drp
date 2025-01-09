@@ -166,10 +166,10 @@ describe("DRPNode voting tests", () => {
 		await voteGeneratedVertices(drpNode, drpObject, [V1]);
 
 		expect(
-			drpObject.attestations.get(V1.hash)?.canVote(drpNode.networkNode.peerId),
+			drpObject.finalityStore.canVote(drpNode.networkNode.peerId, V1.hash),
 		).toBe(true);
 
-		expect(drpObject.attestations.get(V1.hash)?.aggregatedSignature).toEqual(
+		expect(drpObject.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
 			drpNode.credentialStore.signWithBls(V1.hash),
 		);
 	});
@@ -197,11 +197,11 @@ describe("DRPNode voting tests", () => {
 		await voteGeneratedVertices(drpNode, drpObject, [V2]);
 
 		expect(
-			drpObject.attestations.get(V2.hash)?.canVote(drpNode.networkNode.peerId),
+			drpObject.finalityStore.canVote(drpNode.networkNode.peerId, V2.hash),
 		).toBe(false);
 
 		expect(
-			drpObject.attestations.get(V2.hash)?.aggregatedSignature === undefined,
-		).toBe(true);
+			drpObject.finalityStore.getAttestation(V2.hash)?.signature,
+		).toBeUndefined();
 	});
 });
