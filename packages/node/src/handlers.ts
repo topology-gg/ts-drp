@@ -268,12 +268,13 @@ export async function verifyIncomingVertices(
 			return null;
 		}
 
+		const publicKeyBytes = uint8ArrayFromString(publicKey);
 		const data = uint8ArrayFromString(vertex.hash);
 
 		try {
 			const cryptoKey = await crypto.subtle.importKey(
 				"raw",
-				publicKey,
+				publicKeyBytes,
 				{ name: "Ed25519" },
 				true,
 				["verify"],

@@ -31,6 +31,7 @@ import { multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
 
@@ -54,7 +55,7 @@ export class DRPNetworkNode {
 	private _node?: Libp2p;
 	private _pubsub?: PubSub<GossipsubEvents>;
 	private _privateKey?: Ed25519PrivateKey;
-	publicKey?: Uint8Array;
+	publicKey?: string;
 	peerId = "";
 
 	constructor(config?: DRPNetworkNodeConfig) {
@@ -72,7 +73,10 @@ export class DRPNetworkNode {
 		} else {
 			this._privateKey = await generateKeyPair("Ed25519");
 		}
-		this.publicKey = this._privateKey.publicKey.raw;
+		this.publicKey = uint8ArrayToString(
+			this._privateKey.publicKey.raw,
+			"base64",
+		);
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
 			? this._config.bootstrap_peers
