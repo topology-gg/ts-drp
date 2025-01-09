@@ -224,7 +224,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 		try {
 			await node.signVertex(vertex);
 		} catch (error) {
-			log.error("Error signing vertex:", vertex.hash, error);
+			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
 	});
 
