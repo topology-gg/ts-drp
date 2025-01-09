@@ -6,13 +6,12 @@ import {
 	signGeneratedVertices,
 	verifyIncomingVertices,
 } from "../src/handlers.js";
-import { DRPNode, type DRPNodeConfig } from "../src/index.js";
+import { DRPNode } from "../src/index.js";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
 	let drpNode: DRPNode;
 	let drpObject: DRPObject;
-	let config: DRPNodeConfig;
 	beforeAll(async () => {
 		drpNode = new DRPNode();
 		await drpNode.start();
