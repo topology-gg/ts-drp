@@ -8,9 +8,17 @@
 export class BitSet {
 	private data: Uint32Array;
 
-	constructor(size = 1) {
-		// Always start with size 32
-		this.data = new Uint32Array(size);
+	constructor(size = 1, data?: ArrayBuffer) {
+		if (data === undefined) {
+			// Always start with size 32
+			this.data = new Uint32Array(size);
+		} else {
+			this.data = new Uint32Array(data, 0, size);
+		}
+	}
+
+	getBuffer(): ArrayBuffer {
+		return this.data.buffer;
 	}
 
 	clear(): void {

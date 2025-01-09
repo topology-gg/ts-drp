@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { AttestationStore } from "./attestation/index.js";
+import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import {
 	type Hash,
 	HashGraph,
@@ -63,6 +63,7 @@ export interface IDRPObject extends ObjectPb.DRPObjectBase {
 // snake_casing to match the JSON config
 export interface DRPObjectConfig {
 	log_config?: LoggerOptions;
+	finality_config?: FinalityConfig;
 }
 
 export let log: Logger;
@@ -77,8 +78,7 @@ export class DRPObject implements IDRPObject {
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	states: Map<string, DRPState>;
-	// mapping from vertex hash to attestation state
-	attestations: Map<string, AttestationStore>;
+	finalityStore: FinalityStore;
 	originalDRP: DRP;
 	subscriptions: DRPObjectCallback[];
 
@@ -110,7 +110,7 @@ export class DRPObject implements IDRPObject {
 		);
 		this.subscriptions = [];
 		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.attestations = new Map();
+		this.finalityStore = new FinalityStore(config?.finality_config);
 		this.originalDRP = cloneDeep(drp);
 		this.vertices = this.hashGraph.getAllVertices();
 	}
@@ -153,7 +153,7 @@ export class DRPObject implements IDRPObject {
 	callFn(fn: string, args: any) {
 		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args });
 		this._setState(vertex);
-		this._initializeAttestationStore(vertex.hash);
+		this._initializeFinalityState(vertex.hash);
 
 		const serializedVertex = ObjectPb.Vertex.create({
 			hash: vertex.hash,
@@ -194,7 +194,7 @@ export class DRPObject implements IDRPObject {
 
 				this._applyOperation(drp, vertex.operation);
 				this._setState(vertex, this._getDRPState(drp));
-				this._initializeAttestationStore(vertex.hash);
+				this._initializeFinalityState(vertex.hash);
 			} catch (e) {
 				missing.push(vertex.hash);
 			}
@@ -219,11 +219,11 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// initialize the attestation store for the given vertex hash
-	private _initializeAttestationStore(hash: Hash) {
+	private _initializeFinalityState(hash: Hash) {
 		const acl = this.states.get(hash)?.state.get("acl") as IACL | undefined;
-		if (acl !== undefined && !this.attestations.has(hash)) {
+		if (acl !== undefined) {
 			// voter set equals writer set
-			this.attestations.set(hash, new AttestationStore(hash, acl.getWriters()));
+			this.finalityStore.initializeState(hash, acl.getWriters());
 		}
 	}
 

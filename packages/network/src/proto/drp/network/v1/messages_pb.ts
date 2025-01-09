@@ -93,12 +93,12 @@ export interface AttestationUpdate {
 export interface Sync {
   objectId: string;
   vertexHashes: string[];
-  attestations: AggregatedAttestation[];
 }
 
 export interface SyncAccept {
   objectId: string;
   requested: Vertex[];
+  attestations: AggregatedAttestation[];
   requesting: string[];
 }
 
@@ -370,7 +370,7 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
 };
 
 function createBaseSync(): Sync {
-  return { objectId: "", vertexHashes: [], attestations: [] };
+  return { objectId: "", vertexHashes: [] };
 }
 
 export const Sync: MessageFns<Sync> = {
@@ -380,9 +380,6 @@ export const Sync: MessageFns<Sync> = {
     }
     for (const v of message.vertexHashes) {
       writer.uint32(18).string(v!);
-    }
-    for (const v of message.attestations) {
-      AggregatedAttestation.encode(v!, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -410,14 +407,6 @@ export const Sync: MessageFns<Sync> = {
           message.vertexHashes.push(reader.string());
           continue;
         }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.attestations.push(AggregatedAttestation.decode(reader, reader.uint32()));
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -433,9 +422,6 @@ export const Sync: MessageFns<Sync> = {
       vertexHashes: globalThis.Array.isArray(object?.vertexHashes)
         ? object.vertexHashes.map((e: any) => globalThis.String(e))
         : [],
-      attestations: globalThis.Array.isArray(object?.attestations)
-        ? object.attestations.map((e: any) => AggregatedAttestation.fromJSON(e))
-        : [],
     };
   },
 
@@ -447,9 +433,6 @@ export const Sync: MessageFns<Sync> = {
     if (message.vertexHashes?.length) {
       obj.vertexHashes = message.vertexHashes;
     }
-    if (message.attestations?.length) {
-      obj.attestations = message.attestations.map((e) => AggregatedAttestation.toJSON(e));
-    }
     return obj;
   },
 
@@ -460,13 +443,12 @@ export const Sync: MessageFns<Sync> = {
     const message = createBaseSync();
     message.objectId = object.objectId ?? "";
     message.vertexHashes = object.vertexHashes?.map((e) => e) || [];
-    message.attestations = object.attestations?.map((e) => AggregatedAttestation.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseSyncAccept(): SyncAccept {
-  return { objectId: "", requested: [], requesting: [] };
+  return { objectId: "", requested: [], attestations: [], requesting: [] };
 }
 
 export const SyncAccept: MessageFns<SyncAccept> = {
@@ -477,8 +459,11 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     for (const v of message.requested) {
       Vertex.encode(v!, writer.uint32(18).fork()).join();
     }
+    for (const v of message.attestations) {
+      AggregatedAttestation.encode(v!, writer.uint32(26).fork()).join();
+    }
     for (const v of message.requesting) {
-      writer.uint32(26).string(v!);
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -511,6 +496,14 @@ export const SyncAccept: MessageFns<SyncAccept> = {
             break;
           }
 
+          message.attestations.push(AggregatedAttestation.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
           message.requesting.push(reader.string());
           continue;
         }
@@ -529,6 +522,9 @@ export const SyncAccept: MessageFns<SyncAccept> = {
       requested: globalThis.Array.isArray(object?.requested)
         ? object.requested.map((e: any) => Vertex.fromJSON(e))
         : [],
+      attestations: globalThis.Array.isArray(object?.attestations)
+        ? object.attestations.map((e: any) => AggregatedAttestation.fromJSON(e))
+        : [],
       requesting: globalThis.Array.isArray(object?.requesting)
         ? object.requesting.map((e: any) => globalThis.String(e))
         : [],
@@ -543,6 +539,9 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     if (message.requested?.length) {
       obj.requested = message.requested.map((e) => Vertex.toJSON(e));
     }
+    if (message.attestations?.length) {
+      obj.attestations = message.attestations.map((e) => AggregatedAttestation.toJSON(e));
+    }
     if (message.requesting?.length) {
       obj.requesting = message.requesting;
     }
@@ -556,6 +555,7 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     const message = createBaseSyncAccept();
     message.objectId = object.objectId ?? "";
     message.requested = object.requested?.map((e) => Vertex.fromPartial(e)) || [];
+    message.attestations = object.attestations?.map((e) => AggregatedAttestation.fromPartial(e)) || [];
     message.requesting = object.requesting?.map((e) => e) || [];
     return message;
   },

@@ -33,13 +33,13 @@ message AttestationUpdate {
 message Sync {
   string object_id = 1;
   repeated string vertex_hashes = 2;
-  repeated drp.object.v1.AggregatedAttestation attestations = 3;
 }
 
 message SyncAccept {
   string object_id = 1;
   repeated drp.object.v1.Vertex requested = 2;
-  repeated string requesting = 3;
+  repeated drp.object.v1.AggregatedAttestation attestations = 3;
+  repeated string requesting = 4;
 }
 
 message SyncReject {}

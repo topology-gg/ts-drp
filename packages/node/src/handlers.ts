@@ -67,11 +67,7 @@ async function attestationUpdateHandler(
 		return;
 	}
 
-	for (const attestation of attestationUpdate.attestations) {
-		object.attestations
-			.get(attestation.data)
-			?.addVote(sender, attestation.signature);
-	}
+	await object.finalityStore.addVotes(sender, attestationUpdate.attestations);
 }
 
 /*
@@ -96,24 +92,15 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
 	} else {
-		for (const attestation of updateMessage.attestations) {
-			object.attestations
-				.get(attestation.data)
-				?.addVote(sender, attestation.signature);
-		}
-		await voteGeneratedVertices(node, object, verifiedVertices);
+		// add their votes
+		await object.finalityStore.addVotes(sender, updateMessage.attestations);
 
-		// generate the attestations
-		const attestations: ObjectPb.Attestation[] = [];
-		for (const vertex of verifiedVertices) {
-			const attestationStore = object.attestations.get(vertex.hash);
-			if (attestationStore?.canVote(node.networkNode.peerId)) {
-				attestations.push({
-					data: vertex.hash,
-					signature: node.credentialStore.signWithBls(vertex.hash),
-				});
-			}
-		}
+		// add my votes
+		const attestations = await voteGeneratedVertices(
+			node,
+			object,
+			verifiedVertices,
+		);
 
 		// broadcast the attestations
 		const message = NetworkPb.Message.create({
@@ -162,6 +149,8 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 
 	if (requested.size === 0 && requesting.length === 0) return;
 
+	const attestations = getAttestations(object, [...requested]);
+
 	const message = NetworkPb.Message.create({
 		sender: node.networkNode.peerId,
 		type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
@@ -170,6 +159,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 			NetworkPb.SyncAccept.create({
 				objectId: object.id,
 				requested: [...requested],
+				attestations,
 				requesting,
 			}),
 		).finish(),
@@ -205,6 +195,7 @@ async function syncAcceptHandler(
 
 	await signGeneratedVertices(node, object.vertices);
 	await voteGeneratedVertices(node, object, object.vertices);
+
 	// send missing vertices
 	const requested: ObjectPb.Vertex[] = [];
 	for (const h of syncAcceptMessage.requesting) {
@@ -216,6 +207,8 @@ async function syncAcceptHandler(
 
 	if (requested.length === 0) return;
 
+	const attestations = getAttestations(object, requested);
+
 	const message = NetworkPb.Message.create({
 		sender: node.networkNode.peerId,
 		type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
@@ -223,6 +216,7 @@ async function syncAcceptHandler(
 			NetworkPb.SyncAccept.create({
 				objectId: object.id,
 				requested,
+				attestations,
 				requesting: [],
 			}),
 		).finish(),
@@ -281,22 +275,47 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 	await Promise.all(signPromises);
 }
 
+// Votes for the vertices. Returns the attestations
 export async function voteGeneratedVertices(
 	node: DRPNode,
 	obj: DRPObject,
 	vertices: Vertex[],
-) {
-	const votePromises = vertices.map(async (vertex) => {
-		const attestationStore = obj.attestations.get(vertex.hash);
-		if (attestationStore?.canVote(node.networkNode.peerId)) {
-			await attestationStore.addVote(
-				node.networkNode.peerId,
-				node.credentialStore.signWithBls(vertex.hash),
-			);
-		}
-	});
+): Promise<ObjectPb.Attestation[]> {
+	const attestations = generateAttestations(node, obj, vertices);
+	await obj.finalityStore.addVotes(
+		node.networkNode.peerId,
+		attestations,
+		false,
+	);
+	return attestations;
+}
 
-	await Promise.all(votePromises);
+function generateAttestations(
+	node: DRPNode,
+	object: DRPObject,
+	vertices: Vertex[],
+): ObjectPb.Attestation[] {
+	// Two condition:
+	// - The node can vote for the vertex
+	// - The node hasn't voted for the vertex
+	const goodVertices = vertices.filter(
+		(v) =>
+			object.finalityStore.canVote(node.networkNode.peerId, v.hash) &&
+			!object.finalityStore.voted(node.networkNode.peerId, v.hash),
+	);
+	return goodVertices.map((v) => ({
+		data: v.hash,
+		signature: node.credentialStore.signWithBls(v.hash),
+	}));
+}
+
+function getAttestations(
+	object: DRPObject,
+	vertices: Vertex[],
+): ObjectPb.AggregatedAttestation[] {
+	return vertices
+		.map((v) => object.finalityStore.getAttestation(v.hash))
+		.filter((a) => a !== undefined);
 }
 
 export async function verifyIncomingVertices(
