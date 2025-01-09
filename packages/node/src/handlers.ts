@@ -67,7 +67,7 @@ async function attestationUpdateHandler(
 		return;
 	}
 
-	await object.finalityStore.addVotes(sender, attestationUpdate.attestations);
+	object.finalityStore.addVotes(sender, attestationUpdate.attestations);
 }
 
 /*
@@ -93,14 +93,10 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		await node.syncObject(updateMessage.objectId, sender);
 	} else {
 		// add their votes
-		await object.finalityStore.addVotes(sender, updateMessage.attestations);
+		object.finalityStore.addVotes(sender, updateMessage.attestations);
 
 		// add my votes
-		const attestations = await voteGeneratedVertices(
-			node,
-			object,
-			verifiedVertices,
-		);
+		const attestations = voteGeneratedVertices(node, object, verifiedVertices);
 
 		// broadcast the attestations
 		const message = NetworkPb.Message.create({
@@ -113,6 +109,8 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 				}),
 			).finish(),
 		});
+
+		node.networkNode.broadcastMessage(object.id, message);
 	}
 
 	node.objectStore.put(object.id, object);
@@ -134,7 +132,6 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	}
 
 	await signGeneratedVertices(node, object.vertices);
-	await voteGeneratedVertices(node, object, object.vertices);
 
 	const requested: Set<ObjectPb.Vertex> = new Set(object.vertices);
 	const requesting: string[] = [];
@@ -190,11 +187,12 @@ async function syncAcceptHandler(
 
 	if (verifiedVertices.length !== 0) {
 		object.merge(verifiedVertices);
+		object.finalityStore.mergeVotes(syncAcceptMessage.attestations);
 		node.objectStore.put(object.id, object);
 	}
 
 	await signGeneratedVertices(node, object.vertices);
-	await voteGeneratedVertices(node, object, object.vertices);
+	voteGeneratedVertices(node, object, object.vertices);
 
 	// send missing vertices
 	const requested: ObjectPb.Vertex[] = [];
@@ -243,6 +241,8 @@ export function drpObjectChangesHandler(
 			node.objectStore.put(obj.id, obj);
 			break;
 		case "callFn": {
+			const attestations = voteGeneratedVertices(node, obj, vertices);
+
 			node.objectStore.put(obj.id, obj);
 			// send vertices to the pubsub group
 			const message = NetworkPb.Message.create({
@@ -252,6 +252,7 @@ export function drpObjectChangesHandler(
 					NetworkPb.Update.create({
 						objectId: obj.id,
 						vertices: vertices,
+						attestations: attestations,
 					}),
 				).finish(),
 			});
@@ -276,17 +277,13 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 }
 
 // Votes for the vertices. Returns the attestations
-export async function voteGeneratedVertices(
+export function voteGeneratedVertices(
 	node: DRPNode,
 	obj: DRPObject,
 	vertices: Vertex[],
-): Promise<ObjectPb.Attestation[]> {
+) {
 	const attestations = generateAttestations(node, obj, vertices);
-	await obj.finalityStore.addVotes(
-		node.networkNode.peerId,
-		attestations,
-		false,
-	);
+	obj.finalityStore.addVotes(node.networkNode.peerId, attestations, false);
 	return attestations;
 }
 

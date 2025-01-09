@@ -40,7 +40,7 @@ export class FinalityState {
 		this.numberOfVotes = 0;
 	}
 
-	async addVote(peerId: string, signature: Uint8Array, verify = true) {
+	addVote(peerId: string, signature: Uint8Array, verify = true) {
 		const index = this.voterIndices.get(peerId);
 		if (index === undefined) {
 			throw new Error("Peer not found in voter list");
@@ -54,14 +54,14 @@ export class FinalityState {
 		if (verify) {
 			// verify signature validity
 			if (
-				!(await bls.asyncVerify(
+				!bls.verify(
 					uint8ArrayFromString(
 						this.voterCredentials[index].blsPublicKey,
 						"base64",
 					),
 					uint8ArrayFromString(this.data),
 					signature,
-				))
+				)
 			) {
 				throw new Error("Invalid signature");
 			}
@@ -144,6 +144,14 @@ export class FinalityStore {
 		return this.states.get(hash)?.numberOfVotes;
 	}
 
+	isFinalized(hash: Hash): boolean | undefined {
+		const numberOfVotes = this.getNumberOfVotes(hash);
+		const quorum = this.getQuorum(hash);
+		if (numberOfVotes !== undefined && quorum !== undefined) {
+			return numberOfVotes >= quorum;
+		}
+	}
+
 	canVote(peerId: string, hash: Hash): boolean | undefined {
 		return this.states.get(hash)?.voterIndices.has(peerId);
 	}
@@ -158,13 +166,12 @@ export class FinalityStore {
 		}
 	}
 
-	async addVotes(peerId: string, attestations: Attestation[], verify = true) {
-		const promises = attestations.map((attestation) =>
+	addVotes(peerId: string, attestations: Attestation[], verify = true) {
+		for (const attestation of attestations) {
 			this.states
 				.get(attestation.data)
-				?.addVote(peerId, attestation.signature, verify),
-		);
-		await Promise.all(promises);
+				?.addVote(peerId, attestation.signature, verify);
+		}
 	}
 
 	getAttestation(hash: Hash): AggregatedAttestation | undefined {
@@ -176,5 +183,12 @@ export class FinalityStore {
 				signature: state.signature,
 			};
 		}
+	}
+
+	async mergeVotes(attestations: AggregatedAttestation[]) {
+		const promises = attestations.map((attestation) =>
+			this.states.get(attestation.data)?.merge(attestation),
+		);
+		await Promise.all(promises);
 	}
 }

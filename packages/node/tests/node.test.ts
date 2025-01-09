@@ -8,7 +8,7 @@ import {
 	voteGeneratedVertices,
 } from "../src/handlers.js";
 import { DRPNode, type DRPNodeConfig } from "../src/index.js";
-import { DRPCredentialStore } from "../src/store/index.js";
+import bls from "@chainsafe/bls/herumi";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
@@ -123,85 +123,128 @@ describe("DPRNode with verify and sign signature", () => {
 });
 
 describe("DRPNode voting tests", () => {
-	let drp: AddWinsSetWithACL<number>;
-	let drpNode: DRPNode;
-	let drpObject: DRPObject;
-	let adminCredentialStore: DRPCredentialStore;
+	let drp1: AddWinsSetWithACL<number>;
+	let nodeA: DRPNode;
+	let nodeB: DRPNode;
+	let obj1: DRPObject;
+	let obj2: DRPObject;
 
 	beforeAll(async () => {
-		drpNode = new DRPNode();
-		adminCredentialStore = new DRPCredentialStore();
-		await drpNode.start();
-		await adminCredentialStore.start();
+		nodeA = new DRPNode();
+		nodeB = new DRPNode();
+		await nodeA.start();
+		await nodeB.start();
 	});
 
 	beforeEach(async () => {
-		drpObject = new DRPObject(
-			drpNode.networkNode.peerId,
+		obj1 = new DRPObject(
+			nodeA.networkNode.peerId,
 			new AddWinsSetWithACL(
-				new Map([["admin", adminCredentialStore.getPublicCredential()]]),
+				new Map([
+					[
+						nodeA.networkNode.peerId,
+						nodeA.credentialStore.getPublicCredential(),
+					],
+				]),
 			),
 		);
-		drp = drpObject.drp as AddWinsSetWithACL<number>;
+		drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		obj2 = new DRPObject(
+			nodeB.networkNode.peerId,
+			new AddWinsSetWithACL(
+				new Map([
+					[
+						nodeA.networkNode.peerId,
+						nodeA.credentialStore.getPublicCredential(),
+					],
+				]),
+			),
+		);
 	});
 
 	test("Nodes in writer set are able to vote", async () => {
 		/*
-		  ROOT -- GRANT(A) ---- A:ADD(1)
+		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		drp.acl.grant(
-			"admin",
-			drpNode.networkNode.peerId,
-			drpNode.credentialStore.getPublicCredential(),
+		drp1.acl.grant(
+			nodeA.networkNode.peerId,
+			nodeB.networkNode.peerId,
+			nodeB.credentialStore.getPublicCredential(),
 		);
-		drp.add(1);
+		drp1.add(1);
 
-		const V1 = drpObject.vertices.find(
-			(v) => v.operation?.value === 1,
-		) as Vertex;
-
+		obj2.merge(obj1.vertices);
+		const V1 = obj2.vertices.find((v) => v.operation?.value === 1) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
-		await voteGeneratedVertices(drpNode, drpObject, [V1]);
+		voteGeneratedVertices(nodeB, obj2, [V1]);
 
-		expect(
-			drpObject.finalityStore.canVote(drpNode.networkNode.peerId, V1.hash),
-		).toBe(true);
-
-		expect(drpObject.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
-			drpNode.credentialStore.signWithBls(V1.hash),
+		expect(obj2.finalityStore.canVote(nodeB.networkNode.peerId, V1.hash)).toBe(
+			true,
 		);
+		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
+			nodeB.credentialStore.signWithBls(V1.hash),
+		);
+		expect(obj2.finalityStore.getNumberOfVotes(V1.hash)).toBe(1);
 	});
 
 	test("Other nodes are not able to vote", async () => {
 		/*
-		  ROOT -- GRANT(A) ---- A:ADD(1) ---- REVOKE(A) ---- A:ADD(2)
+		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
 
-		drp.acl.grant(
-			"admin",
-			drpNode.networkNode.peerId,
-			drpNode.credentialStore.getPublicCredential(),
+		drp1.acl.grant(
+			nodeA.networkNode.peerId,
+			nodeB.networkNode.peerId,
+			nodeB.credentialStore.getPublicCredential(),
 		);
-		drp.add(1);
-		drp.acl.revoke("admin", drpNode.networkNode.peerId);
-		drp.add(2);
+		drp1.add(1);
+		drp1.acl.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId);
+		drp1.add(2);
 
-		const V2 = drpObject.vertices.find(
-			(v) => v.operation?.value === 2,
-		) as Vertex;
-
+		obj2.merge(obj1.vertices);
+		const V2 = obj2.vertices.find((v) => v.operation?.value === 2) as Vertex;
 		expect(V2 !== undefined).toBe(true);
 
-		await voteGeneratedVertices(drpNode, drpObject, [V2]);
+		voteGeneratedVertices(nodeB, obj2, [V2]);
+
+		expect(obj2.finalityStore.canVote(nodeB.networkNode.peerId, V2.hash)).toBe(
+			false,
+		);
 
 		expect(
-			drpObject.finalityStore.canVote(drpNode.networkNode.peerId, V2.hash),
-		).toBe(false);
-
-		expect(
-			drpObject.finalityStore.getAttestation(V2.hash)?.signature,
+			obj2.finalityStore.getAttestation(V2.hash)?.signature,
 		).toBeUndefined();
+		expect(obj2.finalityStore.getNumberOfVotes(V2.hash)).toBe(0);
+	});
+
+	test("Signatures are aggregated", async () => {
+		/*
+		  ROOT -- A:GRANT(B) ---- B:ADD(1)
+		*/
+
+		drp1.acl.grant(
+			nodeA.networkNode.peerId,
+			nodeB.networkNode.peerId,
+			nodeB.credentialStore.getPublicCredential(),
+		);
+		drp1.add(1);
+
+		obj2.merge(obj1.vertices);
+		const V1 = obj2.vertices.find((v) => v.operation?.value === 1) as Vertex;
+		expect(V1 !== undefined).toBe(true);
+
+		voteGeneratedVertices(nodeA, obj2, [V1]);
+		expect(obj2.finalityStore.getNumberOfVotes(V1.hash)).toBe(1);
+
+		voteGeneratedVertices(nodeB, obj2, [V1]);
+		expect(obj2.finalityStore.getNumberOfVotes(V1.hash)).toBe(2);
+		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
+			bls.aggregateSignatures([
+				nodeA.credentialStore.signWithBls(V1.hash),
+				nodeB.credentialStore.signWithBls(V1.hash),
+			]),
+		);
 	});
 });
