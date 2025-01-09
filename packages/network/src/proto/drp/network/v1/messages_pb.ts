@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Attestation, Vertex } from "../../object/v1/object_pb.js";
+import { AggregatedAttestation, Attestation, Vertex } from "../../object/v1/object_pb.js";
 
 export const protobufPackage = "drp.network.v1";
 
@@ -93,6 +93,7 @@ export interface AttestationUpdate {
 export interface Sync {
   objectId: string;
   vertexHashes: string[];
+  attestations: AggregatedAttestation[];
 }
 
 export interface SyncAccept {
@@ -369,7 +370,7 @@ export const AttestationUpdate: MessageFns<AttestationUpdate> = {
 };
 
 function createBaseSync(): Sync {
-  return { objectId: "", vertexHashes: [] };
+  return { objectId: "", vertexHashes: [], attestations: [] };
 }
 
 export const Sync: MessageFns<Sync> = {
@@ -379,6 +380,9 @@ export const Sync: MessageFns<Sync> = {
     }
     for (const v of message.vertexHashes) {
       writer.uint32(18).string(v!);
+    }
+    for (const v of message.attestations) {
+      AggregatedAttestation.encode(v!, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -406,6 +410,14 @@ export const Sync: MessageFns<Sync> = {
           message.vertexHashes.push(reader.string());
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.attestations.push(AggregatedAttestation.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -421,6 +433,9 @@ export const Sync: MessageFns<Sync> = {
       vertexHashes: globalThis.Array.isArray(object?.vertexHashes)
         ? object.vertexHashes.map((e: any) => globalThis.String(e))
         : [],
+      attestations: globalThis.Array.isArray(object?.attestations)
+        ? object.attestations.map((e: any) => AggregatedAttestation.fromJSON(e))
+        : [],
     };
   },
 
@@ -432,6 +447,9 @@ export const Sync: MessageFns<Sync> = {
     if (message.vertexHashes?.length) {
       obj.vertexHashes = message.vertexHashes;
     }
+    if (message.attestations?.length) {
+      obj.attestations = message.attestations.map((e) => AggregatedAttestation.toJSON(e));
+    }
     return obj;
   },
 
@@ -442,6 +460,7 @@ export const Sync: MessageFns<Sync> = {
     const message = createBaseSync();
     message.objectId = object.objectId ?? "";
     message.vertexHashes = object.vertexHashes?.map((e) => e) || [];
+    message.attestations = object.attestations?.map((e) => AggregatedAttestation.fromPartial(e)) || [];
     return message;
   },
 };

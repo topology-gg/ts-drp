@@ -33,6 +33,7 @@ message AttestationUpdate {
 message Sync {
   string object_id = 1;
   repeated string vertex_hashes = 2;
+  repeated drp.object.v1.AggregatedAttestation attestations = 3;
 }
 
 message SyncAccept {
