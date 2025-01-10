@@ -13,7 +13,7 @@ export class BitSet {
 			// Always start with size 32
 			this.data = new Uint32Array(size);
 		} else {
-			this.data = new Uint32Array(data, data.byteOffset, size);
+			this.data = new Uint32Array(data.buffer, data.byteOffset, size);
 		}
 	}
 
