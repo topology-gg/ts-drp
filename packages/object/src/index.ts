@@ -7,7 +7,7 @@ import {
 	HashGraph,
 	type Operation,
 	type ResolveConflictsType,
-	SemanticsType,
+	type SemanticsType,
 	type Vertex,
 } from "./hashgraph/index.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
