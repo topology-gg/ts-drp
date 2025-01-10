@@ -1,6 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
-import { Canvas } from "./objects/canvas";
+import { Canvas } from "./objects/canvas.js";
 
 const node = new DRPNode();
 let drpObject: DRPObject;
@@ -51,7 +51,7 @@ function paint_pixel(pixel: HTMLDivElement) {
 }
 
 async function createConnectHandlers() {
-	node.addCustomGroupMessageHandler(drpObject.id, (e) => {
+	node.addCustomGroupMessageHandler(drpObject.id, (_e) => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
 	});
@@ -83,7 +83,7 @@ async function init() {
 		}
 	}
 
-	node.addCustomGroupMessageHandler("", (e) => {
+	node.addCustomGroupMessageHandler("", (_e) => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
 		render();

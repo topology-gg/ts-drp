@@ -58,7 +58,7 @@ export class Grid implements DRP {
 		return undefined;
 	}
 
-	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
+	resolveConflicts(_vertices: Vertex[]): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
 }

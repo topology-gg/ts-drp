@@ -175,7 +175,7 @@ async function syncAcceptHandler(
 }
 
 /* data: { id: string } */
-function syncRejectHandler(node: DRPNode, data: Uint8Array) {
+function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
 	// TODO: handle reject. Possible actions:
 	// - Retry sync
 	// - Ask sync from another peer

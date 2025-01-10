@@ -62,7 +62,7 @@ export class DRPNode {
 		this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
-	sendCustomMessage(peerId: string, protocol: string, data: Uint8Array) {
+	sendCustomMessage(peerId: string, _protocol: string, data: Uint8Array) {
 		const message = NetworkPb.Message.create({
 			sender: this.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,

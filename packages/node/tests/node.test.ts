@@ -12,7 +12,7 @@ describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
 	let drpNode: DRPNode;
 	let drpObject: DRPObject;
-	let config: DRPNodeConfig;
+	let _config: DRPNodeConfig;
 	beforeAll(async () => {
 		drpNode = new DRPNode();
 		await drpNode.start();

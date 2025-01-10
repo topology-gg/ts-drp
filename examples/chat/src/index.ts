@@ -62,7 +62,7 @@ async function sendMessage(message: string) {
 }
 
 async function createConnectHandlers() {
-	node.addCustomGroupMessageHandler(drpObject.id, (e) => {
+	node.addCustomGroupMessageHandler(drpObject.id, (_e) => {
 		// on create/connect
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
@@ -78,7 +78,7 @@ async function main() {
 	render();
 
 	// generic message handler
-	node.addCustomGroupMessageHandler("", (e) => {
+	node.addCustomGroupMessageHandler("", (_e) => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
 		render();

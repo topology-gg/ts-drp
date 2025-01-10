@@ -43,7 +43,7 @@ describe("AreCausallyDependent benchmark", async () => {
 
 	bench("Causality check using BFS", async () => {
 		for (let i = 0; i < samples; i++) {
-			const result = obj1.hashGraph.areCausallyRelatedUsingBFS(
+			const _result = obj1.hashGraph.areCausallyRelatedUsingBFS(
 				tests[i][0],
 				tests[i][1],
 			);
@@ -52,7 +52,7 @@ describe("AreCausallyDependent benchmark", async () => {
 
 	bench("Causality check using Bitsets", async () => {
 		for (let i = 0; i < samples; i++) {
-			const result = obj1.hashGraph.areCausallyRelatedUsingBitsets(
+			const _result = obj1.hashGraph.areCausallyRelatedUsingBitsets(
 				tests[i][0],
 				tests[i][1],
 			);

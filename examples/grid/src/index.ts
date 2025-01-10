@@ -196,12 +196,12 @@ async function moveUser(direction: string) {
 }
 
 async function createConnectHandlers() {
-	node.addCustomGroupMessageHandler(drpObject.id, (e) => {
+	node.addCustomGroupMessageHandler(drpObject.id, (_e) => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
 	});
 
-	node.objectStore.subscribe(drpObject.id, (_, obj) => {
+	node.objectStore.subscribe(drpObject.id, (_, _obj) => {
 		render();
 	});
 }
@@ -210,7 +210,7 @@ async function main() {
 	await node.start();
 	render();
 
-	node.addCustomGroupMessageHandler("", (e) => {
+	node.addCustomGroupMessageHandler("", (_e) => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
 		render();
