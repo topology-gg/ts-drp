@@ -26,7 +26,6 @@ function computeHash(s: string): number {
 	The winning operation is chosen using a pseudo-random number generator.
 */
 export class PseudoRandomWinsSet<T> implements DRP {
-	operations: string[] = ["add", "remove"];
 	state: Map<T, boolean>;
 	semanticsType = SemanticsType.multiple;
 
@@ -34,27 +33,19 @@ export class PseudoRandomWinsSet<T> implements DRP {
 		this.state = new Map<T, boolean>();
 	}
 
-	private _add(value: T): void {
+	add(value: T): void {
 		if (!this.state.get(value)) this.state.set(value, true);
 	}
 
-	add(value: T): void {
-		this._add(value);
-	}
-
-	private _remove(value: T): void {
+	remove(value: T): void {
 		if (this.state.get(value)) this.state.set(value, false);
 	}
 
-	remove(value: T): void {
-		this._remove(value);
-	}
-
-	contains(value: T): boolean {
+	query_contains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
 
-	values(): T[] {
+	query_getValues(): T[] {
 		return Array.from(this.state.entries())
 			.filter(([_, exists]) => exists)
 			.map(([value, _]) => value);

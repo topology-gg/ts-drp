@@ -10,24 +10,24 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Admin nodes should have admin privileges", () => {
-		expect(drp.acl.isAdmin("peer1")).toBe(true);
+		expect(drp.acl.query_isAdmin("peer1")).toBe(true);
 	});
 
 	test("Admin nodes should have write permissions", () => {
-		expect(drp.acl.isWriter("peer1")).toBe(true);
+		expect(drp.acl.query_isWriter("peer1")).toBe(true);
 	});
 
 	test("Grant write permissions to a new writer", () => {
 		drp.acl.grant("peer1", "peer3", "publicKey3");
 
-		expect(drp.acl.isWriter("peer3")).toBe(true);
+		expect(drp.acl.query_isWriter("peer3")).toBe(true);
 	});
 
 	test("Revoke write permissions from a writer", () => {
 		drp.acl.grant("peer1", "peer3", "publicKey3");
 		drp.acl.revoke("peer1", "peer3");
 
-		expect(drp.acl.isWriter("peer3")).toBe(false);
+		expect(drp.acl.query_isWriter("peer3")).toBe(false);
 	});
 
 	test("Cannot revoke admin permissions", () => {
@@ -35,7 +35,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 			drp.acl.revoke("peer1", "peer1");
 		}).toThrow("Cannot revoke permissions from a node with admin privileges.");
 
-		expect(drp.acl.isWriter("peer1")).toBe(true);
+		expect(drp.acl.query_isWriter("peer1")).toBe(true);
 	});
 
 	test("Resolve conflicts with RevokeWins", () => {
@@ -46,6 +46,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 				operation: { type: "grant", value: "peer3" },
 				dependencies: [],
 				signature: "",
+				timestamp: 0,
 			},
 			{
 				hash: "",
@@ -53,6 +54,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 				operation: { type: "revoke", value: "peer3" },
 				dependencies: [],
 				signature: "",
+				timestamp: 0,
 			},
 		];
 		const result = drp.resolveConflicts(vertices);

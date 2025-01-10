@@ -1,5 +1,7 @@
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { cloneDeep } from "es-toolkit";
+import { deepEqual } from "fast-equals";
 import {
 	type Hash,
 	HashGraph,
@@ -13,18 +15,16 @@ import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
-import { cloneDeep } from "es-toolkit";
 
 export interface IACL {
-	isWriter: (peerId: string) => boolean;
-	isAdmin: (peerId: string) => boolean;
 	grant: (senderId: string, peerId: string, publicKey: string) => void;
 	revoke: (senderId: string, peerId: string) => void;
-	getPeerKey: (peerId: string) => string | undefined;
+	query_isWriter: (peerId: string) => boolean;
+	query_isAdmin: (peerId: string) => boolean;
+	query_getPeerKey: (peerId: string) => string | undefined;
 }
 
 export interface DRP {
-	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	// biome-ignore lint: attributes can be anything
@@ -144,12 +144,15 @@ export class DRPObject implements IDRPObject {
 					const fullPropKey = String(propKey);
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
-							if ((thisArg.operations as string[]).includes(propKey as string))
-								obj.callFn(
-									fullPropKey,
-									args.length === 1 ? args[0] : args,
-									vertexType,
-								);
+							if ((propKey as string).startsWith("query_")) {
+								return Reflect.apply(applyTarget, thisArg, args);
+							}
+							const callerName = new Error().stack
+								?.split("\n")[2]
+								?.trim()
+								.split(" ")[1];
+							if (!callerName?.startsWith("Proxy."))
+								obj.callFn(fullPropKey, args.length === 1 ? args[0] : args, vertexType);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
 					});
@@ -160,18 +163,39 @@ export class DRPObject implements IDRPObject {
 		};
 	}
 
+
 	callFn(
 		fn: string,
 		// biome-ignore lint: value can't be unknown because of protobuf
 		args: any,
 		vertexType: VertexTypeOperation,
 	) {
-		const vertex = this.hashGraph.addToFrontier({
-			type: fn,
-			value: args,
-			vertexType: vertexType,
-		});
-		this._setState(vertex);
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		let preOperationDRP: any
+		if (vertexType === VertexTypeOperation.acl) { 
+		 preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
+
+		} else {
+			preOperationDRP = this._computeACL(this.hashGraph.getFrontier());
+		}
+		 const drp = cloneDeep(preOperationDRP);
+		this._applyOperation(drp, { type: fn, value: args, vertexType });
+
+		let stateChanged = false;
+		for (const key of Object.keys(preOperationDRP)) {
+			if (!deepEqual(preOperationDRP[key], drp[key])) {
+				stateChanged = true;
+				break;
+			}
+		}
+
+		if (!stateChanged) {
+			return;
+		}
+
+		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args, vertexType });
+
+		this._setState(vertex, this._getDRPState(drp));
 
 		const serializedVertex = ObjectPb.Vertex.create({
 			hash: vertex.hash,
@@ -378,7 +402,6 @@ export class DRPObject implements IDRPObject {
 		return drpState;
 	}
 
-	// compute the DRP state based on all dependencies of the current vertex
 	private _computeDRPState(
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
