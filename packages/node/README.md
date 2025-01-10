@@ -20,7 +20,7 @@ pnpm cli --help
 You can run a bootstrap node using the following command:
 
 ```bash
-pnpm cli bootstrap --config configs/bootstrap.json
+pnpm cli -m bootstrap --config configs/bootstrap.json
 ```
 
 ### Integration

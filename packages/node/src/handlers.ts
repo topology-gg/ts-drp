@@ -244,19 +244,23 @@ export function drpObjectChangesHandler(
 			const attestations = voteGeneratedVertices(node, obj, vertices);
 
 			node.objectStore.put(obj.id, obj);
-			// send vertices to the pubsub group
-			const message = NetworkPb.Message.create({
-				sender: node.networkNode.peerId,
-				type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
-				data: NetworkPb.Update.encode(
-					NetworkPb.Update.create({
-						objectId: obj.id,
-						vertices: vertices,
-						attestations: attestations,
-					}),
-				).finish(),
+
+			signGeneratedVertices(node, vertices).then(() => {
+				// send vertices to the pubsub group
+				const message = NetworkPb.Message.create({
+					sender: node.networkNode.peerId,
+					type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
+					data: NetworkPb.Update.encode(
+						NetworkPb.Update.create({
+							objectId: obj.id,
+							vertices: vertices,
+							attestations: attestations,
+						}),
+					).finish(),
+				});
+				node.networkNode.broadcastMessage(obj.id, message);
 			});
-			node.networkNode.broadcastMessage(obj.id, message);
+
 			break;
 		}
 		default:
@@ -345,7 +349,7 @@ export async function verifyIncomingVertices(
 
 		const signature = uint8ArrayFromString(vertex.signature, "base64");
 
-		const publicKey = acl.getPeerKey(vertex.peerId);
+		const publicKey = acl.query_getPeerKey(vertex.peerId);
 		if (!publicKey) {
 			return null;
 		}

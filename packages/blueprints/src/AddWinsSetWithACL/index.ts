@@ -20,27 +20,19 @@ export class AddWinsSetWithACL<T> implements DRP {
 		this.state = new Map<T, boolean>();
 	}
 
-	private _add(value: T): void {
+	add(value: T): void {
 		if (!this.state.get(value)) this.state.set(value, true);
 	}
 
-	add(value: T): void {
-		this._add(value);
-	}
-
-	private _remove(value: T): void {
+	remove(value: T): void {
 		if (this.state.get(value)) this.state.set(value, false);
 	}
 
-	remove(value: T): void {
-		this._remove(value);
-	}
-
-	contains(value: T): boolean {
+	query_contains(value: T): boolean {
 		return this.state.get(value) === true;
 	}
 
-	values(): T[] {
+	query_getValues(): T[] {
 		return Array.from(this.state.entries())
 			.filter(([_, exists]) => exists)
 			.map(([value, _]) => value);
@@ -56,15 +48,15 @@ export class AddWinsSetWithACL<T> implements DRP {
 			return { action: ActionType.Nop };
 
 		if (
-			this.acl?.operations.includes(vertices[0].operation.type) &&
-			this.acl?.operations.includes(vertices[0].operation.type)
+			["grant", "revoke"].includes(vertices[0].operation.type) &&
+			["grant", "revoke"].includes(vertices[1].operation.type)
 		) {
 			return this.acl.resolveConflicts(vertices);
 		}
 
 		if (
 			this.operations.includes(vertices[0].operation.type) &&
-			this.operations.includes(vertices[0].operation.type)
+			this.operations.includes(vertices[1].operation.type)
 		) {
 			return vertices[0].operation.type === "add"
 				? { action: ActionType.DropRight }

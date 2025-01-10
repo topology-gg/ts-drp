@@ -1,6 +1,8 @@
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
+import { cloneDeep } from "es-toolkit";
+import { deepEqual } from "fast-equals";
 import {
 	type Hash,
 	HashGraph,
@@ -14,7 +16,6 @@ import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
-import { cloneDeep } from "es-toolkit";
 
 export interface DRPPublicCredential {
 	ed25519PublicKey: string;
@@ -22,20 +23,19 @@ export interface DRPPublicCredential {
 }
 
 export interface IACL {
-	getWriters: () => Map<string, DRPPublicCredential>;
-	isWriter: (peerId: string) => boolean;
-	isAdmin: (peerId: string) => boolean;
 	grant: (
 		senderId: string,
 		peerId: string,
 		publicKey: DRPPublicCredential,
 	) => void;
 	revoke: (senderId: string, peerId: string) => void;
-	getPeerKey: (peerId: string) => DRPPublicCredential | undefined;
+	query_getWriters: () => Map<string, DRPPublicCredential>;
+	query_isWriter: (peerId: string) => boolean;
+	query_isAdmin: (peerId: string) => boolean;
+	query_getPeerKey: (peerId: string) => DRPPublicCredential | undefined;
 }
 
 export interface DRP {
-	operations: string[];
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	acl?: IACL & DRP;
@@ -128,7 +128,14 @@ export class DRPObject implements IDRPObject {
 						: String(propKey);
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
-							if ((thisArg.operations as string[]).includes(propKey as string))
+							if ((propKey as string).startsWith("query_")) {
+								return Reflect.apply(applyTarget, thisArg, args);
+							}
+							const callerName = new Error().stack
+								?.split("\n")[2]
+								?.trim()
+								.split(" ")[1];
+							if (!callerName?.startsWith("Proxy."))
 								obj.callFn(fullPropKey, args.length === 1 ? args[0] : args);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
@@ -151,8 +158,25 @@ export class DRPObject implements IDRPObject {
 
 	// biome-ignore lint: value can't be unknown because of protobuf
 	callFn(fn: string, args: any) {
+		const preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
+		const drp = cloneDeep(preOperationDRP);
+		this._applyOperation(drp, { type: fn, value: args });
+
+		let stateChanged = false;
+		for (const key of Object.keys(preOperationDRP)) {
+			if (!deepEqual(preOperationDRP[key], drp[key])) {
+				stateChanged = true;
+				break;
+			}
+		}
+
+		if (!stateChanged) {
+			return;
+		}
+
 		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args });
-		this._setState(vertex);
+
+		this._setState(vertex, this._getDRPState(drp));
 		this._initializeFinalityState(vertex.hash);
 
 		const serializedVertex = ObjectPb.Vertex.create({
@@ -223,14 +247,14 @@ export class DRPObject implements IDRPObject {
 		const acl = this.states.get(hash)?.state.get("acl") as IACL | undefined;
 		if (acl !== undefined) {
 			// voter set equals writer set
-			this.finalityStore.initializeState(hash, acl.getWriters());
+			this.finalityStore.initializeState(hash, acl.query_getWriters());
 		}
 	}
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(drp: DRP, peerId: string): boolean {
 		if (drp.acl) {
-			return drp.acl.isWriter(peerId);
+			return drp.acl.query_isWriter(peerId);
 		}
 		return true;
 	}
@@ -300,12 +324,8 @@ export class DRPObject implements IDRPObject {
 	}
 
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
-	private _getDRPState(
-		drp: DRP,
-		// biome-ignore lint: values can be anything
-	): DRPState {
+	private _getDRPState(drp: DRP): DRPState {
 		const varNames: string[] = Object.keys(drp);
-		// biome-ignore lint: values can be anything
 		const drpState: DRPState = {
 			state: new Map(),
 		};
@@ -315,22 +335,15 @@ export class DRPObject implements IDRPObject {
 		return drpState;
 	}
 
-	// compute the DRP state based on all dependencies of the current vertex
 	private _computeDRPState(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation,
-		// biome-ignore lint: values can be anything
 	): DRPState {
 		const drp = this._computeDRP(vertexDependencies, vertexOperation);
 		return this._getDRPState(drp);
 	}
 
-	// store the state of the DRP corresponding to the given vertex
-	private _setState(
-		vertex: Vertex,
-		// biome-ignore lint: values can be anything
-		drpState?: DRPState,
-	) {
+	private _setState(vertex: Vertex, drpState?: DRPState) {
 		this.states.set(
 			vertex.hash,
 			drpState ?? this._computeDRPState(vertex.dependencies, vertex.operation),
