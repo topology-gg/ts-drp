@@ -1,136 +1,103 @@
 // GENERATED CODE -- DO NOT EDIT!
-
-import * as drp_node_v1_rpc_pb from './rpc_pb.js';
+import * as drp_node_v1_rpc_pb from './rpc_pb.ts';
 
 function serialize_drp_node_v1_AddCustomGroupRequest(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.AddCustomGroupRequest)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.AddCustomGroupRequest'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded = drp_node_v1_rpc_pb.AddCustomGroupRequest.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_AddCustomGroupRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.AddCustomGroupRequest.deserializeBinary(
+  return drp_node_v1_rpc_pb.AddCustomGroupRequest.decode(
     new Uint8Array(buffer_arg)
   );
 }
 
 function serialize_drp_node_v1_GenericRespone(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.GenericRespone)) {
-    throw new Error('Expected argument of type drp.node.v1.GenericRespone');
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded = drp_node_v1_rpc_pb.GenericRespone.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_GenericRespone(buffer_arg) {
-  return drp_node_v1_rpc_pb.GenericRespone.deserializeBinary(
-    new Uint8Array(buffer_arg)
-  );
+  return drp_node_v1_rpc_pb.GenericRespone.decode(new Uint8Array(buffer_arg));
 }
 
 function serialize_drp_node_v1_GetDRPHashGraphRequest(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.GetDRPHashGraphRequest)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.GetDRPHashGraphRequest'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded =
+    drp_node_v1_rpc_pb.GetDRPHashGraphRequest.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_GetDRPHashGraphRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.GetDRPHashGraphRequest.deserializeBinary(
+  return drp_node_v1_rpc_pb.GetDRPHashGraphRequest.decode(
     new Uint8Array(buffer_arg)
   );
 }
 
 function serialize_drp_node_v1_GetDRPHashGraphResponse(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.GetDRPHashGraphResponse)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.GetDRPHashGraphResponse'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded =
+    drp_node_v1_rpc_pb.GetDRPHashGraphResponse.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_GetDRPHashGraphResponse(buffer_arg) {
-  return drp_node_v1_rpc_pb.GetDRPHashGraphResponse.deserializeBinary(
+  return drp_node_v1_rpc_pb.GetDRPHashGraphResponse.decode(
     new Uint8Array(buffer_arg)
   );
 }
 
 function serialize_drp_node_v1_SendCustomMessageRequest(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.SendCustomMessageRequest)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.SendCustomMessageRequest'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded =
+    drp_node_v1_rpc_pb.SendCustomMessageRequest.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_SendCustomMessageRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SendCustomMessageRequest.deserializeBinary(
+  return drp_node_v1_rpc_pb.SendCustomMessageRequest.decode(
     new Uint8Array(buffer_arg)
   );
 }
 
 function serialize_drp_node_v1_SendGroupMessageRequest(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.SendGroupMessageRequest)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.SendGroupMessageRequest'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded =
+    drp_node_v1_rpc_pb.SendGroupMessageRequest.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_SendGroupMessageRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SendGroupMessageRequest.deserializeBinary(
+  return drp_node_v1_rpc_pb.SendGroupMessageRequest.decode(
     new Uint8Array(buffer_arg)
   );
 }
 
 function serialize_drp_node_v1_SubscribeDRPRequest(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.SubscribeDRPRequest)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.SubscribeDRPRequest'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded = drp_node_v1_rpc_pb.SubscribeDRPRequest.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_SubscribeDRPRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SubscribeDRPRequest.deserializeBinary(
+  return drp_node_v1_rpc_pb.SubscribeDRPRequest.decode(
     new Uint8Array(buffer_arg)
   );
 }
 
 function serialize_drp_node_v1_SyncDRPObjectRequest(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.SyncDRPObjectRequest)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.SyncDRPObjectRequest'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded = drp_node_v1_rpc_pb.SyncDRPObjectRequest.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_SyncDRPObjectRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.SyncDRPObjectRequest.deserializeBinary(
+  return drp_node_v1_rpc_pb.SyncDRPObjectRequest.decode(
     new Uint8Array(buffer_arg)
   );
 }
 
 function serialize_drp_node_v1_UnsubscribeDRPRequest(arg) {
-  if (!(arg instanceof drp_node_v1_rpc_pb.UnsubscribeDRPRequest)) {
-    throw new Error(
-      'Expected argument of type drp.node.v1.UnsubscribeDRPRequest'
-    );
-  }
-  return Buffer.from(arg.serializeBinary());
+  const encoded = drp_node_v1_rpc_pb.UnsubscribeDRPRequest.encode(arg).finish();
+  return Buffer.from(encoded);
 }
 
 function deserialize_drp_node_v1_UnsubscribeDRPRequest(buffer_arg) {
-  return drp_node_v1_rpc_pb.UnsubscribeDRPRequest.deserializeBinary(
+  return drp_node_v1_rpc_pb.UnsubscribeDRPRequest.decode(
     new Uint8Array(buffer_arg)
   );
 }
