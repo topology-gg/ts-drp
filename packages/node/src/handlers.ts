@@ -182,7 +182,7 @@ function syncRejectHandler(node: DRPNode, data: Uint8Array) {
 	// - Do nothing
 }
 
-export function drpObjectChangesHandler(
+export async function drpObjectChangesHandler(
 	node: DRPNode,
 	obj: DRPObject,
 	originFn: string,
@@ -194,6 +194,9 @@ export function drpObjectChangesHandler(
 			break;
 		case "callFn": {
 			node.objectStore.put(obj.id, obj);
+
+			await signGeneratedVertices(node, vertices);
+
 			// send vertices to the pubsub group
 			const message = NetworkPb.Message.create({
 				sender: node.networkNode.peerId,
