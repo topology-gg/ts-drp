@@ -1,8 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 
 const local_peer_id = "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ";
-// This is the IP of the local bootstrap node, replace it with the IP of the local node
-const _local_bootstrap_peer_ip = "127.0.0.1";
 
 if (!local_peer_id) {
 	console.error(
@@ -102,7 +100,7 @@ async function main() {
 			field_set.style.backgroundColor = "rgba(0, 255, 0, 0.2)";
 			initDRPNode();
 			render();
-		} catch () {
+		} catch (_) {
 			field_set.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
 			alert("Failed to connect to the bootstrap node");
 			return;
