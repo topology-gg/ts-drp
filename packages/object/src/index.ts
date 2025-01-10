@@ -1,8 +1,8 @@
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
+import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import {
 	type Hash,
 	HashGraph,
