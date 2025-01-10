@@ -93,17 +93,27 @@ describe("Tests for FinalityState", () => {
 
 describe("Tests for FinalityStore", () => {
 	let finalityStore: FinalityStore;
-	let cred1: Map<string, BlsSecretKey>;
-	let cred2: Map<string, BlsSecretKey>;
+	let cred: Map<string, BlsSecretKey>;
+
+	const generateAttestation = (peer: string, hash: string) => {
+		const attestation = {
+			data: hash,
+			signature: cred
+				.get(peer)
+				?.sign(uint8ArrayFromString(hash))
+				.toBytes() as Uint8Array,
+		} as Attestation;
+		return attestation;
+	};
 
 	beforeEach(() => {
 		finalityStore = new FinalityStore({ finality_threshold: 0.51 });
-		cred1 = new Map();
+		cred = new Map();
 		const voters1 = new Map();
 		for (let i = 0; i < 1000; i++) {
-			cred1.set(`node${i}`, bls.SecretKey.fromKeygen());
+			cred.set(`node${i}`, bls.SecretKey.fromKeygen());
 		}
-		for (const [key, value] of cred1) {
+		for (const [key, value] of cred) {
 			voters1.set(key, {
 				ed25519PublicKey: "",
 				blsPublicKey: uint8ArrayToString(
@@ -113,36 +123,28 @@ describe("Tests for FinalityStore", () => {
 			});
 		}
 		finalityStore.initializeState("vertex1", voters1);
-		cred2 = new Map();
-		const voters2 = new Map();
-		for (let i = 0; i < 500; i++) {
-			cred2.set(`node${i}`, bls.SecretKey.fromKeygen());
-		}
-		for (const [key, value] of cred1) {
-			voters2.set(key, {
-				ed25519PublicKey: "",
-				blsPublicKey: uint8ArrayToString(
-					value.toPublicKey().toBytes(),
-					"base64",
-				),
-			});
-		}
-		finalityStore.initializeState("vertex2", voters2);
 	});
 
 	test("Runs addVotes, canVote and voted on 100 attestations", async () => {
 		for (let i = 0; i < 100; i++) {
 			expect(finalityStore.canVote(`node${i}`, "vertex1")).toEqual(true);
 			expect(finalityStore.voted(`node${i}`, "vertex1")).toEqual(false);
-			const attestation = {
-				data: "vertex1",
-				signature: cred1
-					.get(`node${i}`)
-					?.sign(uint8ArrayFromString("vertex1"))
-					.toBytes() as Uint8Array,
-			} as Attestation;
+			const attestation = generateAttestation(`node${i}`, "vertex1");
 			finalityStore.addVotes(`node${i}`, [attestation]);
 			expect(finalityStore.voted(`node${i}`, "vertex1")).toEqual(true);
 		}
+	});
+
+	test("Quorum test", async () => {
+		for (let i = 0; i < 509; i++) {
+			const attestation = generateAttestation(`node${i}`, "vertex1");
+			finalityStore.addVotes(`node${i}`, [attestation]);
+		}
+		expect(finalityStore.isFinalized("vertex1")).toEqual(false);
+		for (let i = 500; i < 509; i++) {
+			const attestation = generateAttestation(`node${i}`, "vertex1");
+			finalityStore.addVotes(`node${i}`, [attestation]);
+		}
+		expect(finalityStore.isFinalized("vertex1")).toEqual(false);
 	});
 });
