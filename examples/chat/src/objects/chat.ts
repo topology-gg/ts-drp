@@ -22,7 +22,7 @@ export class Chat implements DRP {
 		return this.messages;
 	}
 
-	resolveConflicts(_vertices: Vertex[]): ResolveConflictsType {
+	resolveConflicts(_: Vertex[]): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
 }
