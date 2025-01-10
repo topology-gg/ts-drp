@@ -217,7 +217,7 @@ export class DRPObject implements IDRPObject {
 					this._setACLState(vertex, preComputeLca);
 					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				} else {
-					const drp = this._computeACL(vertex.dependencies, preComputeLca);
+					const acl = this._computeACL(vertex.dependencies, preComputeLca);
 
 					this.hashGraph.addVertex(
 						vertex.operation,
@@ -226,9 +226,9 @@ export class DRPObject implements IDRPObject {
 						vertex.timestamp,
 						vertex.signature,
 					);
-					this._applyOperation(drp, vertex.operation);
+					this._applyOperation(acl, vertex.operation);
 
-					this._setACLState(vertex, preComputeLca, this._getDRPState(drp));
+					this._setACLState(vertex, preComputeLca, this._getDRPState(acl));
 					this._setDRPState(vertex, preComputeLca);
 				}
 			} catch (e) {
@@ -322,7 +322,7 @@ export class DRPObject implements IDRPObject {
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
-	): DRP {
+	): (IACL & DRP) {
 		const { lca, linearizedOperations } =
 			preCompute ?? this.computeLCA(vertexDependencies);
 
@@ -397,12 +397,12 @@ export class DRPObject implements IDRPObject {
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
 	): DRPState {
-		const drp = this._computeACL(
+		const acl = this._computeACL(
 			vertexDependencies,
 			preCompute,
 			vertexOperation,
 		);
-		return this._getDRPState(drp);
+		return this._getDRPState(acl);
 	}
 
 	// store the state of the DRP corresponding to the given vertex
