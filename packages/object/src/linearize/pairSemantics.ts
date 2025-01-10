@@ -11,6 +11,10 @@ export function linearizePairSemantics(
 	origin: Hash,
 	subgraph: ObjectSet<string>,
 ): Operation[] {
+	if (!hashGraph.resolveConflicts) {
+		throw new Error("resolveConflicts is not defined");
+	}
+
 	const order: Hash[] = hashGraph.topologicalSort(true, origin, subgraph);
 	const dropped = new Array(order.length).fill(false);
 	const result = [];

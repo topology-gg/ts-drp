@@ -44,8 +44,8 @@ export type VertexDistance = {
 
 export class HashGraph {
 	peerId: string;
-	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	semanticsType: SemanticsType;
+	resolveConflicts?: (vertices: Vertex[]) => ResolveConflictsType;
+	semanticsType?: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
 	frontier: Hash[] = [];
@@ -69,8 +69,8 @@ export class HashGraph {
 
 	constructor(
 		peerId: string,
-		resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType,
-		semanticsType: SemanticsType,
+		resolveConflicts?: (vertices: Vertex[]) => ResolveConflictsType,
+		semanticsType?: SemanticsType,
 	) {
 		this.peerId = peerId;
 		this.resolveConflicts = resolveConflicts;

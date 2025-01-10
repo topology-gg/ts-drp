@@ -12,6 +12,10 @@ export function linearizeMultipleSemantics(
 	origin: Hash,
 	subgraph: ObjectSet<string>,
 ): Operation[] {
+	if (!hashGraph.resolveConflicts) {
+		throw new Error("resolveConflicts is not defined");
+	}
+
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
 	const dropped = new Array(order.length).fill(false);
 	const indices: Map<Hash, number> = new Map();

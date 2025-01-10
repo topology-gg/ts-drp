@@ -236,7 +236,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 }
 
 export async function verifyIncomingVertices(
-	object: IDRPObject,
+	object: DRPObject,
 	incomingVertices: ObjectPb.Vertex[],
 ): Promise<Vertex[]> {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {

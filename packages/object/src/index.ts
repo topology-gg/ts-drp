@@ -3,7 +3,6 @@ import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import {
-	ActionType,
 	type Hash,
 	HashGraph,
 	type Operation,
@@ -45,11 +44,9 @@ export type DRPObjectCallback = (
 ) => void;
 
 export interface IDRPObject extends ObjectPb.DRPObjectBase {
-	drp: ProxyHandler<DRP> | DRP | null;
+	drp: ProxyHandler<DRP> | null;
 	hashGraph: HashGraph;
 	subscriptions: DRPObjectCallback[];
-
-	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];
 }
 
 // snake_casing to match the JSON config
@@ -58,59 +55,6 @@ export interface DRPObjectConfig {
 }
 
 export let log: Logger;
-
-export class EmptyDRP implements DRP {
-	operations: string[] = [];
-	semanticsType: SemanticsType = SemanticsType.pair;
-	resolveConflicts(): ResolveConflictsType {
-		return { action: ActionType.Nop };
-	}
-}
-
-export class EmptyDRPObject implements IDRPObject {
-	drp: DRP;
-	hashGraph: HashGraph;
-	subscriptions: DRPObjectCallback[];
-	id: string;
-	vertices: Vertex[];
-
-	constructor(objectId: string) {
-		this.id = objectId;
-		this.drp = new EmptyDRP();
-		this.hashGraph = new HashGraph(
-			"",
-			this.drp.resolveConflicts,
-			this.drp.semanticsType,
-		);
-		this.subscriptions = [];
-		this.vertices = [];
-	}
-
-	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
-		const missing = [];
-		for (const vertex of vertices) {
-			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
-				continue;
-			}
-
-			try {
-				this.hashGraph.addVertex(
-					vertex.operation,
-					vertex.dependencies,
-					vertex.peerId,
-					vertex.timestamp,
-					vertex.signature,
-				);
-			} catch (e) {
-				missing.push(vertex.hash);
-			}
-		}
-
-		this.vertices = this.hashGraph.getAllVertices();
-
-		return [missing.length === 0, missing];
-	}
-}
 
 export class DRPObject implements IDRPObject {
 	peerId: string;
@@ -122,12 +66,12 @@ export class DRPObject implements IDRPObject {
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	states: Map<string, DRPState>;
-	originalDRP: DRP;
+	originalDRP: DRP | null;
 	subscriptions: DRPObjectCallback[];
 
 	constructor(
 		peerId: string,
-		drp: DRP,
+		drp?: DRP,
 		id?: string,
 		abi?: string,
 		config?: DRPObjectConfig,
@@ -153,7 +97,7 @@ export class DRPObject implements IDRPObject {
 		);
 		this.subscriptions = [];
 		this.states = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.originalDRP = cloneDeep(drp);
+		this.originalDRP = drp ? cloneDeep(drp) : null;
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
@@ -200,7 +144,13 @@ export class DRPObject implements IDRPObject {
 
 	// biome-ignore lint: value can't be unknown because of protobuf
 	callFn(fn: string, args: any) {
+		if (!this.drp) {
+			throw new Error("DRP is not defined.");
+		}
 		const preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
+		if (!preOperationDRP) {
+			throw new Error("Failed to compute DRP.");
+		}
 		const drp = cloneDeep(preOperationDRP);
 		this._applyOperation(drp, { type: fn, value: args });
 
@@ -244,9 +194,15 @@ export class DRPObject implements IDRPObject {
 			}
 
 			try {
-				const drp = this._computeDRP(vertex.dependencies);
-				if (!this._checkWriterPermission(drp, vertex.peerId)) {
-					throw new Error(`${vertex.peerId} does not have write permission.`);
+				let drp: DRP | null = null;
+				if (this.drp) {
+					drp = this._computeDRP(vertex.dependencies);
+					if (!drp) {
+						throw new Error("Failed to compute DRP.");
+					}
+					if (!this._checkWriterPermission(drp, vertex.peerId)) {
+						throw new Error(`${vertex.peerId} does not have write permission.`);
+					}
 				}
 
 				this.hashGraph.addVertex(
@@ -257,8 +213,10 @@ export class DRPObject implements IDRPObject {
 					vertex.signature,
 				);
 
-				this._applyOperation(drp, vertex.operation);
-				this._setState(vertex, this._getDRPState(drp));
+				if (drp) {
+					this._applyOperation(drp, vertex.operation);
+					this._setState(vertex, this._getDRPState(drp));
+				}
 			} catch (e) {
 				missing.push(vertex.hash);
 			}
@@ -317,7 +275,9 @@ export class DRPObject implements IDRPObject {
 	private _computeDRP(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation,
-	): DRP {
+	): DRP | null {
+		if (!this.drp) return null;
+		if (!this.originalDRP) return null;
 		const subgraph: ObjectSet<Hash> = new ObjectSet();
 		const lca =
 			vertexDependencies.length === 1
@@ -369,8 +329,11 @@ export class DRPObject implements IDRPObject {
 	private _computeDRPState(
 		vertexDependencies: Hash[],
 		vertexOperation?: Operation,
-	): DRPState {
+	): DRPState | null {
 		const drp = this._computeDRP(vertexDependencies, vertexOperation);
+		if (!drp) {
+			return null;
+		}
 		return this._getDRPState(drp);
 	}
 
@@ -380,12 +343,16 @@ export class DRPObject implements IDRPObject {
 		// biome-ignore lint: values can be anything
 		drpState?: DRPState,
 	) {
+		if (!this.drp) {
+			throw new Error("DRP is not defined.");
+		}
+		const _drpState =
+			drpState ?? this._computeDRPState(vertex.dependencies, vertex.operation);
+		if (!_drpState) {
+			throw new Error("Failed to compute DRP state.");
+		}
 		try {
-			this.states.set(
-				vertex.hash,
-				drpState ??
-					this._computeDRPState(vertex.dependencies, vertex.operation),
-			);
+			this.states.set(vertex.hash, _drpState);
 		} catch (e) {
 			throw new Error(`Failed to set state for vertex ${vertex.hash}: ${e}`);
 		}
@@ -398,6 +365,9 @@ export class DRPObject implements IDRPObject {
 		}
 		const currentDRP = this.drp as DRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
+		if (!newState) {
+			throw new Error("Failed to compute DRP state.");
+		}
 		for (const [key, value] of newState.state.entries()) {
 			if (key in currentDRP && typeof currentDRP[key] !== "function") {
 				currentDRP[key] = value;

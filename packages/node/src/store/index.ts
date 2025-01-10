@@ -7,7 +7,7 @@ export type DRPObjectStoreCallback = (
 
 export class DRPObjectStore {
 	// TODO: should be abstracted in handling multiple types of storage
-	private _store: Map<string, IDRPObject>;
+	private _store: Map<string, DRPObject>;
 	private _subscriptions: Map<string, DRPObjectStoreCallback[]>;
 
 	constructor() {
@@ -15,11 +15,11 @@ export class DRPObjectStore {
 		this._subscriptions = new Map<string, DRPObjectStoreCallback[]>();
 	}
 
-	get(objectId: string): IDRPObject | undefined {
+	get(objectId: string): DRPObject | undefined {
 		return this._store.get(objectId);
 	}
 
-	put(objectId: string, object: IDRPObject) {
+	put(objectId: string, object: DRPObject) {
 		this._store.set(objectId, object);
 		this._notifySubscribers(objectId, object);
 	}
@@ -31,7 +31,7 @@ export class DRPObjectStore {
 		this._subscriptions.get(objectId)?.push(callback);
 	}
 
-	private _notifySubscribers(objectId: string, object: IDRPObject): void {
+	private _notifySubscribers(objectId: string, object: DRPObject): void {
 		const callbacks = this._subscriptions.get(objectId);
 		if (callbacks) {
 			for (const callback of callbacks) {
