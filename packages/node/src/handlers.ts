@@ -209,7 +209,7 @@ export function drpObjectChangesHandler(
 				});
 				node.networkNode.broadcastMessage(obj.id, message);
 			});
-			
+
 			break;
 		}
 		default:
