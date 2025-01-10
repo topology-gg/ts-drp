@@ -3,6 +3,7 @@ import {
 	type GossipsubMessage,
 	gossipsub,
 } from "@chainsafe/libp2p-gossipsub";
+import { createPeerScoreParams } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
@@ -108,6 +109,9 @@ export class DRPNetworkNode {
 			identify: identify(),
 			pubsub: gossipsub({
 				allowPublishToZeroTopicPeers: true,
+				scoreParams: createPeerScoreParams({
+					IPColocationFactorWeight: 0,
+				}),
 			}),
 		};
 
