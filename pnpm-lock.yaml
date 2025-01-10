@@ -191,8 +191,8 @@ importers:
         specifier: ^3.0.6
         version: 3.0.14
       '@libp2p/ping':
-        specifier: 2.0.9
-        version: 2.0.9
+        specifier: 2.0.11
+        version: 2.0.11
       '@libp2p/pubsub-peer-discovery':
         specifier: ^11.0.0
         version: 11.0.1
@@ -1638,8 +1638,8 @@ packages:
   '@libp2p/peer-store@11.0.13':
     resolution: {integrity: sha512-KieXSY8ysyC7ROJ7GI7dtQkowRFDuG2jk5HQedSXNUe74JurG0uI/HddFF8yij+HgY/kZiBwWUQbKrTC4Cewbw==}
 
-  '@libp2p/ping@2.0.9':
-    resolution: {integrity: sha512-esS6crF51u0GwKooTdpFGaEvIA0+UDRyiTnZicUg44WhcM2xpo8kSZh7QTFgEgy1lGD/K/a5KDuSSac4+3EqNA==}
+  '@libp2p/ping@2.0.11':
+    resolution: {integrity: sha512-nQFNJh+gzNnJsfmzBSz5/t7vebckWa5raI9ucPMX2UF5DE68ZA6ohGKHG23Gxt7XsC7jkVYRAhnkuKVM0psGCQ==}
 
   '@libp2p/pubsub-peer-discovery@11.0.1':
     resolution: {integrity: sha512-bT7UO7tQ4mZCPFE0eS8Fx19B8MGzxjbTNR6SwcLGcOqOqUTvc2CLByMvcy3iMXuKjmds6G+VUf5ZMhvjGLTznA==}
@@ -6822,7 +6822,7 @@ snapshots:
       uint8arraylist: 2.4.8
       uint8arrays: 5.1.0
 
-  '@libp2p/ping@2.0.9':
+  '@libp2p/ping@2.0.11':
     dependencies:
       '@libp2p/crypto': 5.0.8
       '@libp2p/interface': 2.3.0
