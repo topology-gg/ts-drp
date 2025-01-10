@@ -201,7 +201,7 @@ async function createConnectHandlers() {
 		render();
 	});
 
-	node.objectStore.subscribe(drpObject.id, (_, _obj) => {
+	node.objectStore.subscribe(drpObject.id, () => {
 		render();
 	});
 }
