@@ -24,7 +24,7 @@ const render = () => {
 
 async function initDRPNode() {
 	if (node) {
-		node.addCustomGroupMessageHandler("", (_e) => {
+		node.addCustomGroupMessageHandler("", () => {
 			peers = node.networkNode.getAllPeers();
 			render();
 		});
@@ -46,7 +46,7 @@ async function main() {
 	select_address_type.value = "ip4";
 	address_type_label.innerText = "IP address";
 
-	select_address_type?.addEventListener("change", (_e) => {
+	select_address_type?.addEventListener("change", () => {
 		const val = select_address_type.value;
 		if (val === "ip4") {
 			address_type_label.innerText = "IP address";
@@ -102,7 +102,7 @@ async function main() {
 			field_set.style.backgroundColor = "rgba(0, 255, 0, 0.2)";
 			initDRPNode();
 			render();
-		} catch (_e) {
+		} catch () {
 			field_set.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
 			alert("Failed to connect to the bootstrap node");
 			return;

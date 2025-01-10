@@ -51,7 +51,7 @@ function paint_pixel(pixel: HTMLDivElement) {
 }
 
 async function createConnectHandlers() {
-	node.addCustomGroupMessageHandler(drpObject.id, (_e) => {
+	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
 	});
@@ -83,7 +83,7 @@ async function init() {
 		}
 	}
 
-	node.addCustomGroupMessageHandler("", (_e) => {
+	node.addCustomGroupMessageHandler("", () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
 		render();

@@ -196,7 +196,7 @@ async function moveUser(direction: string) {
 }
 
 async function createConnectHandlers() {
-	node.addCustomGroupMessageHandler(drpObject.id, (_e) => {
+	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
 	});
@@ -210,7 +210,7 @@ async function main() {
 	await node.start();
 	render();
 
-	node.addCustomGroupMessageHandler("", (_e) => {
+	node.addCustomGroupMessageHandler("", () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
 		render();
