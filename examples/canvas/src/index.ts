@@ -1,6 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
-import { Canvas } from "./objects/canvas.js";
+import { Canvas } from "./objects/canvas";
 
 const node = new DRPNode();
 let drpObject: DRPObject;
