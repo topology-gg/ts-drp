@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, test } from "vitest";
-import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import bls from "@chainsafe/bls/herumi";
 import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { beforeEach, describe, expect, test } from "vitest";
 import type { Attestation } from "../dist/src/proto/drp/object/v1/object_pb.js";
+import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
 
 describe("Tests for FinalityState", () => {

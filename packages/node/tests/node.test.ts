@@ -1,3 +1,4 @@
+import bls from "@chainsafe/bls/herumi";
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { type DRP, DRPObject, type Vertex } from "@ts-drp/object";
@@ -8,7 +9,6 @@ import {
 	voteGeneratedVertices,
 } from "../src/handlers.js";
 import { DRPNode, type DRPNodeConfig } from "../src/index.js";
-import bls from "@chainsafe/bls/herumi";
 
 describe("DPRNode with verify and sign signature", () => {
 	let drp: DRP;
