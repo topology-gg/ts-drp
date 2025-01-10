@@ -31,7 +31,7 @@ describe("HashGraph construction tests", () => {
 		expect(obj1.vertices).toEqual(obj1.hashGraph.getAllVertices());
 	});
 
-	test("Test: HashGraph should be DAG compatibility", () => {
+	test("Test: HashGraph should be DAG compatible", () => {
 		/*
 		        __ V1:ADD(1)
 		  ROOT /
@@ -108,7 +108,7 @@ describe("HashGraph for AddWinSet tests", () => {
 		const drp1 = obj1.drp as AddWinsSet<number>;
 		drp1.add(1);
 		drp1.remove(1);
-		expect(drp1.contains(1)).toBe(false);
+		expect(drp1.query_contains(1)).toBe(false);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
@@ -135,13 +135,14 @@ describe("HashGraph for AddWinSet tests", () => {
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(drp1.contains(1)).toBe(true);
+		// Adding 1 again does not change the state
+		expect(drp1.query_contains(1)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 1 },
+			{ type: "remove", value: 1 },
 		]);
 	});
 
@@ -163,8 +164,8 @@ describe("HashGraph for AddWinSet tests", () => {
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(drp1.contains(1)).toBe(false);
-		expect(drp1.contains(2)).toBe(true);
+		expect(drp1.query_contains(1)).toBe(false);
+		expect(drp1.query_contains(2)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
@@ -191,21 +192,21 @@ describe("HashGraph for AddWinSet tests", () => {
 		drp1.remove(1);
 		drp2.add(1);
 		drp1.add(10);
+		// Removing 5 does not change the state
 		drp2.remove(5);
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(drp1.contains(1)).toBe(true);
-		expect(drp1.contains(10)).toBe(true);
-		expect(drp1.contains(5)).toBe(false);
+		expect(drp1.query_contains(1)).toBe(false);
+		expect(drp1.query_contains(10)).toBe(true);
+		expect(drp1.query_contains(5)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 1 },
+			{ type: "remove", value: 1 },
 			{ type: "add", value: 10 },
-			{ type: "remove", value: 5 },
 		]);
 	});
 
@@ -229,15 +230,15 @@ describe("HashGraph for AddWinSet tests", () => {
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(drp1.contains(1)).toBe(true);
-		expect(drp1.contains(2)).toBe(true);
+		expect(drp1.query_contains(1)).toBe(false);
+		expect(drp1.query_contains(2)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
+			{ type: "remove", value: 1 },
 			{ type: "add", value: 2 },
-			{ type: "add", value: 1 },
 		]);
 	});
 
@@ -280,20 +281,19 @@ describe("HashGraph for AddWinSet tests", () => {
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj2.hashGraph.getAllVertices());
 
-		expect(drp1.contains(1)).toBe(false);
-		expect(drp1.contains(2)).toBe(true);
-		expect(drp1.contains(3)).toBe(true);
+		expect(drp1.query_contains(1)).toBe(false);
+		expect(drp1.query_contains(2)).toBe(true);
+		expect(drp1.query_contains(3)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 		expect(obj1.hashGraph.vertices).toEqual(obj3.hashGraph.vertices);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 2 },
-			{ type: "add", value: 2 },
 			{ type: "remove", value: 1 },
+			{ type: "add", value: 2 },
 			{ type: "add", value: 3 },
+			{ type: "remove", value: 1 },
 		]);
 	});
 
@@ -336,22 +336,18 @@ describe("HashGraph for AddWinSet tests", () => {
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj2.hashGraph.getAllVertices());
 
-		expect(drp1.contains(1)).toBe(false);
-		expect(drp1.contains(2)).toBe(true);
-		expect(drp1.contains(3)).toBe(true);
+		expect(drp1.query_contains(1)).toBe(false);
+		expect(drp1.query_contains(2)).toBe(true);
+		expect(drp1.query_contains(3)).toBe(true);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 		expect(obj1.hashGraph.vertices).toEqual(obj3.hashGraph.vertices);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
 			{ type: "add", value: 1 },
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 2 },
-			{ type: "remove", value: 2 },
 			{ type: "remove", value: 1 },
 			{ type: "add", value: 3 },
 			{ type: "add", value: 2 },
-			{ type: "remove", value: 1 },
 		]);
 	});
 
@@ -377,8 +373,8 @@ describe("HashGraph for AddWinSet tests", () => {
 		drp1.remove(2);
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(drp1.contains(1)).toBe(true);
-		expect(drp1.contains(2)).toBe(false);
+		expect(drp1.query_contains(1)).toBe(true);
+		expect(drp1.query_contains(2)).toBe(false);
 		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
@@ -564,7 +560,7 @@ describe("Vertex state tests", () => {
 		const hashV8 = obj1.hashGraph.getFrontier()[0];
 		const drpStateV8 = obj1.states.get(hashV8);
 		expect(drpStateV8?.state.get("state").get(1)).toBe(false);
-		expect(drpStateV8?.state.get("state").get(2)).toBe(true);
+		expect(drpStateV8?.state.get("state").get(2)).toBe(undefined);
 		expect(drpStateV8?.state.get("state").get(3)).toBe(undefined);
 	});
 });
@@ -662,7 +658,7 @@ describe("Operation with ACL tests", () => {
 
 		drp1.acl.grant("peer1", "peer2", "publicKey2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
-		expect(drp2.acl.isWriter("peer2")).toBe(true);
+		expect(drp2.acl.query_isWriter("peer2")).toBe(true);
 	});
 
 	test("Node with writer permission can create vertices", () => {
@@ -677,7 +673,7 @@ describe("Operation with ACL tests", () => {
 
 		drp2.add(1);
 		obj1.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.contains(1)).toBe(true);
+		expect(drp1.query_contains(1)).toBe(true);
 	});
 
 	test("Revoke permission from writer", () => {
@@ -690,13 +686,13 @@ describe("Operation with ACL tests", () => {
 		drp1.acl.grant("peer1", "peer2", "publicKey2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(drp2.acl.isWriter("peer2")).toBe(true);
+		expect(drp2.acl.query_isWriter("peer2")).toBe(true);
 		drp2.add(1);
 
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		drp1.acl.revoke("peer1", "peer2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
-		expect(drp2.acl.isWriter("peer2")).toBe(false);
+		expect(drp2.acl.query_isWriter("peer2")).toBe(false);
 	});
 });
 
@@ -717,8 +713,8 @@ describe("Writer permission tests", () => {
 		drp.add(1);
 		drp.add(2);
 
-		expect(drp.contains(1)).toBe(true);
-		expect(drp.contains(2)).toBe(true);
+		expect(drp.query_contains(1)).toBe(true);
+		expect(drp.query_contains(2)).toBe(true);
 	});
 
 	test("Discard vertex if creator does not have write permission", () => {
@@ -729,7 +725,7 @@ describe("Writer permission tests", () => {
 		drp2.add(2);
 
 		obj1.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.contains(2)).toBe(false);
+		expect(drp1.query_contains(2)).toBe(false);
 	});
 
 	test("Accept vertex if creator has write permission", () => {
@@ -741,15 +737,15 @@ describe("Writer permission tests", () => {
 
 		drp1.add(1);
 		drp1.acl.grant("peer1", "peer2", "publicKey2");
-		expect(drp1.acl.isAdmin("peer1")).toBe(true);
+		expect(drp1.acl.query_isAdmin("peer1")).toBe(true);
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
-		expect(drp2.contains(1)).toBe(true);
-		expect(drp2.acl.isWriter("peer2")).toBe(true);
+		expect(drp2.query_contains(1)).toBe(true);
+		expect(drp2.acl.query_isWriter("peer2")).toBe(true);
 
 		drp2.add(4);
 		obj1.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.contains(4)).toBe(true);
+		expect(drp1.query_contains(4)).toBe(true);
 	});
 
 	test("Discard vertex if writer permission is revoked", () => {
@@ -775,19 +771,19 @@ describe("Writer permission tests", () => {
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		obj2.merge(obj3.hashGraph.getAllVertices());
 		obj3.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.contains(1)).toBe(true);
-		expect(drp1.contains(2)).toBe(true);
+		expect(drp1.query_contains(1)).toBe(true);
+		expect(drp1.query_contains(2)).toBe(true);
 
 		drp1.acl.revoke("peer1", "peer3");
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		drp3.add(3);
 		obj2.merge(obj3.hashGraph.getAllVertices());
-		expect(drp2.contains(3)).toBe(false);
+		expect(drp2.query_contains(3)).toBe(false);
 
 		drp2.add(4);
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj1.merge(obj3.hashGraph.getAllVertices());
-		expect(drp1.contains(3)).toBe(false);
-		expect(drp1.contains(4)).toBe(true);
+		expect(drp1.query_contains(3)).toBe(false);
+		expect(drp1.query_contains(4)).toBe(true);
 	});
 });

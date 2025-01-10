@@ -30,7 +30,7 @@ const render = () => {
 	element_objectPeers.innerHTML = `[${objectPeers.join(", ")}]`;
 
 	if (!chatDRP) return;
-	const chat = chatDRP.getMessages();
+	const chat = chatDRP.query_messages();
 	const element_chat = <HTMLDivElement>document.getElementById("chat");
 	element_chat.innerHTML = "";
 

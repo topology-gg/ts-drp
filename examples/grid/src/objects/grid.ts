@@ -7,7 +7,6 @@ import {
 } from "@ts-drp/object";
 
 export class Grid implements DRP {
-	operations: string[] = ["addUser", "moveUser"];
 	semanticsType: SemanticsType = SemanticsType.pair;
 	positions: Map<string, { x: number; y: number }>;
 
@@ -16,19 +15,11 @@ export class Grid implements DRP {
 	}
 
 	addUser(userId: string, color: string): void {
-		this._addUser(userId, color);
-	}
-
-	private _addUser(userId: string, color: string): void {
 		const userColorString = `${userId}:${color}`;
 		this.positions.set(userColorString, { x: 0, y: 0 });
 	}
 
 	moveUser(userId: string, direction: string): void {
-		this._moveUser(userId, direction);
-	}
-
-	private _moveUser(userId: string, direction: string): void {
 		const userColorString = [...this.positions.keys()].find((u) =>
 			u.startsWith(`${userId}:`),
 		);
@@ -53,11 +44,11 @@ export class Grid implements DRP {
 		}
 	}
 
-	getUsers(): string[] {
+	query_users(): string[] {
 		return [...this.positions.keys()];
 	}
 
-	getUserPosition(
+	query_userPosition(
 		userColorString: string,
 	): { x: number; y: number } | undefined {
 		const position = this.positions.get(userColorString);
