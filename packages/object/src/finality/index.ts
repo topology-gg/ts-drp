@@ -89,7 +89,7 @@ export class FinalityState {
 
 		const aggregation_bits = new BitSet(
 			(this.voterCredentials.length + 31) >> 5,
-			attestation.aggregationBits.buffer,
+			attestation.aggregationBits,
 		);
 
 		// public keys of voters who voted
@@ -179,7 +179,7 @@ export class FinalityStore {
 		if (state !== undefined && state.signature !== undefined) {
 			return {
 				data: state.data,
-				aggregationBits: new Uint8Array(state.aggregation_bits.getBuffer()),
+				aggregationBits: state.aggregation_bits.toBytes(),
 				signature: state.signature,
 			};
 		}
