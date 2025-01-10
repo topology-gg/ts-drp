@@ -3,7 +3,6 @@ import {
 	type DRP,
 	type ResolveConflictsType,
 	SemanticsType,
-	type Vertex,
 } from "@ts-drp/object";
 
 export class Chat implements DRP {
