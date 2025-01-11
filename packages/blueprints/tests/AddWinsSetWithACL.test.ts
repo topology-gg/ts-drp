@@ -45,14 +45,16 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 				peerId: "peer1",
 				operation: { type: "grant", value: "peer3" },
 				dependencies: [],
-				signature: "",
+				timestamp: Date.now(),
+				signature: new Uint8Array(),
 			},
 			{
 				hash: "",
 				peerId: "peer2",
 				operation: { type: "revoke", value: "peer3" },
 				dependencies: [],
-				signature: "",
+				timestamp: Date.now(),
+				signature: new Uint8Array(),
 			},
 		];
 		const result = drp.resolveConflicts(vertices);
