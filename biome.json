@@ -7,13 +7,18 @@
 			"**/doc/*",
 			"**/*_pb.js",
 			"**/*_pb.ts",
-			"**/bundle/*"
+			"**/bundle/*",
+			"coverage/*"
 		]
 	},
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error"
+			}
 		}
 	},
 	"organizeImports": {

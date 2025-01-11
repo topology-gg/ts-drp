@@ -2,27 +2,21 @@ syntax = "proto3";
 package drp.node.v1;
 
 service DrpRpcService {
-  rpc SubscribeDRP(SubscribeDRPRequest) returns (SubscribeDRPResponse);
-  rpc UnsubscribeDRP(UnsubscribeDRPRequest) returns (UnsubscribeDRPResponse);
+  rpc SubscribeDRP(SubscribeDRPRequest) returns (GenericRespone);
+  rpc UnsubscribeDRP(UnsubscribeDRPRequest) returns (GenericRespone);
   rpc GetDRPHashGraph(GetDRPHashGraphRequest) returns (GetDRPHashGraphResponse);
+  rpc SyncDRPObject(SyncDRPObjectRequest) returns (GenericRespone);
+  rpc SendCustomMessage(SendCustomMessageRequest) returns (GenericRespone);
+  rpc SendGroupMessage(SendGroupMessageRequest) returns (GenericRespone);
+  rpc AddCustomGroup(AddCustomGroupRequest) returns (GenericRespone);
 }
 
 message SubscribeDRPRequest {
   string drp_id = 1;
 }
 
-message SubscribeDRPResponse {
-  // can return error codes if different than 0
-  int32 return_code = 1;
-}
-
 message UnsubscribeDRPRequest {
   string drp_id = 1;
-}
-
-message UnsubscribeDRPResponse {
-  // can return error codes if different than 0
-  int32 return_code = 1;
 }
 
 message GetDRPHashGraphRequest {
@@ -32,4 +26,28 @@ message GetDRPHashGraphRequest {
 message GetDRPHashGraphResponse {
   // linearized vertices hashes
   repeated string vertices_hashes = 1;
+}
+
+message GenericRespone {
+  // return error codes if different than 0
+  int32 return_code = 1;
+}
+
+message SyncDRPObjectRequest {
+  string drp_id = 1;
+  string peer_id = 2;
+}
+
+message SendCustomMessageRequest {
+  string peer_id = 1;
+  bytes data = 2;
+}
+
+message SendGroupMessageRequest {
+  string group = 1;
+  bytes data = 3;
+}
+
+message AddCustomGroupRequest {
+  string group = 1;
 }

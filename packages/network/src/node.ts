@@ -3,6 +3,7 @@ import {
 	type GossipsubMessage,
 	gossipsub,
 } from "@chainsafe/libp2p-gossipsub";
+import { createPeerScoreParams } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
@@ -22,6 +23,7 @@ import type {
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
+import { ping } from "@libp2p/ping";
 import { pubsubPeerDiscovery } from "@libp2p/pubsub-peer-discovery";
 import { webRTC, webRTCDirect } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
@@ -100,17 +102,25 @@ export class DRPNetworkNode {
 			: [_pubsubPeerDiscovery];
 
 		const _node_services = {
+			ping: ping(),
 			autonat: autoNAT(),
 			dcutr: dcutr(),
 			identify: identify(),
 			pubsub: gossipsub({
 				allowPublishToZeroTopicPeers: true,
+				scoreParams: createPeerScoreParams({
+					IPColocationFactorWeight: 0,
+				}),
 			}),
 		};
 
 		const _bootstrap_services = {
 			..._node_services,
-			relay: circuitRelayServer(),
+			relay: circuitRelayServer({
+				reservations: {
+					maxReservations: Number.POSITIVE_INFINITY,
+				},
+			}),
 		};
 
 		this._node = await createLibp2p({

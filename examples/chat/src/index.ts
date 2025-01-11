@@ -30,7 +30,7 @@ const render = () => {
 	element_objectPeers.innerHTML = `[${objectPeers.join(", ")}]`;
 
 	if (!chatDRP) return;
-	const chat = chatDRP.getMessages();
+	const chat = chatDRP.query_messages();
 	const element_chat = <HTMLDivElement>document.getElementById("chat");
 	element_chat.innerHTML = "";
 
@@ -62,13 +62,13 @@ async function sendMessage(message: string) {
 }
 
 async function createConnectHandlers() {
-	node.addCustomGroupMessageHandler(drpObject.id, (e) => {
+	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		// on create/connect
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
 	});
 
-	node.objectStore.subscribe(drpObject.id, (_, _obj) => {
+	node.objectStore.subscribe(drpObject.id, () => {
 		render();
 	});
 }
@@ -78,7 +78,7 @@ async function main() {
 	render();
 
 	// generic message handler
-	node.addCustomGroupMessageHandler("", (e) => {
+	node.addCustomGroupMessageHandler("", () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
 		render();
