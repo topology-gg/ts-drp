@@ -70,7 +70,7 @@ describe("HashGraph construction tests", () => {
 			[],
 			"",
 			Date.now(),
-			"",
+			new Uint8Array(0),
 		);
 		obj1.hashGraph.addVertex(
 			{
@@ -80,7 +80,7 @@ describe("HashGraph construction tests", () => {
 			[hash],
 			"",
 			Date.now(),
-			"",
+			new Uint8Array(0),
 		);
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
 
@@ -594,7 +594,7 @@ describe("Vertex timestamp tests", () => {
 				obj1.hashGraph.getFrontier(),
 				"",
 				Number.POSITIVE_INFINITY,
-				"",
+				new Uint8Array(0),
 			),
 		).toThrowError("Invalid timestamp detected.");
 	});
@@ -628,7 +628,7 @@ describe("Vertex timestamp tests", () => {
 				obj1.hashGraph.getFrontier(),
 				"",
 				1,
-				"",
+				new Uint8Array(0),
 			),
 		).toThrowError("Invalid timestamp detected.");
 	});
