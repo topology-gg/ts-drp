@@ -43,10 +43,16 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		if (!vertices[0].operation || !vertices[1].operation) {
 			return { action: ActionType.Nop };
 		}
+		const values0 = Array.isArray(vertices[0].operation.value)
+			? vertices[0].operation.value
+			: [vertices[0].operation.value];
 
+		const values1 = Array.isArray(vertices[1].operation.value)
+			? vertices[1].operation.value
+			: [vertices[1].operation.value];
 		if (
 			vertices[0].operation.type === vertices[1].operation.type ||
-			vertices[0].operation.value !== vertices[1].operation.value
+			values0[0] !== values1[0]
 		) {
 			return { action: ActionType.Nop };
 		}
