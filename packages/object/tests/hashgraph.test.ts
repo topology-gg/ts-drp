@@ -694,7 +694,6 @@ describe("Vertex timestamp tests", () => {
 	});
 });
 
-
 describe("Writer permission tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
