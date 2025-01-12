@@ -81,25 +81,4 @@ export class BitSet {
 			.map((int) => int.toString(2).padStart(32, "0"))
 			.join("");
 	}
-
-	findNext(index: number, bit: number): number {
-		let wordIndex = Math.floor((index + 1) / 32);
-		const bitIndex = (index + 1) % 32;
-		let mask = ~((1 << bitIndex) - 1);
-
-		while (wordIndex < this.data.length) {
-			let currentWord = this.data[wordIndex];
-			if (bit === 0) currentWord = ~currentWord;
-			currentWord &= mask;
-
-			if (currentWord !== 0) {
-				return wordIndex * 32 + 31 - Math.clz32(currentWord & -currentWord);
-			}
-
-			wordIndex++;
-			mask = ~0;
-		}
-
-		return this.data.length * 32;
-	}
 }
