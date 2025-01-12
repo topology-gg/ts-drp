@@ -248,7 +248,7 @@ export async function verifyIncomingVertices(
 		};
 	});
 
-	const acl: IACL & DRP = object.acl as IACL & DRP;
+	const acl: IACL = object.acl as IACL;
 	if (!acl) {
 		return vertices;
 	}

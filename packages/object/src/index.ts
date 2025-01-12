@@ -152,7 +152,11 @@ export class DRPObject implements IDRPObject {
 								?.trim()
 								.split(" ")[1];
 							if (!callerName?.startsWith("Proxy."))
-								obj.callFn(fullPropKey, args.length === 1 ? args[0] : args, vertexType);
+								obj.callFn(
+									fullPropKey,
+									args.length === 1 ? args[0] : args,
+									vertexType,
+								);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
 					});
@@ -163,7 +167,6 @@ export class DRPObject implements IDRPObject {
 		};
 	}
 
-
 	callFn(
 		fn: string,
 		// biome-ignore lint: value can't be unknown because of protobuf
@@ -171,14 +174,13 @@ export class DRPObject implements IDRPObject {
 		vertexType: VertexTypeOperation,
 	) {
 		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		let preOperationDRP: any
-		if (vertexType === VertexTypeOperation.acl) { 
-		 preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
-
-		} else {
+		let preOperationDRP: any;
+		if (vertexType === VertexTypeOperation.acl) {
 			preOperationDRP = this._computeACL(this.hashGraph.getFrontier());
+		} else {
+			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
 		}
-		 const drp = cloneDeep(preOperationDRP);
+		const drp = cloneDeep(preOperationDRP);
 		this._applyOperation(drp, { type: fn, value: args, vertexType });
 
 		let stateChanged = false;
@@ -193,7 +195,11 @@ export class DRPObject implements IDRPObject {
 			return;
 		}
 
-		const vertex = this.hashGraph.addToFrontier({ type: fn, value: args, vertexType });
+		const vertex = this.hashGraph.addToFrontier({
+			type: fn,
+			value: args,
+			vertexType,
+		});
 
 		this._setState(vertex, this._getDRPState(drp));
 
@@ -280,9 +286,7 @@ export class DRPObject implements IDRPObject {
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string): boolean {
-		return this.acl
-			? Reflect.get(this.acl, "isWriter").call(this.acl, peerId)
-			: true;
+		return this.acl ? (this.acl as IACL).query_isAdmin(peerId) : true;
 	}
 
 	// apply the operation to the DRP
@@ -346,7 +350,7 @@ export class DRPObject implements IDRPObject {
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
-	): (IACL & DRP) {
+	): DRP {
 		const { lca, linearizedOperations } =
 			preCompute ?? this.computeLCA(vertexDependencies);
 
