@@ -234,7 +234,6 @@ export class DRPObject implements IDRPObject {
 
 				if (vertex.operation.vertexType === VertexTypeOperation.drp) {
 					const drp = this._computeDRP(vertex.dependencies, preComputeLca);
-
 					this.hashGraph.addVertex(
 						vertex.operation,
 						vertex.dependencies,
@@ -261,7 +260,7 @@ export class DRPObject implements IDRPObject {
 					this._setACLState(vertex, preComputeLca, this._getDRPState(acl));
 					this._setDRPState(vertex, preComputeLca);
 				}
-			} catch (e) {
+			} catch (_) {
 				missing.push(vertex.hash);
 			}
 		}

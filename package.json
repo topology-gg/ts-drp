@@ -1,7 +1,7 @@
 {
 	"name": "ts-drp",
 	"description": "The official TypeScript implementation of DRP protocol",
-	"version": "0.4.4",
+	"version": "0.5.0",
 	"license": "MIT",
 	"homepage": "https://topology.gg/",
 	"repository": {
@@ -28,7 +28,6 @@
 		"proto-gen:object": "buf generate packages/object/src/proto -o packages/object/src/proto",
 		"release": "release-it",
 		"test": "vitest",
-		"ci-test": "vitest --exclude **/node.test.ts",
 		"watch": "pnpm --parallel --filter '@ts-drp/*' watch"
 	},
 	"devDependencies": {

@@ -1,10 +1,10 @@
 import { NetworkPb } from "@ts-drp/network";
-import { type DRPObject, ObjectPb } from "@ts-drp/object";
+import type { DRPObject } from "@ts-drp/object";
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
 /* Object operations */
-enum OPERATIONS {
+enum _OPERATIONS {
 	/* Create a new DRP */
 	CREATE = 0,
 	/* Update operation on a DRP */

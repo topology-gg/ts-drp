@@ -3,6 +3,7 @@ import {
 	type GossipsubMessage,
 	gossipsub,
 } from "@chainsafe/libp2p-gossipsub";
+import { createPeerScoreParams } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
@@ -34,7 +35,6 @@ import { type Libp2p, createLibp2p } from "libp2p";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
-import type { Vertex } from "./proto/drp/object/v1/object_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -108,12 +108,19 @@ export class DRPNetworkNode {
 			identify: identify(),
 			pubsub: gossipsub({
 				allowPublishToZeroTopicPeers: true,
+				scoreParams: createPeerScoreParams({
+					IPColocationFactorWeight: 0,
+				}),
 			}),
 		};
 
 		const _bootstrap_services = {
 			..._node_services,
-			relay: circuitRelayServer(),
+			relay: circuitRelayServer({
+				reservations: {
+					maxReservations: Number.POSITIVE_INFINITY,
+				},
+			}),
 		};
 
 		this._node = await createLibp2p({
