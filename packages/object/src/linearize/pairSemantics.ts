@@ -4,6 +4,7 @@ import {
 	type HashGraph,
 	type Operation,
 } from "../hashgraph/index.js";
+import { VertexTypeOperation } from "../index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizePairSemantics(
@@ -25,6 +26,8 @@ export function linearizePairSemantics(
 		const anchor = order[i];
 		let j = i + 1;
 
+		const begin = Date.now();
+
 		while (j < order.length) {
 			if (
 				hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) ||
@@ -41,7 +44,11 @@ export function linearizePairSemantics(
 			if (!v1 || !v2) {
 				action = ActionType.Nop;
 			} else {
-				action = hashGraph.resolveConflicts([v1, v2]).action;
+				if (v1.operation?.vertexType === VertexTypeOperation.acl || v2.operation?.vertexType === VertexTypeOperation.acl) {
+					action = hashGraph.resolveConflictsACL([v1, v2]).action;
+				} else {
+					action = hashGraph.resolveConflictsDRP([v1, v2]).action
+				}
 			}
 
 			switch (action) {
@@ -61,6 +68,11 @@ export function linearizePairSemantics(
 					j++;
 					break;
 			}
+		}
+
+		const end = Date.now();
+		if (end - begin > 10) {
+			console.log("long time", end - begin);
 		}
 
 		if (!dropped[i]) {
