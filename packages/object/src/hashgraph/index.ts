@@ -80,9 +80,9 @@ export class HashGraph {
 			hash: HashGraph.rootHash,
 			peerId: "",
 			operation: {
-				type: OperationType.NOP,
+				drpType: "",
+				opType: OperationType.NOP,
 				value: null,
-				vertexType: "",
 			},
 			dependencies: [],
 			timestamp: -1,
@@ -104,7 +104,7 @@ export class HashGraph {
 		const vertex: Vertex = {
 			hash,
 			peerId: this.peerId,
-			operation: operation ?? { type: OperationType.NOP },
+			operation: operation ?? { opType: OperationType.NOP },
 			dependencies: deps,
 			timestamp: currentTimestamp,
 			signature: "",

@@ -21,9 +21,9 @@ export interface Vertex {
 }
 
 export interface Vertex_Operation {
-  type: string;
+  drpType: string;
+  opType: string;
   value: any | undefined;
-  vertexType: string;
 }
 
 export interface DRPObjectBase {
@@ -178,19 +178,19 @@ export const Vertex: MessageFns<Vertex> = {
 };
 
 function createBaseVertex_Operation(): Vertex_Operation {
-  return { type: "", value: undefined, vertexType: "" };
+  return { drpType: "", opType: "", value: undefined };
 }
 
 export const Vertex_Operation: MessageFns<Vertex_Operation> = {
   encode(message: Vertex_Operation, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.type !== "") {
-      writer.uint32(10).string(message.type);
+    if (message.drpType !== "") {
+      writer.uint32(10).string(message.drpType);
+    }
+    if (message.opType !== "") {
+      writer.uint32(18).string(message.opType);
     }
     if (message.value !== undefined) {
-      Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
-    }
-    if (message.vertexType !== "") {
-      writer.uint32(26).string(message.vertexType);
+      Value.encode(Value.wrap(message.value), writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -207,7 +207,7 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
             break;
           }
 
-          message.type = reader.string();
+          message.drpType = reader.string();
           continue;
         }
         case 2: {
@@ -215,7 +215,7 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
             break;
           }
 
-          message.value = Value.unwrap(Value.decode(reader, reader.uint32()));
+          message.opType = reader.string();
           continue;
         }
         case 3: {
@@ -223,7 +223,7 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
             break;
           }
 
-          message.vertexType = reader.string();
+          message.value = Value.unwrap(Value.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -237,22 +237,22 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
 
   fromJSON(object: any): Vertex_Operation {
     return {
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      drpType: isSet(object.drpType) ? globalThis.String(object.drpType) : "",
+      opType: isSet(object.opType) ? globalThis.String(object.opType) : "",
       value: isSet(object?.value) ? object.value : undefined,
-      vertexType: isSet(object.vertexType) ? globalThis.String(object.vertexType) : "",
     };
   },
 
   toJSON(message: Vertex_Operation): unknown {
     const obj: any = {};
-    if (message.type !== "") {
-      obj.type = message.type;
+    if (message.drpType !== "") {
+      obj.drpType = message.drpType;
+    }
+    if (message.opType !== "") {
+      obj.opType = message.opType;
     }
     if (message.value !== undefined) {
       obj.value = message.value;
-    }
-    if (message.vertexType !== "") {
-      obj.vertexType = message.vertexType;
     }
     return obj;
   },
@@ -262,9 +262,9 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
   },
   fromPartial<I extends Exact<DeepPartial<Vertex_Operation>, I>>(object: I): Vertex_Operation {
     const message = createBaseVertex_Operation();
-    message.type = object.type ?? "";
+    message.drpType = object.drpType ?? "";
+    message.opType = object.opType ?? "";
     message.value = object.value ?? undefined;
-    message.vertexType = object.vertexType ?? "";
     return message;
   },
 };

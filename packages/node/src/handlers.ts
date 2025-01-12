@@ -238,9 +238,9 @@ export async function verifyIncomingVertices(
 			hash: vertex.hash,
 			peerId: vertex.peerId,
 			operation: {
-				type: vertex.operation?.type ?? "",
+				drpType: vertex.operation?.drpType ?? "",
+				opType: vertex.operation?.opType ?? "",
 				value: vertex.operation?.value,
-				vertexType: vertex.operation?.vertexType ?? "",
 			},
 			dependencies: vertex.dependencies,
 			timestamp: vertex.timestamp,
