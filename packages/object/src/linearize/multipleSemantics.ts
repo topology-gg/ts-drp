@@ -1,12 +1,10 @@
 import {
 	ActionType,
-	type ResolveConflictsType,
 	type Hash,
 	type HashGraph,
 	type Operation,
 	type Vertex,
 } from "../hashgraph/index.js";
-import { VertexTypeOperation } from "../index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizeMultipleSemantics(
@@ -66,13 +64,9 @@ export function linearizeMultipleSemantics(
 				k++;
 			}
 
-			const vertices = concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex);
-			let resolved: ResolveConflictsType;
-			if (vertices.some((vertex) => vertex.operation?.vertexType === VertexTypeOperation.acl)) {
-				resolved = hashGraph.resolveConflictsACL(vertices);
-			} else {
-				resolved = hashGraph.resolveConflictsDRP(vertices);
-			}
+			const resolved = hashGraph.resolveConflicts(
+				concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex)
+			);
 
 			switch (resolved.action) {
 				case ActionType.Drop: {

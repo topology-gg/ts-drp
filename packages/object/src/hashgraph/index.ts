@@ -99,6 +99,13 @@ export class HashGraph {
 		});
 	}
 
+	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
+		if (vertices.some((vertex) => vertex.operation?.vertexType === "acl")) {
+			return this.resolveConflictsACL(vertices);
+		}
+		return this.resolveConflictsDRP(vertices);
+	}
+
 	addToFrontier(operation: Operation): Vertex {
 		const deps = this.getFrontier();
 		const currentTimestamp = Date.now();
