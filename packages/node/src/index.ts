@@ -104,10 +104,6 @@ export class DRPNode {
 			throw new Error("Invalid peerId");
 		}
 
-		try {
-			vertex.signature = await this.networkNode.sign(vertex.hash);
-		} catch (error) {
-			throw new Error(`Failed to sign vertex ${vertex.hash}: ${error}`);
-		}
+		vertex.signature = await this.networkNode.sign(vertex.hash);
 	}
 }
