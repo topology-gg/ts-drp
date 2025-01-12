@@ -2,6 +2,7 @@ import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSe
 import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject, type Operation, OperationType } from "../src/index.js";
+import { ConflictResolvingMap } from "@topology-foundation/blueprints/src/index.js";
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -787,3 +788,65 @@ describe("Writer permission tests", () => {
 		expect(drp1.query_contains(4)).toBe(true);
 	});
 });
+
+describe("Update wins map tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	let obj3: DRPObject;
+
+	beforeEach(async () => {
+		obj1 = new DRPObject("peer1", new ConflictResolvingMap<string, string>());
+		obj2 = new DRPObject("peer2", new ConflictResolvingMap<string, string>());
+		obj3 = new DRPObject("peer3", new ConflictResolvingMap<string, string>());
+	});
+
+	test("Test: map operations work correctly", () => {
+		/*
+		       __ V1: UPDATE("key1", "value1") -- V3: REMOVE("key1")
+		      /
+		  ROOT
+		      \
+		       -- V2: UPDATE("key2, "value2")
+		*/
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		drp1.update("key1", "value1");
+		drp2.update("key2", "value2");
+		drp1.remove("key1");
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		expect(drp1.query_get("key2")).toBe("value2");
+		expect(drp2.query_get("key1")).toBe(undefined);
+	});
+
+	test("Test: resolve conflict with concurrent operations", () => {
+		/*
+		       __ V1: UPDATE("key1", "value1") ------------------------- V5: REMOVE("key2"q)
+		      /                                                        /
+		  ROOT                                                        /
+		      \                                                      /
+		       --- V2: UPDATE("key1", "value2") -- V3: REMOVE("key1") -- V4: UPDATE ("key2", "value2")
+		*/
+
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+
+		drp1.update("key1", "value1");
+		drp2.update("key1", "value2");
+		drp2.remove("key1");
+
+		expect(drp1.query_get("key1")).toBe("value1");
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.query_get("key1")).toBe("value2"); // TODO: should be value1
+
+		drp2.update("key2", "value2");
+		drp1.remove("key2");
+
+		expect(drp2.query_get("key2")).toBe("value2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.query_get("key2")).toBe("value2");
+	});
+});
+
