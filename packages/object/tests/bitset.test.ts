@@ -6,7 +6,22 @@ describe("BitSet Test", () => {
 
 	beforeEach(() => {
 		// Bitset of size 64
-		bitset = new BitSet(2);
+		bitset = new BitSet(64);
+	});
+
+	test("Test: Bitset data", () => {
+		for (let i = 0; i < 64; i++) {
+			bitset.set(i, true);
+		}
+		for (let i = 0; i < 64; i++) {
+			expect(bitset.get(i)).toBe(true);
+		}
+		for (let i = 0; i < 64; i++) {
+			bitset.set(i, false);
+		}
+		for (let i = 0; i < 64; i++) {
+			expect(bitset.get(i)).toBe(false);
+		}
 	});
 
 	test("Test: BitSet", () => {
@@ -24,7 +39,7 @@ describe("BitSet Test", () => {
 
 		bitset.clear();
 
-		let other: BitSet = new BitSet(2);
+		let other: BitSet = new BitSet(64);
 		other.set(0, true);
 		other = other.or(bitset);
 		expect(other.get(0)).toBe(true);

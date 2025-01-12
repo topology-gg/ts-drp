@@ -8,8 +8,8 @@
 export class BitSet {
 	private data: Uint32Array;
 
-	constructor(size = 1) {
-		// Always start with size 32
+	constructor(bits: number) {
+		const size = ((bits + 31) / 32) | 0;
 		this.data = new Uint32Array(size);
 	}
 
@@ -42,7 +42,7 @@ export class BitSet {
 
 	// AND two bitsets of the same size
 	and(other: BitSet): BitSet {
-		const result = new BitSet(this.data.length);
+		const result = new BitSet(this.data.length * 32);
 		for (let i = 0; i < this.data.length; i++) {
 			result.data[i] = this.data[i] & other.data[i];
 		}
@@ -51,7 +51,7 @@ export class BitSet {
 
 	// OR two bitsets of the same size
 	or(other: BitSet): BitSet {
-		const result = new BitSet(this.data.length);
+		const result = new BitSet(this.data.length * 32);
 		for (let i = 0; i < this.data.length; i++) {
 			result.data[i] = this.data[i] | other.data[i];
 		}
@@ -60,7 +60,7 @@ export class BitSet {
 
 	// XOR two bitsets of the same size
 	xor(other: BitSet): BitSet {
-		const result = new BitSet(this.data.length);
+		const result = new BitSet(this.data.length * 32);
 		for (let i = 0; i < this.data.length; i++) {
 			result.data[i] = this.data[i] ^ other.data[i];
 		}
