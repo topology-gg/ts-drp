@@ -151,6 +151,7 @@ export class DRPObject implements IDRPObject {
 								?.split("\n")[2]
 								?.trim()
 								.split(" ")[1];
+							
 							if (!callerName?.startsWith("Proxy."))
 								obj.callFn(
 									fullPropKey,
@@ -176,9 +177,9 @@ export class DRPObject implements IDRPObject {
 		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		let preOperationDRP: any;
 		if (vertexType === VertexTypeOperation.acl) {
-			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
-		} else {
 			preOperationDRP = this._computeACL(this.hashGraph.getFrontier());
+		} else {
+			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
 		}
 		const drp = cloneDeep(preOperationDRP);
 		this._applyOperation(drp, { type: fn, value: args, vertexType });
