@@ -151,6 +151,9 @@ export class DRPObject implements IDRPObject {
 								?.split("\n")[2]
 								?.trim()
 								.split(" ")[1];
+							if (callerName?.startsWith("DRPObject.resolveConflicts")) {
+								return Reflect.apply(applyTarget, thisArg, args);
+							}
 							if (!callerName?.startsWith("Proxy."))
 								obj.callFn(
 									fullPropKey,
@@ -285,7 +288,7 @@ export class DRPObject implements IDRPObject {
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string): boolean {
-		return this.acl ? (this.acl as IACL).query_isAdmin(peerId) : true;
+		return this.acl ? (this.acl as IACL).query_isWriter(peerId) : true;
 	}
 
 	// apply the operation to the DRP
