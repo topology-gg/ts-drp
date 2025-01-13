@@ -110,8 +110,8 @@ export class DRPObject implements IDRPObject {
 			: null;
 		this.hashGraph = new HashGraph(
 			peerId,
-			drp?.resolveConflicts?.bind(this),
-			acl?.resolveConflicts?.bind(this),
+			drp?.resolveConflicts?.bind(drp ?? this),
+			acl?.resolveConflicts?.bind(acl ?? this),
 			drp?.semanticsType,
 		);
 		this.subscriptions = [];
