@@ -722,7 +722,9 @@ describe("Writer permission tests", () => {
 	let obj3: DRPObject;
 
 	beforeEach(async () => {
-		const peerIdToPublicKeyMap = new Map([["peer1", "publicKey1"]]);
+		const peerIdToPublicKeyMap = new Map([
+			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
+		]);
 		obj1 = new DRPObject("peer1", new AddWinsSetWithACL(peerIdToPublicKeyMap));
 		obj2 = new DRPObject("peer2", new AddWinsSetWithACL(peerIdToPublicKeyMap));
 		obj3 = new DRPObject("peer3", new AddWinsSetWithACL(peerIdToPublicKeyMap));
@@ -756,7 +758,10 @@ describe("Writer permission tests", () => {
 		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
 
 		drp1.add(1);
-		drp1.acl.grant("peer1", "peer2", "publicKey2");
+		drp1.acl.grant("peer1", "peer2", {
+			ed25519PublicKey: "publicKey2",
+			blsPublicKey: "",
+		});
 		expect(drp1.acl.query_isAdmin("peer1")).toBe(true);
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -780,8 +785,14 @@ describe("Writer permission tests", () => {
 		const drp2 = obj2.drp as AddWinsSetWithACL<number>;
 		const drp3 = obj3.drp as AddWinsSetWithACL<number>;
 
-		drp1.acl.grant("peer1", "peer2", "publicKey2");
-		drp1.acl.grant("peer1", "peer3", "publicKey3");
+		drp1.acl.grant("peer1", "peer2", {
+			ed25519PublicKey: "publicKey2",
+			blsPublicKey: "",
+		});
+		drp1.acl.grant("peer1", "peer3", {
+			ed25519PublicKey: "publicKey3",
+			blsPublicKey: "",
+		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
 
