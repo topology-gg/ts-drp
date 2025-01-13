@@ -100,7 +100,7 @@ export class HashGraph {
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
-		if (vertices.some((vertex) => vertex.operation?.vertexType === "acl")) {
+		if (vertices.some((vertex) => vertex.operation?.drpType === "ACL")) {
 			return this.resolveConflictsACL(vertices);
 		}
 		return this.resolveConflictsDRP(vertices);
