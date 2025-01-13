@@ -70,7 +70,7 @@ describe("DPRNode with verify and sign signature", () => {
 				hash: "hash",
 				peerId: drpNode.networkNode.peerId,
 				operation: {
-					type: "add",
+					opType: "add",
 					value: 1,
 				},
 				dependencies: [],
