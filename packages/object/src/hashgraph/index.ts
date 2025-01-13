@@ -44,7 +44,8 @@ export type VertexDistance = {
 
 export class HashGraph {
 	peerId: string;
-	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflictsDRP: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsType: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
@@ -69,11 +70,13 @@ export class HashGraph {
 
 	constructor(
 		peerId: string,
-		resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType,
+		resolveConflictsDRP: (vertices: Vertex[]) => ResolveConflictsType,
+		resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType,
 		semanticsType: SemanticsType,
 	) {
 		this.peerId = peerId;
-		this.resolveConflicts = resolveConflicts;
+		this.resolveConflictsDRP = resolveConflictsDRP;
+		this.resolveConflictsACL = resolveConflictsACL
 		this.semanticsType = semanticsType;
 
 		const rootVertex: Vertex = {
@@ -94,6 +97,13 @@ export class HashGraph {
 		this.vertexDistances.set(HashGraph.rootHash, {
 			distance: 0,
 		});
+	}
+
+	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
+		if (vertices.some((vertex) => vertex.operation?.vertexType === "acl")) {
+			return this.resolveConflictsACL(vertices);
+		}
+		return this.resolveConflictsDRP(vertices);
 	}
 
 	addToFrontier(operation: Operation): Vertex {
