@@ -1,8 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 
 const local_peer_id = "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ";
-// This is the IP of the local bootstrap node, replace it with the IP of the local node
-const local_bootstrap_peer_ip = "127.0.0.1";
 
 if (!local_peer_id) {
 	console.error(
@@ -24,7 +22,7 @@ const render = () => {
 
 async function initDRPNode() {
 	if (node) {
-		node.addCustomGroupMessageHandler("", (e) => {
+		node.addCustomGroupMessageHandler("", () => {
 			peers = node.networkNode.getAllPeers();
 			render();
 		});
@@ -46,7 +44,7 @@ async function main() {
 	select_address_type.value = "ip4";
 	address_type_label.innerText = "IP address";
 
-	select_address_type?.addEventListener("change", (e) => {
+	select_address_type?.addEventListener("change", () => {
 		const val = select_address_type.value;
 		if (val === "ip4") {
 			address_type_label.innerText = "IP address";
@@ -102,7 +100,7 @@ async function main() {
 			field_set.style.backgroundColor = "rgba(0, 255, 0, 0.2)";
 			initDRPNode();
 			render();
-		} catch (e) {
+		} catch (_) {
 			field_set.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
 			alert("Failed to connect to the bootstrap node");
 			return;

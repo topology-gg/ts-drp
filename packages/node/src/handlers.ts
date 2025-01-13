@@ -223,7 +223,7 @@ async function syncAcceptHandler(
 }
 
 /* data: { id: string } */
-function syncRejectHandler(node: DRPNode, data: Uint8Array) {
+function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
 	// TODO: handle reject. Possible actions:
 	// - Retry sync
 	// - Ask sync from another peer
@@ -270,11 +270,21 @@ export function drpObjectChangesHandler(
 
 export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 	const signPromises = vertices.map(async (vertex) => {
-		if (vertex.peerId !== node.networkNode.peerId || vertex.signature !== "") {
+		if (
+			vertex.peerId !== node.networkNode.peerId ||
+			vertex.signature.length !== 0
+		) {
 			return;
 		}
-
-		await node.signVertex(vertex);
+		try {
+			await node.signVertex(vertex);
+		} catch (error) {
+			log.error(
+				"::signGeneratedVertices: Error signing vertex:",
+				vertex.hash,
+				error,
+			);
+		}
 	});
 
 	await Promise.all(signPromises);
@@ -343,11 +353,9 @@ export async function verifyIncomingVertices(
 	}
 	const acl = drp.acl;
 	const verificationPromises = vertices.map(async (vertex) => {
-		if (vertex.signature === "") {
+		if (vertex.signature.length === 0) {
 			return null;
 		}
-
-		const signature = uint8ArrayFromString(vertex.signature, "base64");
 
 		const publicKey = acl.query_getPeerKey(vertex.peerId);
 		if (!publicKey) {
@@ -372,7 +380,7 @@ export async function verifyIncomingVertices(
 			const isValid = await crypto.subtle.verify(
 				{ name: "Ed25519" },
 				cryptoKey,
-				signature,
+				vertex.signature,
 				data,
 			);
 

@@ -15,7 +15,7 @@ message Vertex {
   Operation operation = 3;
   repeated string dependencies = 4;
   int64 timestamp = 5;
-  string signature = 6;
+  bytes signature = 6;
 }
 
 message Attestation {

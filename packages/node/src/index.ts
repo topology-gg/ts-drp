@@ -70,7 +70,7 @@ export class DRPNode {
 		this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
-	sendCustomMessage(peerId: string, protocol: string, data: Uint8Array) {
+	sendCustomMessage(peerId: string, data: Uint8Array) {
 		const message = NetworkPb.Message.create({
 			sender: this.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,
@@ -109,9 +109,9 @@ export class DRPNode {
 
 	async signVertex(vertex: Vertex) {
 		if (vertex.peerId !== this.networkNode.peerId) {
-			log.error("::signVertexOperation: Invalid peer id");
-			return;
+			throw new Error("Invalid peerId");
 		}
+
 		vertex.signature = await this.credentialStore.signWithEd25519(vertex.hash);
 	}
 }

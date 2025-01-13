@@ -100,11 +100,7 @@ export function init(node: DRPNode) {
 	) {
 		let returnCode = 0;
 		try {
-			node.sendCustomMessage(
-				call.request.peerId,
-				call.request.protocol,
-				call.request.data,
-			);
+			node.sendCustomMessage(call.request.peerId, call.request.data);
 		} catch (e) {
 			log.error("::rpc::sendCustomMessage: Error", e);
 			returnCode = 1;

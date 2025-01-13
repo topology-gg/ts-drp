@@ -51,12 +51,12 @@ function paint_pixel(pixel: HTMLDivElement) {
 }
 
 async function createConnectHandlers() {
-	node.addCustomGroupMessageHandler(drpObject.id, (e) => {
+	node.addCustomGroupMessageHandler(drpObject.id, () => {
 		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
 		render();
 	});
 
-	node.objectStore.subscribe(drpObject.id, (_, _obj) => {
+	node.objectStore.subscribe(drpObject.id, () => {
 		render();
 	});
 }
@@ -83,7 +83,7 @@ async function init() {
 		}
 	}
 
-	node.addCustomGroupMessageHandler("", (e) => {
+	node.addCustomGroupMessageHandler("", () => {
 		peers = node.networkNode.getAllPeers();
 		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
 		render();

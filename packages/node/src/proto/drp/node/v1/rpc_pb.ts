@@ -38,7 +38,6 @@ export interface SyncDRPObjectRequest {
 
 export interface SendCustomMessageRequest {
   peerId: string;
-  protocol: string;
   data: Uint8Array;
 }
 
@@ -422,7 +421,7 @@ export const SyncDRPObjectRequest: MessageFns<SyncDRPObjectRequest> = {
 };
 
 function createBaseSendCustomMessageRequest(): SendCustomMessageRequest {
-  return { peerId: "", protocol: "", data: new Uint8Array(0) };
+  return { peerId: "", data: new Uint8Array(0) };
 }
 
 export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
@@ -430,11 +429,8 @@ export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
     if (message.peerId !== "") {
       writer.uint32(10).string(message.peerId);
     }
-    if (message.protocol !== "") {
-      writer.uint32(18).string(message.protocol);
-    }
     if (message.data.length !== 0) {
-      writer.uint32(26).bytes(message.data);
+      writer.uint32(18).bytes(message.data);
     }
     return writer;
   },
@@ -459,14 +455,6 @@ export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
             break;
           }
 
-          message.protocol = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
           message.data = reader.bytes();
           continue;
         }
@@ -482,7 +470,6 @@ export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
   fromJSON(object: any): SendCustomMessageRequest {
     return {
       peerId: isSet(object.peerId) ? globalThis.String(object.peerId) : "",
-      protocol: isSet(object.protocol) ? globalThis.String(object.protocol) : "",
       data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
     };
   },
@@ -491,9 +478,6 @@ export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
     const obj: any = {};
     if (message.peerId !== "") {
       obj.peerId = message.peerId;
-    }
-    if (message.protocol !== "") {
-      obj.protocol = message.protocol;
     }
     if (message.data.length !== 0) {
       obj.data = base64FromBytes(message.data);
@@ -507,7 +491,6 @@ export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
   fromPartial<I extends Exact<DeepPartial<SendCustomMessageRequest>, I>>(object: I): SendCustomMessageRequest {
     const message = createBaseSendCustomMessageRequest();
     message.peerId = object.peerId ?? "";
-    message.protocol = object.protocol ?? "";
     message.data = object.data ?? new Uint8Array(0);
     return message;
   },

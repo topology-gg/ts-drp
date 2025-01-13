@@ -219,7 +219,7 @@ export class DRPObject implements IDRPObject {
 				this._applyOperation(drp, vertex.operation);
 				this._setState(vertex, this._getDRPState(drp));
 				this._initializeFinalityState(vertex.hash);
-			} catch (e) {
+			} catch (_) {
 				missing.push(vertex.hash);
 			}
 		}

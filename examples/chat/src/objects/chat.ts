@@ -3,7 +3,6 @@ import {
 	type DRP,
 	type ResolveConflictsType,
 	SemanticsType,
-	type Vertex,
 } from "@ts-drp/object";
 
 export class Chat implements DRP {
@@ -22,7 +21,7 @@ export class Chat implements DRP {
 		return this.messages;
 	}
 
-	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
+	resolveConflicts(_): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
 }

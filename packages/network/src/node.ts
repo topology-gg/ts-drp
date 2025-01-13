@@ -3,6 +3,7 @@ import {
 	type GossipsubMessage,
 	gossipsub,
 } from "@chainsafe/libp2p-gossipsub";
+import { createPeerScoreParams } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
@@ -31,6 +32,7 @@ import { multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
 
@@ -74,8 +76,8 @@ export class DRPNetworkNode {
 		const _bootstrapNodesList = this._config?.bootstrap_peers
 			? this._config.bootstrap_peers
 			: [
-					//"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
-					"/dns4/bootstrap2.topology.gg/tcp/50000/ws/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
+					"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
+					"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
 				];
 
 		const _pubsubPeerDiscovery = pubsubPeerDiscovery({
@@ -99,12 +101,19 @@ export class DRPNetworkNode {
 			identify: identify(),
 			pubsub: gossipsub({
 				allowPublishToZeroTopicPeers: true,
+				scoreParams: createPeerScoreParams({
+					IPColocationFactorWeight: 0,
+				}),
 			}),
 		};
 
 		const _bootstrap_services = {
 			..._node_services,
-			relay: circuitRelayServer(),
+			relay: circuitRelayServer({
+				reservations: {
+					maxReservations: Number.POSITIVE_INFINITY,
+				},
+			}),
 		};
 
 		this._node = await createLibp2p({
