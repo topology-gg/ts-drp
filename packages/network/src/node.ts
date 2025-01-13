@@ -30,6 +30,7 @@ import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { multiaddr } from "@multiformats/multiaddr";
+import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
@@ -136,6 +137,21 @@ export class DRPNetworkNode {
 					return false;
 				},
 			},
+			connectionManager: {
+				addressSorter: (a, b) => {
+					const localRegex =
+						/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
+					const aLocal = localRegex.test(a.toString());
+					const bLocal = localRegex.test(b.toString());
+					const aWebrtc = WebRTC.matches(a.multiaddr);
+					const bWebrtc = WebRTC.matches(b.multiaddr);
+					if (aLocal && !bLocal) return 1;
+					if (!aLocal && bLocal) return -1;
+					if (aWebrtc && !bWebrtc) return -1;
+					if (!aWebrtc && bWebrtc) return 1;
+					return 0;
+				},
+			},
 			metrics: this._config?.browser_metrics ? devToolsMetrics() : undefined,
 			peerDiscovery: _peerDiscovery,
 			services: this._config?.bootstrap ? _bootstrap_services : _node_services,
@@ -175,26 +191,12 @@ export class DRPNetworkNode {
 		);
 		this._node.addEventListener("peer:discovery", async (e) => {
 			// current bug in v11.0.0 requires manual dial (https://github.com/libp2p/js-libp2p-pubsub-peer-discovery/issues/149)
-			const sortedAddrs = e.detail.multiaddrs.sort((a, b) => {
-				const localRegex =
-					/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
-				const aLocal = localRegex.test(a.toString());
-				const bLocal = localRegex.test(b.toString());
-				const aWebrtc = a.toString().includes("/webrtc/");
-				const bWebrtc = b.toString().includes("/webrtc/");
-				if (aLocal && !bLocal) return 1;
-				if (!aLocal && bLocal) return -1;
-				if (aWebrtc && !bWebrtc) return -1;
-				if (!aWebrtc && bWebrtc) return 1;
-				return 0;
-			});
-
-			// Dial non-local multiaddrs, then WebRTC multiaddrs
-			for (const address of sortedAddrs) {
-				try {
-					await this._node?.dial(address);
-				} catch (e) {
-					log.error("::start::peer::dial::error", e);
+			if (e.detail.multiaddrs.length > 0) {
+				const alreadyConnected = this._node
+					?.getPeers()
+					.some((p) => p === e.detail.id);
+				if (!alreadyConnected) {
+					await this._node?.dial(e.detail.multiaddrs);
 				}
 			}
 

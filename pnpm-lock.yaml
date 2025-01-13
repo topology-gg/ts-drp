@@ -208,6 +208,9 @@ importers:
       '@multiformats/multiaddr':
         specifier: ^12.3.1
         version: 12.3.4
+      '@multiformats/multiaddr-matcher':
+        specifier: ^1.6.0
+        version: 1.6.0
       '@ts-drp/logger':
         specifier: ^0.5.2
         version: link:../logger
