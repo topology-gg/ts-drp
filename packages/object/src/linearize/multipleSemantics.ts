@@ -65,7 +65,7 @@ export function linearizeMultipleSemantics(
 			}
 
 			const resolved = hashGraph.resolveConflicts(
-				concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex)
+				concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex),
 			);
 
 			switch (resolved.action) {

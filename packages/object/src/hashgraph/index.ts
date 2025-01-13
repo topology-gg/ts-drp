@@ -76,7 +76,7 @@ export class HashGraph {
 	) {
 		this.peerId = peerId;
 		this.resolveConflictsDRP = resolveConflictsDRP;
-		this.resolveConflictsACL = resolveConflictsACL
+		this.resolveConflictsACL = resolveConflictsACL;
 		this.semanticsType = semanticsType;
 
 		const rootVertex: Vertex = {
