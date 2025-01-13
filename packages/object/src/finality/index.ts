@@ -67,15 +67,13 @@ export class FinalityState {
 			}
 		}
 
-		if (!this.aggregation_bits.get(index)) {
-			this.aggregation_bits.set(index, true);
-			if (!this.signature) {
-				this.signature = signature;
-			} else {
-				this.signature = bls.aggregateSignatures([this.signature, signature]);
-			}
-			this.numberOfVotes++;
+		this.aggregation_bits.set(index, true);
+		if (!this.signature) {
+			this.signature = signature;
+		} else {
+			this.signature = bls.aggregateSignatures([this.signature, signature]);
 		}
+		this.numberOfVotes++;
 	}
 
 	async merge(attestation: AggregatedAttestation) {
