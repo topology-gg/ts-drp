@@ -111,6 +111,7 @@ export class DRPNetworkNode {
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
 				}),
+				fallbackToFloodsub: false,
 			}),
 		};
 
