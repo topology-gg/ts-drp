@@ -17,7 +17,7 @@ export interface Vertex {
   operation: Vertex_Operation | undefined;
   dependencies: string[];
   timestamp: number;
-  signature: string;
+  signature: Uint8Array;
 }
 
 export interface Vertex_Operation {
@@ -34,7 +34,7 @@ export interface DRPObjectBase {
 }
 
 function createBaseVertex(): Vertex {
-  return { hash: "", peerId: "", operation: undefined, dependencies: [], timestamp: 0, signature: "" };
+  return { hash: "", peerId: "", operation: undefined, dependencies: [], timestamp: 0, signature: new Uint8Array(0) };
 }
 
 export const Vertex: MessageFns<Vertex> = {
@@ -54,8 +54,8 @@ export const Vertex: MessageFns<Vertex> = {
     if (message.timestamp !== 0) {
       writer.uint32(40).int64(message.timestamp);
     }
-    if (message.signature !== "") {
-      writer.uint32(50).string(message.signature);
+    if (message.signature.length !== 0) {
+      writer.uint32(50).bytes(message.signature);
     }
     return writer;
   },
@@ -112,7 +112,7 @@ export const Vertex: MessageFns<Vertex> = {
             break;
           }
 
-          message.signature = reader.string();
+          message.signature = reader.bytes();
           continue;
         }
       }
@@ -133,7 +133,7 @@ export const Vertex: MessageFns<Vertex> = {
         ? object.dependencies.map((e: any) => globalThis.String(e))
         : [],
       timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
-      signature: isSet(object.signature) ? globalThis.String(object.signature) : "",
+      signature: isSet(object.signature) ? bytesFromBase64(object.signature) : new Uint8Array(0),
     };
   },
 
@@ -154,8 +154,8 @@ export const Vertex: MessageFns<Vertex> = {
     if (message.timestamp !== 0) {
       obj.timestamp = Math.round(message.timestamp);
     }
-    if (message.signature !== "") {
-      obj.signature = message.signature;
+    if (message.signature.length !== 0) {
+      obj.signature = base64FromBytes(message.signature);
     }
     return obj;
   },
@@ -172,7 +172,7 @@ export const Vertex: MessageFns<Vertex> = {
       : undefined;
     message.dependencies = object.dependencies?.map((e) => e) || [];
     message.timestamp = object.timestamp ?? 0;
-    message.signature = object.signature ?? "";
+    message.signature = object.signature ?? new Uint8Array(0);
     return message;
   },
 };

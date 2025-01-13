@@ -89,7 +89,7 @@ export class HashGraph {
 			},
 			dependencies: [],
 			timestamp: -1,
-			signature: "",
+			signature: new Uint8Array(),
 		};
 		this.vertices.set(HashGraph.rootHash, rootVertex);
 		this.frontier.push(HashGraph.rootHash);
@@ -117,7 +117,7 @@ export class HashGraph {
 			operation: operation ?? { opType: OperationType.NOP },
 			dependencies: deps,
 			timestamp: currentTimestamp,
-			signature: "",
+			signature: new Uint8Array(),
 		};
 
 		this.vertices.set(hash, vertex);
@@ -161,7 +161,7 @@ export class HashGraph {
 		deps: Hash[],
 		peerId: string,
 		timestamp: number,
-		signature: string,
+		signature: Uint8Array,
 	): Hash {
 		const hash = computeHash(peerId, operation, deps, timestamp);
 		if (this.vertices.has(hash)) {
