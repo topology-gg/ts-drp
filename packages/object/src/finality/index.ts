@@ -53,16 +53,12 @@ export class FinalityState {
 
 		if (verify) {
 			// verify signature validity
-			if (
-				!bls.verify(
-					uint8ArrayFromString(
-						this.voterCredentials[index].blsPublicKey,
-						"base64",
-					),
-					uint8ArrayFromString(this.data),
-					signature,
-				)
-			) {
+			const publicKey = uint8ArrayFromString(
+				this.voterCredentials[index].blsPublicKey,
+				"base64",
+			);
+			const data = uint8ArrayFromString(this.data);
+			if (!bls.verify(publicKey, data, signature)) {
 				throw new Error("Invalid signature");
 			}
 		}
