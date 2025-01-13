@@ -36,7 +36,7 @@ export class FinalityState {
 			this.voterIndices.set(peerIds[i], i);
 		}
 
-		this.aggregation_bits = new BitSet((peerIds.length + 31) >> 5);
+		this.aggregation_bits = new BitSet(peerIds.length);
 		this.numberOfVotes = 0;
 	}
 
@@ -88,7 +88,7 @@ export class FinalityState {
 		}
 
 		const aggregation_bits = new BitSet(
-			(this.voterCredentials.length + 31) >> 5,
+			this.voterCredentials.length,
 			attestation.aggregationBits,
 		);
 

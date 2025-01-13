@@ -69,7 +69,7 @@ describe("Tests for FinalityState", () => {
 
 	test("merge: Merge an aggregate of 100 votes", async () => {
 		const signatures: Uint8Array[] = [];
-		const bitset = new BitSet(20);
+		const bitset = new BitSet(cred.size);
 		for (let i = 0; i < 100; i++) {
 			signatures.push(
 				cred

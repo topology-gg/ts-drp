@@ -93,7 +93,7 @@ export class DRPCredentialStore {
 		};
 	}
 
-	async signWithEd25519(data: string): Promise<string> {
+	async signWithEd25519(data: string): Promise<Uint8Array> {
 		if (!this._ed25519PrivateKey) {
 			throw new Error("Private key not found");
 		}
@@ -101,7 +101,7 @@ export class DRPCredentialStore {
 		const signature = await this._ed25519PrivateKey.sign(
 			uint8ArrayFromString(data),
 		);
-		return uint8ArrayToString(signature, "base64");
+		return signature;
 	}
 
 	signWithBls(data: string): Uint8Array {
