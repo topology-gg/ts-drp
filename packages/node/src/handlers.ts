@@ -1,7 +1,6 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
 import type { DRP, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
-import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
