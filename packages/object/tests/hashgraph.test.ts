@@ -789,7 +789,7 @@ describe("Writer permission tests", () => {
 	});
 });
 
-describe("Update wins map tests", () => {
+describe("HashGraph for update wins map tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
