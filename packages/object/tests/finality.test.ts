@@ -1,12 +1,12 @@
 import bls from "@chainsafe/bls/herumi";
-import { beforeEach, describe, expect, test } from "vitest";
+import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
+import { DRPCredentialStore } from "@topology-foundation/node/src/store/index.js";
 import { toString as uint8ArrayToString } from "uint8arrays";
+import { beforeEach, describe, expect, test } from "vitest";
 import type { AggregatedAttestation } from "../dist/src/proto/drp/object/v1/object_pb.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
-import { DRPCredentialStore } from "@topology-foundation/node/src/store/index.js";
 import { DRPObject } from "../src/index.js";
-import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 
 // initialize log
 const _ = new DRPObject("peer1", new AddWinsSet());
