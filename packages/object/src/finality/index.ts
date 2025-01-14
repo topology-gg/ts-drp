@@ -2,7 +2,7 @@ import bls from "@chainsafe/bls/herumi";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { BitSet } from "../hashgraph/bitset.js";
 import type { Hash } from "../hashgraph/index.js";
-import type { DRPPublicCredential } from "../index.js";
+import { type DRPPublicCredential, log } from "../index.js";
 import type {
 	AggregatedAttestation,
 	Attestation,
@@ -72,7 +72,7 @@ export class FinalityState {
 		this.numberOfVotes++;
 	}
 
-	async merge(attestation: AggregatedAttestation) {
+	merge(attestation: AggregatedAttestation) {
 		if (this.data !== attestation.data) {
 			throw new Error("Hash mismatch");
 		}
@@ -93,9 +93,7 @@ export class FinalityState {
 		const data = uint8ArrayFromString(this.data);
 
 		// verify signature validity
-		if (
-			!(await bls.asyncVerifyAggregate(publicKeys, data, attestation.signature))
-		) {
+		if (!bls.verifyAggregate(publicKeys, data, attestation.signature)) {
 			throw new Error("Invalid signature");
 		}
 
@@ -121,6 +119,7 @@ export class FinalityStore {
 		}
 	}
 
+	// returns the number of votes required for the vertex to be finalized
 	getQuorum(hash: Hash): number | undefined {
 		const state = this.states.get(hash);
 		if (state === undefined) {
@@ -129,10 +128,12 @@ export class FinalityStore {
 		return Math.ceil(state.voterCredentials.length * this.finalityThreshold);
 	}
 
+	// returns the number of votes for the vertex
 	getNumberOfVotes(hash: Hash): number | undefined {
 		return this.states.get(hash)?.numberOfVotes;
 	}
 
+	// returns true if the vertex is finalized
 	isFinalized(hash: Hash): boolean | undefined {
 		const numberOfVotes = this.getNumberOfVotes(hash);
 		const quorum = this.getQuorum(hash);
@@ -141,10 +142,12 @@ export class FinalityStore {
 		}
 	}
 
+	// returns true if the specified peerId can vote on the vertex
 	canVote(peerId: string, hash: Hash): boolean | undefined {
 		return this.states.get(hash)?.voterIndices.has(peerId);
 	}
 
+	// returns true if the specified peerId has voted on the vertex
 	voted(peerId: string, hash: Hash): boolean | undefined {
 		const state = this.states.get(hash);
 		if (state !== undefined) {
@@ -155,14 +158,20 @@ export class FinalityStore {
 		}
 	}
 
+	// add votes to the vertex
 	addVotes(peerId: string, attestations: Attestation[], verify = true) {
 		for (const attestation of attestations) {
-			this.states
-				.get(attestation.data)
-				?.addVote(peerId, attestation.signature, verify);
+			try {
+				this.states
+					.get(attestation.data)
+					?.addVote(peerId, attestation.signature, verify);
+			} catch (e) {
+				log.error("::finality::addVotes", e);
+			}
 		}
 	}
 
+	// returns the attestations for the vertex
 	getAttestation(hash: Hash): AggregatedAttestation | undefined {
 		const state = this.states.get(hash);
 		if (state !== undefined && state.signature !== undefined) {
@@ -174,10 +183,14 @@ export class FinalityStore {
 		}
 	}
 
-	async mergeVotes(attestations: AggregatedAttestation[]) {
-		const promises = attestations.map((attestation) =>
-			this.states.get(attestation.data)?.merge(attestation),
-		);
-		await Promise.all(promises);
+	// merge multiple votes
+	mergeVotes(attestations: AggregatedAttestation[]) {
+		for (const attestation of attestations) {
+			try {
+				this.states.get(attestation.data)?.merge(attestation);
+			} catch (e) {
+				log.error("::finality::mergeVotes", e);
+			}
+		}
 	}
 }
