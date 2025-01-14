@@ -823,21 +823,21 @@ describe("Update wins map tests", () => {
 
 	test("Test: resolve conflict with concurrent operations", () => {
 		/*
-		       __ V1: UPDATE("key1", "value1") ------------------------- V5: REMOVE("key2")
+		       __ V1: UPDATE("key1", "value2") ------------------------- V5: REMOVE("key2")
 		      /                                                        /
 		  ROOT                                                        /
 		      \                                                      /
-		       --- V2: UPDATE("key1", "value2") -- V3: REMOVE("key1") -- V4: UPDATE ("key2", "value2")
+		       --- V2: UPDATE("key1", "value1") -- V3: REMOVE("key1") -- V4: UPDATE ("key2", "value2")
 		*/
 
 		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
 		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
 
-		drp1.update("key1", "value1");
-		drp2.update("key1", "value2");
+		drp1.update("key1", "value2");
+		drp2.update("key1", "value1");
 		drp2.remove("key1");
 
-		expect(drp1.query_get("key1")).toBe("value1");
+		expect(drp1.query_get("key1")).toBe("value2");
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		expect(drp1.query_get("key1")).toBe(undefined);
 
@@ -847,5 +847,39 @@ describe("Update wins map tests", () => {
 		expect(drp2.query_get("key2")).toBe("value2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		expect(drp2.query_get("key2")).toBe("value2");
+	});
+
+	test("Test: resolve conflict with concurrent operations complex case", () => {
+		/*
+		        __ V1:UPDATE("key1", "value1") -- V2:REMOVE("key2") -- V5:UPDATE("key2", "value1")
+		       /                                                                                  \
+		      /                                                                                    \
+		  ROOT -- V3:REMOVE("key3") -- V4:UPDATE("key2", "value2") --------------------------------- V7:REMOVE("key1")
+		      \                                                    \                                 \
+		       \                                                    ----------------------------------\
+		        -- V6:UPDATE("key2", "eulav3") -------------------------------------------------------- v8:UPDATE("key1", "value")
+		*/
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		const drp3 = obj3.drp as ConflictResolvingMap<string, string>;
+
+		drp1.update("key1", "value1");
+		drp1.remove("key2");
+		drp2.remove("key3");
+		drp2.update("key2", "value2");
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp1.query_get("key2")).toBe("value2");
+
+		drp3.update("key2", "eulav3");
+		obj3.merge(obj1.hashGraph.getAllVertices());
+		expect(drp3.query_get("key2")).toBe("eulav3");
+
+		drp2.remove("key1");
+		expect(drp2.query_get("key1")).toBe(undefined);
+		drp3.update("key1", "value");
+		obj1.merge(obj3.hashGraph.getAllVertices());
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.query_get("key1")).toBe("value");
 	});
 });
