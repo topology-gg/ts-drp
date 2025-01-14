@@ -1,8 +1,8 @@
 import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
+import { ConflictResolvingMap } from "@topology-foundation/blueprints/src/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject, type Operation, OperationType } from "../src/index.js";
-import { ConflictResolvingMap } from "@topology-foundation/blueprints/src/index.js";
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -849,4 +849,3 @@ describe("Update wins map tests", () => {
 		expect(drp2.query_get("key2")).toBe("value2");
 	});
 });
-
