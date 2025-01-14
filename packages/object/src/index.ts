@@ -253,8 +253,7 @@ export class DRPObject implements IDRPObject {
 			throw new Error(`${type} is not a function`);
 		}
 
-		const args = Array.isArray(value) ? value : [value];
-		target[methodName](...args);
+		target[methodName](...value);
 	}
 
 	// compute the DRP based on all dependencies of the current vertex using partial linearization
