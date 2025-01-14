@@ -40,6 +40,10 @@ import { uint8ArrayToStream } from "./stream.js";
 export * from "./stream.js";
 
 export const DRP_MESSAGE_PROTOCOL = "/drp/message/0.0.1";
+export const BOOTSTRAP_NODES = [
+	"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
+	"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
+];
 let log: Logger;
 
 // snake_casing to match the JSON config
@@ -82,10 +86,7 @@ export class DRPNetworkNode {
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
 			? this._config.bootstrap_peers
-			: [
-					"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
-					"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
-				];
+			: BOOTSTRAP_NODES;
 
 		const _pubsubPeerDiscovery = pubsubPeerDiscovery({
 			interval: 10_000,
@@ -206,6 +207,10 @@ export class DRPNetworkNode {
 		);
 	}
 
+	async stop() {
+		await this._node?.stop();
+	}
+
 	async restart(config?: DRPNetworkNodeConfig) {
 		await this._node?.stop();
 		if (config) this._config = config;
@@ -250,13 +255,21 @@ export class DRPNetworkNode {
 		}
 	}
 
-	disconnect(peerId: string) {
+	async disconnect(peerId: string) {
 		try {
-			this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
+			await this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
 			log.info("::disconnect: Successfuly disconnected", peerId);
 		} catch (e) {
 			log.error("::disconnect:", e);
 		}
+	}
+
+	getBootstrapNodes() {
+		return this._config?.bootstrap_peers ?? BOOTSTRAP_NODES;
+	}
+
+	getMultiaddrs() {
+		return this._node?.getMultiaddrs().map((addr) => addr.toString());
 	}
 
 	getAllPeers() {
@@ -269,19 +282,6 @@ export class DRPNetworkNode {
 		const peers = this._pubsub?.getSubscribers(group);
 		if (!peers) return [];
 		return peers.map((peer) => peer.toString());
-	}
-
-	getBootstraps() {
-		return (
-			this._config?.bootstrap_peers || [
-				"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
-				"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
-			]
-		);
-	}
-
-	getMultiaddrs() {
-		return this._node?.getMultiaddrs().map((addr) => addr.toString());
 	}
 
 	async broadcastMessage(topic: string, message: Message) {
