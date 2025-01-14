@@ -49,8 +49,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 2 },
-			{ type: "add", value: 1 },
+			{ type: "add", value: [2] },
+			{ type: "add", value: [1] },
 		]);
 	});
 
@@ -75,7 +75,7 @@ describe("HashGraph construction tests", () => {
 		obj1.hashGraph.addVertex(
 			{
 				type: "add",
-				value: 1,
+				value: [1],
 			},
 			[hash],
 			"",
@@ -85,7 +85,7 @@ describe("HashGraph construction tests", () => {
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
-		expect(linearOps).toEqual([{ type: "add", value: 1 }]);
+		expect(linearOps).toEqual([{ type: "add", value: [1] }]);
 	});
 });
 
@@ -112,8 +112,8 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 1 },
+			{ type: "add", value: [1] },
+			{ type: "remove", value: [1] },
 		]);
 	});
 
@@ -141,8 +141,8 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 1 },
+			{ type: "add", value: [1] },
+			{ type: "remove", value: [1] },
 		]);
 	});
 
@@ -170,9 +170,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 1 },
-			{ type: "add", value: 2 },
+			{ type: "add", value: [1] },
+			{ type: "remove", value: [1] },
+			{ type: "add", value: [2] },
 		]);
 	});
 
@@ -204,9 +204,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 1 },
-			{ type: "add", value: 10 },
+			{ type: "add", value: [1] },
+			{ type: "remove", value: [1] },
+			{ type: "add", value: [10] },
 		]);
 	});
 
@@ -236,9 +236,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 1 },
-			{ type: "add", value: 2 },
+			{ type: "add", value: [1] },
+			{ type: "remove", value: [1] },
+			{ type: "add", value: [2] },
 		]);
 	});
 
@@ -289,11 +289,11 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 1 },
-			{ type: "add", value: 2 },
-			{ type: "add", value: 3 },
-			{ type: "remove", value: 1 },
+			{ type: "add", value: [1] },
+			{ type: "remove", value: [1] },
+			{ type: "add", value: [2] },
+			{ type: "add", value: [3] },
+			{ type: "remove", value: [1] },
 		]);
 	});
 
@@ -344,10 +344,10 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "remove", value: 1 },
-			{ type: "add", value: 3 },
-			{ type: "add", value: 2 },
+			{ type: "add", value: [1] },
+			{ type: "remove", value: [1] },
+			{ type: "add", value: [3] },
+			{ type: "add", value: [2] },
 		]);
 	});
 
@@ -379,9 +379,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ type: "add", value: 1 },
-			{ type: "add", value: 2 },
-			{ type: "remove", value: 2 },
+			{ type: "add", value: [1] },
+			{ type: "add", value: [2] },
+			{ type: "remove", value: [2] },
 		]);
 	});
 });
@@ -409,7 +409,7 @@ describe("HashGraph for undefined operations tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		// Should only have one, since we skipped the undefined operations
-		expect(linearOps).toEqual([{ type: "add", value: 2 }]);
+		expect(linearOps).toEqual([{ type: "add", value: [2] }]);
 	});
 
 	test("Test: addToFrontier with undefined operation return Vertex with NoOp operation", () => {
