@@ -87,26 +87,21 @@ export class FinalityState {
 		);
 
 		// public keys of voters who voted
-		const credentials = this.voterCredentials.filter((_, i) =>
-			aggregation_bits.get(i),
-		);
+		const publicKeys = this.voterCredentials
+			.filter((_, i) => aggregation_bits.get(i))
+			.map((voter) => uint8ArrayFromString(voter.blsPublicKey, "base64"));
+		const data = uint8ArrayFromString(this.data);
 
 		// verify signature validity
 		if (
-			!(await bls.asyncVerifyAggregate(
-				credentials.map((voter) =>
-					uint8ArrayFromString(voter.blsPublicKey, "base64"),
-				),
-				uint8ArrayFromString(this.data),
-				attestation.signature,
-			))
+			!(await bls.asyncVerifyAggregate(publicKeys, data, attestation.signature))
 		) {
 			throw new Error("Invalid signature");
 		}
 
 		this.aggregation_bits = aggregation_bits;
 		this.signature = attestation.signature;
-		this.numberOfVotes = credentials.length;
+		this.numberOfVotes = publicKeys.length;
 	}
 }
 
