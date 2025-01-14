@@ -212,7 +212,7 @@ export class DRPNetworkNode {
 	}
 
 	async restart(config?: DRPNetworkNodeConfig) {
-		await this._node?.stop();
+		await this.stop();
 		if (config) this._config = config;
 		await this.start();
 	}
