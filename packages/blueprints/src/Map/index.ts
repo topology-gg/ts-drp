@@ -39,6 +39,14 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		return this._map.get(key);
 	}
 
+	async computeHash(data: string): Promise<string> {
+		const encoder = new TextEncoder();
+		const encodedData = encoder.encode(data);
+		const hashBuffer = await crypto.subtle.digest("SHA-256", encodedData);
+		const hashArray = Array.from(new Uint8Array(hashBuffer));
+		return hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+	}
+
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (!vertices[0].operation || !vertices[1].operation) {
 			return { action: ActionType.Nop };
@@ -50,11 +58,25 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		const values1 = Array.isArray(vertices[1].operation.value)
 			? vertices[1].operation.value
 			: [vertices[1].operation.value];
+
 		if (
-			vertices[0].operation.type === vertices[1].operation.type ||
-			values0[0] !== values1[0]
+			// if both are revoke operations, return no-op
+			vertices[0].operation.type === "revoke" &&
+			vertices[1].operation.type === "revoke"
 		) {
 			return { action: ActionType.Nop };
+		}
+
+		if (
+			vertices[0].operation.type === "update" &&
+			vertices[1].operation.type === "update"
+		) {
+			// if both are updates, keep operation with higher hash value
+			const hash0 = this.computeHash(JSON.stringify(values0[1]));
+			const hash1 = this.computeHash(JSON.stringify(values1[1]));
+			return hash0 > hash1
+				? { action: ActionType.DropRight }
+				: { action: ActionType.DropLeft };
 		}
 
 		return this._conflictResolution === MapConflictResolution.UpdateWins
