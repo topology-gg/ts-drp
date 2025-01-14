@@ -29,7 +29,7 @@ import { webRTC, webRTCDirect } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
-import { multiaddr } from "@multiformats/multiaddr";
+import { multiaddr, type MultiaddrInput } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
@@ -206,6 +206,12 @@ export class DRPNetworkNode {
 		);
 	}
 
+	async restart(config?: DRPNetworkNodeConfig) {
+		await this._node?.stop();
+		if (config) this._config = config;
+		await this.start();
+	}
+
 	subscribe(topic: string) {
 		if (!this._node) {
 			log.error("::subscribe: Node not initialized, please run .start()");
@@ -235,6 +241,24 @@ export class DRPNetworkNode {
 		}
 	}
 
+	async connect(addr: MultiaddrInput) {
+		try {
+			await this._node?.dial([multiaddr(addr)]);
+			log.info("::dial: Successfuly dialed", addr);
+		} catch (e) {
+			log.error("::dial:", e);
+		}
+	}
+
+	disconnect(peerId: string) {
+		try {
+			this._node?.hangUp(multiaddr(`/p2p/${peerId}`));
+			log.info("::disconnect: Successfuly disconnected", peerId);
+		} catch (e) {
+			log.error("::disconnect:", e);
+		}
+	}
+
 	getAllPeers() {
 		const peers = this._node?.getPeers();
 		if (!peers) return [];
@@ -245,6 +269,19 @@ export class DRPNetworkNode {
 		const peers = this._pubsub?.getSubscribers(group);
 		if (!peers) return [];
 		return peers.map((peer) => peer.toString());
+	}
+
+	getBootstraps() {
+		return (
+			this._config?.bootstrap_peers || [
+				"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
+				"/dns4/bootstrap2.topology.gg/tcp/443/wss/p2p/12D3KooWLGuTtCHLpd1SBHeyvzT3kHVe2dw8P7UdoXsfQHu8qvkf",
+			]
+		);
+	}
+
+	getMultiaddrs() {
+		return this._node?.getMultiaddrs().map((addr) => addr.toString());
 	}
 
 	async broadcastMessage(topic: string, message: Message) {
