@@ -51,13 +51,9 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		if (!vertices[0].operation || !vertices[1].operation) {
 			return { action: ActionType.Nop };
 		}
-		const values0 = Array.isArray(vertices[0].operation.value)
-			? vertices[0].operation.value
-			: [vertices[0].operation.value];
 
-		const values1 = Array.isArray(vertices[1].operation.value)
-			? vertices[1].operation.value
-			: [vertices[1].operation.value];
+		const values0 = vertices[0].operation.value;
+		const values1 = vertices[1].operation.value;
 
 		if (
 			// if both are revoke operations, return no-op
