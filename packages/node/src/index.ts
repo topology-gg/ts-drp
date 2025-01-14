@@ -20,6 +20,7 @@ export interface DRPNodeConfig {
 export let log: Logger;
 
 export class DRPNode {
+	private _drpIDs: Set<string> = new Set();
 	config?: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
@@ -27,8 +28,14 @@ export class DRPNode {
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
 		log = new Logger("drp::node", config?.log_config);
-		this.networkNode = new DRPNetworkNode(config?.network_config);
-		this.objectStore = new DRPObjectStore();
+		this.networkNode = new DRPNetworkNode({
+			...config?.network_config,
+			auto_keep_alive_callback: (ids) => ids.some((id) => this._drpIDs.has(id)),
+		});
+		this.objectStore = new DRPObjectStore({
+			putCallback: this.putCallback.bind(this),
+			removeCallback: this.removeCallback.bind(this),
+		});
 	}
 
 	async start(): Promise<void> {
@@ -99,8 +106,8 @@ export class DRPNode {
 		return operations.subscribeObject(this, id);
 	}
 
-	unsubscribeObject(id: string, purge?: boolean) {
-		operations.unsubscribeObject(this, id, purge);
+	async unsubscribeObject(id: string, purge?: boolean) {
+		await operations.unsubscribeObject(this, id, purge);
 	}
 
 	async syncObject(id: string, peerId?: string) {
@@ -113,5 +120,19 @@ export class DRPNode {
 		}
 
 		vertex.signature = await this.networkNode.sign(vertex.hash);
+	}
+
+	async putCallback(objectId: string) {
+		this._drpIDs.add(objectId);
+		await this.networkNode.setKeepAliveForSubscribers(objectId, true);
+	}
+
+	async removeCallback(objectId: string) {
+		this._drpIDs.delete(objectId);
+		await this.networkNode.setKeepAliveForSubscribers(
+			objectId,
+			false,
+			Array.from(this._drpIDs),
+		);
 	}
 }

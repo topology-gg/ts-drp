@@ -19,13 +19,13 @@ import type {
 } from "../proto/drp/node/v1/rpc_pb.js";
 
 export function init(node: DRPNode) {
-	function subscribeDRP(
+	async function subscribeDRP(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>,
 	) {
 		let returnCode = 0;
 		try {
-			node.subscribeObject(call.request.drpId);
+			await node.subscribeObject(call.request.drpId);
 		} catch (e) {
 			log.error("::rpc::subscribeDRP: Error", e);
 			returnCode = 1;
@@ -37,13 +37,13 @@ export function init(node: DRPNode) {
 		callback(null, response);
 	}
 
-	function unsubscribeDRP(
+	async function unsubscribeDRP(
 		call: ServerUnaryCall<UnsubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>,
 	) {
 		let returnCode = 0;
 		try {
-			node.unsubscribeObject(call.request.drpId);
+			await node.unsubscribeObject(call.request.drpId);
 		} catch (e) {
 			log.error("::rpc::unsubscribeDRP: Error", e);
 			returnCode = 1;

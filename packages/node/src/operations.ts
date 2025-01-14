@@ -18,10 +18,11 @@ enum _OPERATIONS {
 	SYNC = 4,
 }
 
-export function createObject(node: DRPNode, object: DRPObject) {
-	node.objectStore.put(object.id, object);
-	object.subscribe((obj, originFn, vertices) =>
-		drpObjectChangesHandler(node, obj, originFn, vertices),
+export async function createObject(node: DRPNode, object: DRPObject) {
+	await node.objectStore.put(object.id, object);
+	object.subscribe(
+		async (obj, originFn, vertices) =>
+			await drpObjectChangesHandler(node, obj, originFn, vertices),
 	);
 }
 
@@ -33,13 +34,13 @@ export async function subscribeObject(node: DRPNode, objectId: string) {
 	);
 }
 
-export function unsubscribeObject(
+export async function unsubscribeObject(
 	node: DRPNode,
 	objectId: string,
 	purge?: boolean,
 ) {
 	node.networkNode.unsubscribe(objectId);
-	if (purge) node.objectStore.remove(objectId);
+	if (purge) await node.objectStore.remove(objectId);
 }
 
 /*

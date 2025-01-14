@@ -16,12 +16,14 @@ import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify } from "@libp2p/identify";
-import type {
-	Ed25519PrivateKey,
-	EventCallback,
-	PubSub,
-	Stream,
-	StreamHandler,
+import {
+	type Ed25519PrivateKey,
+	type EventCallback,
+	KEEP_ALIVE,
+	type PeerId,
+	type PubSub,
+	type Stream,
+	type StreamHandler,
 } from "@libp2p/interface";
 import { ping } from "@libp2p/ping";
 import { pubsubPeerDiscovery } from "@libp2p/pubsub-peer-discovery";
@@ -54,6 +56,7 @@ export interface DRPNetworkNodeConfig {
 	browser_metrics?: boolean;
 	private_key_seed?: string;
 	log_config?: LoggerOptions;
+	auto_keep_alive_callback?: (ids: string[]) => boolean;
 }
 
 export class DRPNetworkNode {
@@ -205,6 +208,19 @@ export class DRPNetworkNode {
 		this._node.addEventListener("peer:identify", (e) =>
 			log.info("::start::peer::identify", e.detail),
 		);
+
+		this._pubsub?.addEventListener("subscription-change", (e) => {
+			if (this._config?.auto_keep_alive_callback) {
+				const currentSubscriptions = e.detail.subscriptions
+					.filter((s) => s.subscribe)
+					.map((s) => s.topic);
+				if (this._config.auto_keep_alive_callback(currentSubscriptions)) {
+					this.setKeepAlive(e.detail.peerId);
+					return;
+				}
+				this.setKeepAlive(e.detail.peerId, false);
+			}
+		});
 	}
 
 	async stop() {
@@ -326,6 +342,38 @@ export class DRPNetworkNode {
 		}
 	}
 
+	async setKeepAliveForSubscribers(
+		id: string,
+		keepAlive = true,
+		filterIDs: string[] = [],
+	) {
+		let peers = this._pubsub?.getSubscribers(id);
+		if (!peers || peers.length === 0) return;
+		// when we are gonna set keepAlive to false we have a filterIDs
+		// we need to check if any of the peers we want to remove the keep alive
+		// aren't subscribe to one of the topic we wish to stay subscribed on
+		if (!keepAlive && filterIDs.length > 0) {
+			const peersByIDs = filterIDs.reduce(
+				(acc, id) => {
+					const peers = this._pubsub?.getSubscribers(id);
+					if (!peers) return acc;
+					acc[id] = peers;
+					return acc;
+				},
+				{} as Record<string, PeerId[]>,
+			);
+
+			peers = peers.filter((peer) => {
+				for (const id of filterIDs) {
+					if (peersByIDs[id].includes(peer)) return true;
+				}
+				return false;
+			});
+		}
+
+		await Promise.all(peers.map((peer) => this.setKeepAlive(peer, keepAlive)));
+	}
+
 	addGroupMessageHandler(
 		group: string,
 		handler: EventCallback<CustomEvent<GossipsubMessage>>,
@@ -342,6 +390,15 @@ export class DRPNetworkNode {
 
 	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
 		this._node?.handle(protocol, handler);
+	}
+
+	async setKeepAlive(peerID: PeerId, keepAlive = true) {
+		const tag = keepAlive ? { value: 1 } : undefined;
+		await this._node?.peerStore.merge(peerID, {
+			tags: {
+				[KEEP_ALIVE]: tag,
+			},
+		});
 	}
 
 	async sign(data: string): Promise<Uint8Array> {

@@ -74,7 +74,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		await node.syncObject(updateMessage.objectId, sender);
 	}
 
-	node.objectStore.put(object.id, object);
+	await node.objectStore.put(object.id, object);
 
 	return true;
 }
@@ -145,7 +145,7 @@ async function syncAcceptHandler(
 
 	if (verifiedVertices.length !== 0) {
 		object.merge(verifiedVertices);
-		node.objectStore.put(object.id, object);
+		await node.objectStore.put(object.id, object);
 	}
 
 	await signGeneratedVertices(node, object.vertices);
@@ -182,18 +182,19 @@ function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
 	// - Do nothing
 }
 
-export function drpObjectChangesHandler(
+export async function drpObjectChangesHandler(
 	node: DRPNode,
 	obj: DRPObject,
 	originFn: string,
 	vertices: ObjectPb.Vertex[],
 ) {
 	switch (originFn) {
-		case "merge":
-			node.objectStore.put(obj.id, obj);
+		case "merge": {
+			await node.objectStore.put(obj.id, obj);
 			break;
+		}
 		case "callFn": {
-			node.objectStore.put(obj.id, obj);
+			await node.objectStore.put(obj.id, obj);
 
 			signGeneratedVertices(node, vertices).then(() => {
 				// send vertices to the pubsub group
