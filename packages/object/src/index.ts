@@ -122,7 +122,7 @@ export class DRPObject implements IDRPObject {
 								?.trim()
 								.split(" ")[1];
 							if (!callerName?.startsWith("Proxy."))
-								obj.callFn(fullPropKey, args.length === 1 ? args[0] : args);
+								obj.callFn(fullPropKey, args);
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
 					});
