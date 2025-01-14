@@ -823,7 +823,7 @@ describe("Update wins map tests", () => {
 
 	test("Test: resolve conflict with concurrent operations", () => {
 		/*
-		       __ V1: UPDATE("key1", "value1") ------------------------- V5: REMOVE("key2"q)
+		       __ V1: UPDATE("key1", "value1") ------------------------- V5: REMOVE("key2")
 		      /                                                        /
 		  ROOT                                                        /
 		      \                                                      /
@@ -839,7 +839,7 @@ describe("Update wins map tests", () => {
 
 		expect(drp1.query_get("key1")).toBe("value1");
 		obj1.merge(obj2.hashGraph.getAllVertices());
-		expect(drp1.query_get("key1")).toBe("value2"); // TODO: should be value1
+		expect(drp1.query_get("key1")).toBe(undefined);
 
 		drp2.update("key2", "value2");
 		drp1.remove("key2");
