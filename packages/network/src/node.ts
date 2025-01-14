@@ -249,9 +249,9 @@ export class DRPNetworkNode {
 	async connect(addr: MultiaddrInput) {
 		try {
 			await this._node?.dial([multiaddr(addr)]);
-			log.info("::dial: Successfuly dialed", addr);
+			log.info("::connect: Successfuly dialed", addr);
 		} catch (e) {
-			log.error("::dial:", e);
+			log.error("::connect:", e);
 		}
 	}
 
