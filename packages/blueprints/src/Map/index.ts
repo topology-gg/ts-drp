@@ -39,8 +39,8 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		return this._map.get(key);
 	}
 
+	// simple hash function
 	private _computeHash(data: string): string {
-		// simple hash function
 		let hash = 0;
 		for (let i = 0; i < data.length; i++) {
 			const char = data.charCodeAt(i);
@@ -58,24 +58,24 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		const values0 = vertices[0].operation.value;
 		const values1 = vertices[1].operation.value;
 
+		// if keys are different, return no-op
+		if (values0[0] !== values1[0]) {
+			return { action: ActionType.Nop };
+		}
+
+		// if both are revoke operations, return no-op
 		if (
-			// if both are revoke operations, return no-op
 			vertices[0].operation.type === "revoke" &&
 			vertices[1].operation.type === "revoke"
 		) {
 			return { action: ActionType.Nop };
 		}
 
-		if (values0[0] !== values1[0]) {
-			// if keys are different, return no-op
-			return { action: ActionType.Nop };
-		}
-
+		// if both are updates, keep operation with higher hash value
 		if (
 			vertices[0].operation.type === "update" &&
 			vertices[1].operation.type === "update"
 		) {
-			// if both are updates, keep operation with higher hash value
 			const hash0 = this._computeHash(JSON.stringify(values0[1]));
 			const hash1 = this._computeHash(JSON.stringify(values1[1]));
 			return hash0 > hash1
