@@ -100,6 +100,14 @@ export class DRPNetworkNode {
 			dcutr: dcutr(),
 			identify: identify(),
 			pubsub: gossipsub({
+				// D is the number of peers to keep in the mesh
+				D: 5,
+				// Dlo is the lower bound on the number of peers to keep in the mesh
+				Dlo: 3,
+				// Dhi is the upper bound on the number of peers to keep in the mesh
+				Dhi: 12,
+				// doPX is whether to enable PX (Peer Exchange)
+				doPX: true,
 				allowPublishToZeroTopicPeers: true,
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
