@@ -4,7 +4,7 @@ import {
 	gossipsub,
 } from "@chainsafe/libp2p-gossipsub";
 import {
-	TopicScoreParams,
+	type TopicScoreParams,
 	createPeerScoreParams,
 	createPeerScoreThresholds,
 	createTopicScoreParams,
