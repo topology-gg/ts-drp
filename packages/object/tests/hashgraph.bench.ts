@@ -54,7 +54,7 @@ benchmarkForAddWinSet(
 );
 
 suite
-	.on("cycle", (event) => {
+	.on("cycle", (event: Benchmark.Event) => {
 		console.log(String(event.target));
 	})
 	.on("complete", function () {

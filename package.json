@@ -33,6 +33,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.8.3",
 		"@release-it-plugins/workspaces": "^4.2.0",
+		"@types/benchmark": "^2.1.5",
 		"@types/node": "^22.5.4",
 		"@vitest/coverage-v8": "2.1.8",
 		"assemblyscript": "^0.27.29",
