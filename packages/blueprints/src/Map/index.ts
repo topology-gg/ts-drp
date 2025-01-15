@@ -82,9 +82,14 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		) {
 			const hash0 = this._computeHash(JSON.stringify(values0[1]));
 			const hash1 = this._computeHash(JSON.stringify(values1[1]));
-			return hash0 > hash1
-				? { action: ActionType.DropRight }
-				: { action: ActionType.DropLeft };
+			if (hash0 > hash1) {
+				return { action: ActionType.DropRight };
+			}
+			if (hash1 < hash0) {
+				return { action: ActionType.DropLeft };
+			}
+			// return no-op if two value are equal
+			return { action: ActionType.Nop };
 		}
 
 		return this._conflictResolution === MapConflictResolution.UpdateWins
