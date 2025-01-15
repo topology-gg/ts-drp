@@ -46,6 +46,14 @@ export class DRPNode {
 		);
 	}
 
+	async restart(config?: DRPNodeConfig): Promise<void> {
+		await this.networkNode.stop();
+		this.networkNode = new DRPNetworkNode(
+			config ? config.network_config : this.config?.network_config,
+		);
+		await this.start();
+	}
+
 	addCustomGroup(group: string) {
 		this.networkNode.subscribe(group);
 	}

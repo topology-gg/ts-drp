@@ -43,7 +43,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 			return { action: ActionType.Nop };
 		if (
 			vertices[0].operation.type === vertices[1].operation.type ||
-			vertices[0].operation.value !== vertices[1].operation.value
+			vertices[0].operation.value[0] !== vertices[1].operation.value[0]
 		)
 			return { action: ActionType.Nop };
 
