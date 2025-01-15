@@ -179,7 +179,9 @@ describe("DRPNode voting tests", () => {
 		drp1.add(1);
 
 		obj2.merge(obj1.vertices);
-		const V1 = obj2.vertices.find((v) => v.operation?.value === 1) as Vertex;
+		const V1 = obj2.vertices.find(
+			(v) => v.operation?.value !== null && v.operation?.value[0] === 1,
+		) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
 		voteGeneratedVertices(nodeB, obj2, [V1]);
@@ -208,7 +210,9 @@ describe("DRPNode voting tests", () => {
 		drp1.add(2);
 
 		obj2.merge(obj1.vertices);
-		const V2 = obj2.vertices.find((v) => v.operation?.value === 2) as Vertex;
+		const V2 = obj2.vertices.find(
+			(v) => v.operation?.value !== null && v.operation?.value[0] === 2,
+		) as Vertex;
 		expect(V2 !== undefined).toBe(true);
 
 		voteGeneratedVertices(nodeB, obj2, [V2]);
@@ -236,7 +240,9 @@ describe("DRPNode voting tests", () => {
 		drp1.add(1);
 
 		obj2.merge(obj1.vertices);
-		const V1 = obj2.vertices.find((v) => v.operation?.value === 1) as Vertex;
+		const V1 = obj2.vertices.find(
+			(v) => v.operation?.value !== null && v.operation?.value[0] === 1,
+		) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
 		voteGeneratedVertices(nodeA, obj2, [V1]);
