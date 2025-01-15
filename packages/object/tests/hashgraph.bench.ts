@@ -1,7 +1,7 @@
+import { ConflictResolvingMap } from "@topology-foundation/blueprints/src/index.js";
 import Benchmark from "benchmark";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject } from "../src/index.js";
-import { ConflictResolvingMap } from "@topology-foundation/blueprints/src/index.js";
 
 function benchmarkForAddWinSet(
 	name: string,
