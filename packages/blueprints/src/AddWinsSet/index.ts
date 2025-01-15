@@ -39,7 +39,7 @@ export class AddWinsSet<T> implements DRP {
 			vertices[0].operation &&
 			vertices[1].operation &&
 			vertices[0].operation?.opType !== vertices[1].operation?.opType &&
-			vertices[0].operation?.value === vertices[1].operation?.value
+			vertices[0].operation?.value[0] === vertices[1].operation?.value[0]
 		) {
 			return vertices[0].operation.opType === "add"
 				? { action: ActionType.DropRight }

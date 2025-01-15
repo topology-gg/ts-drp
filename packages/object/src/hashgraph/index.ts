@@ -492,10 +492,6 @@ export class HashGraph {
 		return true;
 	}
 
-	findNextCausallyUnrelated(hash: Hash, start: number): number | undefined {
-		return this.reachablePredecessors.get(hash)?.findNext(start, 0);
-	}
-
 	areCausallyRelatedUsingBFS(hash1: Hash, hash2: Hash): boolean {
 		return (
 			this._areCausallyRelatedUsingBFS(hash1, hash2) ||

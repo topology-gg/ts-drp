@@ -56,8 +56,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: 2, drpType: DrpType.Drp },
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
 		] as Operation[]);
 	});
 
@@ -83,7 +83,7 @@ describe("HashGraph construction tests", () => {
 		obj1.hashGraph.addVertex(
 			{
 				opType: "add",
-				value: 1,
+				value: [1],
 				drpType: DrpType.Drp,
 			},
 			[hash],
@@ -95,7 +95,7 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -138,10 +138,10 @@ describe("HashGraph for AddWinSet tests", () => {
 		const expectedOps: Operation[] = [
 			{
 				opType: "add",
-				value: 1,
+				value: [1],
 				drpType: DrpType.Drp,
 			},
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -170,8 +170,8 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -200,9 +200,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
-			{ opType: "add", value: 2, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -235,9 +235,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
-			{ opType: "add", value: 10, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [10], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -268,9 +268,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
-			{ opType: "add", value: 2, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -322,11 +322,11 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
-			{ opType: "add", value: 2, drpType: DrpType.Drp },
-			{ opType: "add", value: 3, drpType: DrpType.Drp },
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.Drp },
+			{ opType: "add", value: [3], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -378,10 +378,10 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
-			{ opType: "remove", value: 1, drpType: DrpType.Drp },
-			{ opType: "add", value: 3, drpType: DrpType.Drp },
-			{ opType: "add", value: 2, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [3], drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.Drp },
 		]);
 	});
 
@@ -413,9 +413,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: 1, drpType: DrpType.Drp },
-			{ opType: "add", value: 2, drpType: DrpType.Drp },
-			{ opType: "remove", value: 2, drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.Drp },
+			{ opType: "remove", value: [2], drpType: DrpType.Drp },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -453,7 +453,7 @@ describe("HashGraph for undefined operations tests", () => {
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		// Should only have one, since we skipped the undefined operations
 		expect(linearOps).toEqual([
-			{ opType: "add", value: 2, drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.Drp },
 		]);
 	});
 

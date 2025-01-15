@@ -1,6 +1,6 @@
 {
 	"name": "ts-drp-example-localdev",
-	"version": "0.5.2",
+	"version": "0.5.3",
 	"license": "MIT",
 	"scripts": {
 		"build": "vite build",
@@ -8,7 +8,7 @@
 		"dev": "vite serve"
 	},
 	"dependencies": {
-		"@ts-drp/node": "0.5.2"
+		"@ts-drp/node": "0.5.3"
 	},
 	"devDependencies": {
 		"@types/node": "^22.5.4",
