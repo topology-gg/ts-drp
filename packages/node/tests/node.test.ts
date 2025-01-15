@@ -1,7 +1,6 @@
 import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
-import { DrpTypeOperation } from "@topology-foundation/object/src/index.js";
-import { type DRP, DRPObject } from "@ts-drp/object";
+import { type DRP, DRPObject, DrpType } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
 	signGeneratedVertices,
@@ -112,7 +111,7 @@ describe("DPRNode with verify and sign signature", () => {
 				operation: {
 					type: "add",
 					value: 1,
-					vertexType: DrpTypeOperation.Drp,
+					vertexType: DrpType.Drp,
 				},
 				dependencies: [],
 				timestamp: Date.now(),
