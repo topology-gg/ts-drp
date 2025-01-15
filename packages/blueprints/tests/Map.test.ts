@@ -1,4 +1,4 @@
-import { ActionType } from "@topology-foundation/object/dist/src/hashgraph/index.js";
+import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
 import { ConflictResolvingMap } from "../src/index.js";
 
@@ -6,7 +6,7 @@ describe("ConflictResolvingMap tests", () => {
 	let drp: ConflictResolvingMap<string, string>;
 
 	beforeEach(() => {
-		drp = new ConflictResolvingMap();
+		drp = new ConflictResolvingMap<string, string>();
 	});
 
 	test("Should add new entry", () => {
