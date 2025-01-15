@@ -800,7 +800,7 @@ describe("HashGraph for update wins map tests", () => {
 		obj3 = new DRPObject("peer3", new ConflictResolvingMap<string, string>());
 	});
 
-	test("Test: map operations work correctly", () => {
+	test("Should correctly perform update and remove map operations", () => {
 		/*
 		       __ V1: UPDATE("key1", "value1") -- V3: REMOVE("key1")
 		      /
@@ -821,7 +821,7 @@ describe("HashGraph for update wins map tests", () => {
 		expect(drp2.query_get("key1")).toBe(undefined);
 	});
 
-	test("Test: resolve conflict with concurrent operations", () => {
+	test("Should resolve conflicts between concurrent update and remove operations after merging", () => {
 		/*
 		       __ V1: UPDATE("key1", "value2") ------------------------- V5: REMOVE("key2")
 		      /                                                        /
@@ -849,7 +849,7 @@ describe("HashGraph for update wins map tests", () => {
 		expect(drp2.query_get("key2")).toBe("value2");
 	});
 
-	test("Test: resolve conflict with concurrent operations complex case", () => {
+	test("Should resolve conflict between concurrent update and remove operations after merging complex case", () => {
 		/*
 		        __ V1:UPDATE("key1", "value1") -- V2:REMOVE("key2") -- V5:UPDATE("key2", "value1")
 		       /                                                                                  \
