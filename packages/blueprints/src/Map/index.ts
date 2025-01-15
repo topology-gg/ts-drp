@@ -63,10 +63,10 @@ export class ConflictResolvingMap<K, V> implements DRP {
 			return { action: ActionType.Nop };
 		}
 
-		// if both are revoke operations, return no-op
+		// if both are remove operations, return no-op
 		if (
-			vertices[0].operation.type === "revoke" &&
-			vertices[1].operation.type === "revoke"
+			vertices[0].operation.type === "remove" &&
+			vertices[1].operation.type === "remove"
 		) {
 			return { action: ActionType.Nop };
 		}
