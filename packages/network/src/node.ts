@@ -1,9 +1,14 @@
 import {
+	GossipSub,
 	type GossipsubEvents,
 	type GossipsubMessage,
 	gossipsub,
 } from "@chainsafe/libp2p-gossipsub";
-import { createPeerScoreParams } from "@chainsafe/libp2p-gossipsub/score";
+import {
+	createPeerScoreParams,
+	createPeerScoreThresholds,
+	createTopicScoreParams,
+} from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
@@ -15,9 +20,10 @@ import {
 import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
-import { identify } from "@libp2p/identify";
+import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	EventCallback,
+	PeerId,
 	PubSub,
 	Stream,
 	StreamHandler,
@@ -30,7 +36,12 @@ import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { type Libp2p, createLibp2p } from "libp2p";
+import {
+	type Libp2p,
+	ServiceFactoryMap,
+	ServiceMap,
+	createLibp2p,
+} from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
@@ -57,7 +68,7 @@ export interface DRPNetworkNodeConfig {
 export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
-	private _pubsub?: PubSub<GossipsubEvents>;
+	private _pubsub?: GossipSub;
 
 	peerId = "";
 
@@ -80,41 +91,121 @@ export class DRPNetworkNode {
 			? this._config.bootstrap_peers
 			: BOOTSTRAP_NODES;
 
-		const _pubsubPeerDiscovery = pubsubPeerDiscovery({
-			interval: 10_000,
-			topics: ["drp::discovery"],
-		});
+		//const _pubsubPeerDiscovery = pubsubPeerDiscovery({
+		//	interval: 10_000,
+		//	listenOnly: false,
+		//	topics: ["drp::discovery"],
+		//});
 
 		const _peerDiscovery = _bootstrapNodesList.length
 			? [
-					_pubsubPeerDiscovery,
+					//_pubsubPeerDiscovery,
 					bootstrap({
 						list: _bootstrapNodesList,
 					}),
 				]
-			: [_pubsubPeerDiscovery];
+			: [
+					//_pubsubPeerDiscovery
+				];
 
-		const _node_services = {
+		let _node_services = {
 			ping: ping(),
 			autonat: autoNAT(),
 			dcutr: dcutr(),
 			identify: identify(),
+			identifyPush: identifyPush(),
 			pubsub: gossipsub({
 				// D is the number of peers to keep in the mesh
-				D: 5,
+				//D: 5,
 				// Dlo is the lower bound on the number of peers to keep in the mesh
-				Dlo: 3,
+				//Dlo: 3,
 				// Dhi is the upper bound on the number of peers to keep in the mesh
-				Dhi: 12,
+				//Dhi: 12,
 				// doPX is whether to enable PX (Peer Exchange)
+				//allowPublishToZeroTopicPeers: true,
+				//D: 0,
+				//Dlo: 0,
+				//Dhi: 0,
+				//Dout: 0,
 				doPX: true,
+				gossipFactor: 1,
+				ignoreDuplicatePublishError: true,
 				allowPublishToZeroTopicPeers: true,
+				pruneBackoff: 60 * 1000,
 				scoreParams: createPeerScoreParams({
+					topicScoreCap: 50,
+
+					behaviourPenaltyWeight: 0,
+					behaviourPenaltyThreshold: 0,
+					behaviourPenaltyDecay: 0,
+
 					IPColocationFactorWeight: 0,
+
+					appSpecificScore: (peerId: string) => {
+						console.log(
+							"appSpecificScore",
+							peerId,
+							this._config?.bootstrap_peers,
+						);
+						if (
+							this._config?.bootstrap_peers?.includes(peerId) ||
+							peerId === "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ"
+						) {
+							return 1000;
+						}
+						return 0;
+					},
+					topics: {
+						"drp::discovery": createTopicScoreParams({
+							topicWeight: 1,
+							timeInMeshWeight: 0.1,
+							timeInMeshQuantum: 1000,
+							timeInMeshCap: 3,
+
+							firstMessageDeliveriesWeight: 1,
+							firstMessageDeliveriesDecay: 0.9,
+							firstMessageDeliveriesCap: 5,
+							// P3
+							meshMessageDeliveriesWeight: 0,
+
+							// P3b
+							meshFailurePenaltyWeight: 0,
+						}),
+					},
+				}),
+				scoreThresholds: createPeerScoreThresholds({
+					gossipThreshold: -11110,
+					opportunisticGraftThreshold: 3.5,
 				}),
 				fallbackToFloodsub: false,
+				canRelayMessage: true,
+				emitSelf: true,
+				//globalSignaturePolicy: "StrictSign",
 			}),
 		};
+		if (this._config?.bootstrap) {
+			_node_services = {
+				..._node_services,
+				pubsub: gossipsub({
+					D: 0,
+					Dlo: 0,
+					Dhi: 0,
+					Dout: 0,
+					doPX: true,
+					ignoreDuplicatePublishError: true,
+					allowPublishToZeroTopicPeers: true,
+					scoreParams: createPeerScoreParams({
+						IPColocationFactorWeight: 0,
+					}),
+					scoreThresholds: createPeerScoreThresholds({
+						gossipThreshold: -11110,
+					}),
+					fallbackToFloodsub: false,
+					canRelayMessage: true,
+					//globalSignaturePolicy: "StrictSign",
+				}),
+			};
+		}
 
 		const _bootstrap_services = {
 			..._node_services,
@@ -131,6 +222,9 @@ export class DRPNetworkNode {
 				listen: this._config?.addresses
 					? this._config.addresses
 					: ["/p2p-circuit", "/webrtc"],
+			},
+			connectionManager: {
+				maxConnections: 20,
 			},
 			connectionEncrypters: [noise()],
 			connectionGater: {
@@ -164,7 +258,7 @@ export class DRPNetworkNode {
 			}
 		}
 
-		this._pubsub = this._node.services.pubsub as PubSub<GossipsubEvents>;
+		this._pubsub = this._node.services.pubsub as GossipSub;
 		this.peerId = this._node.peerId.toString();
 
 		log.info(
@@ -175,36 +269,13 @@ export class DRPNetworkNode {
 		this._node.addEventListener("peer:connect", (e) =>
 			log.info("::start::peer::connect", e.detail),
 		);
-		this._node.addEventListener("peer:discovery", async (e) => {
-			// current bug in v11.0.0 requires manual dial (https://github.com/libp2p/js-libp2p-pubsub-peer-discovery/issues/149)
-			const sortedAddrs = e.detail.multiaddrs.sort((a, b) => {
-				const localRegex =
-					/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
-				const aLocal = localRegex.test(a.toString());
-				const bLocal = localRegex.test(b.toString());
-				const aWebrtc = a.toString().includes("/webrtc/");
-				const bWebrtc = b.toString().includes("/webrtc/");
-				if (aLocal && !bLocal) return 1;
-				if (!aLocal && bLocal) return -1;
-				if (aWebrtc && !bWebrtc) return -1;
-				if (!aWebrtc && bWebrtc) return 1;
-				return 0;
-			});
 
-			// Dial non-local multiaddrs, then WebRTC multiaddrs
-			for (const address of sortedAddrs) {
-				try {
-					await this._node?.dial(address);
-				} catch (e) {
-					log.error("::start::peer::dial::error", e);
-				}
-			}
-
-			log.info("::start::peer::discovery", e.detail);
-		});
 		this._node.addEventListener("peer:identify", (e) =>
 			log.info("::start::peer::identify", e.detail),
 		);
+
+		// needded as I've disabled the pubsubPeerDiscovery
+		this._pubsub?.subscribe("drp::discovery");
 	}
 
 	async stop() {

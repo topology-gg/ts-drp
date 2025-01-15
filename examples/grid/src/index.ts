@@ -216,6 +216,13 @@ async function main() {
 		render();
 	});
 
+	setInterval(() => {
+		peers = node.networkNode.getAllPeers();
+		discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
+		if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
+		render();
+	}, 1000);
+
 	const button_create = <HTMLButtonElement>(
 		document.getElementById("createGrid")
 	);
