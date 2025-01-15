@@ -1,9 +1,4 @@
-import {
-	GossipSub,
-	type GossipsubEvents,
-	type GossipsubMessage,
-	gossipsub,
-} from "@chainsafe/libp2p-gossipsub";
+import { type GossipSub, gossipsub } from "@chainsafe/libp2p-gossipsub";
 import {
 	createPeerScoreParams,
 	createPeerScoreThresholds,
@@ -23,25 +18,17 @@ import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	EventCallback,
-	PeerId,
-	PubSub,
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
 import { ping } from "@libp2p/ping";
-import { pubsubPeerDiscovery } from "@libp2p/pubsub-peer-discovery";
 import { webRTC, webRTCDirect } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import {
-	type Libp2p,
-	ServiceFactoryMap,
-	ServiceMap,
-	createLibp2p,
-} from "libp2p";
+import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
