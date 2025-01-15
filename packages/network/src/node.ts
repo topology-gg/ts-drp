@@ -1,5 +1,10 @@
-import { type GossipSub, gossipsub } from "@chainsafe/libp2p-gossipsub";
 import {
+	type GossipSub,
+	type GossipsubMessage,
+	gossipsub,
+} from "@chainsafe/libp2p-gossipsub";
+import {
+	TopicScoreParams,
 	createPeerScoreParams,
 	createPeerScoreThresholds,
 	createTopicScoreParams,
@@ -27,6 +32,7 @@ import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
+import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
@@ -45,6 +51,7 @@ let log: Logger;
 // snake_casing to match the JSON config
 export interface DRPNetworkNodeConfig {
 	addresses?: string[];
+	announce?: string[];
 	bootstrap?: boolean;
 	bootstrap_peers?: string[];
 	browser_metrics?: boolean;
@@ -78,22 +85,20 @@ export class DRPNetworkNode {
 			? this._config.bootstrap_peers
 			: BOOTSTRAP_NODES;
 
-		//const _pubsubPeerDiscovery = pubsubPeerDiscovery({
-		//	interval: 10_000,
-		//	listenOnly: false,
-		//	topics: ["drp::discovery"],
-		//});
-
-		const _peerDiscovery = _bootstrapNodesList.length
-			? [
-					//_pubsubPeerDiscovery,
-					bootstrap({
-						list: _bootstrapNodesList,
-					}),
-				]
-			: [
-					//_pubsubPeerDiscovery
-				];
+		const _peerDiscovery = [];
+		const _bootstrapPeerID: string[] = [];
+		if (_bootstrapNodesList.length) {
+			_peerDiscovery.push(
+				bootstrap({
+					list: _bootstrapNodesList,
+				}),
+			);
+			for (const addr of _bootstrapNodesList) {
+				const peerId = multiaddr(addr).getPeerId();
+				if (!peerId) continue;
+				_bootstrapPeerID.push(peerId);
+			}
+		}
 
 		let _node_services = {
 			ping: ping(),
@@ -102,74 +107,46 @@ export class DRPNetworkNode {
 			identify: identify(),
 			identifyPush: identifyPush(),
 			pubsub: gossipsub({
-				// D is the number of peers to keep in the mesh
-				//D: 5,
-				// Dlo is the lower bound on the number of peers to keep in the mesh
-				//Dlo: 3,
-				// Dhi is the upper bound on the number of peers to keep in the mesh
-				//Dhi: 12,
-				// doPX is whether to enable PX (Peer Exchange)
-				//allowPublishToZeroTopicPeers: true,
-				//D: 0,
-				//Dlo: 0,
-				//Dhi: 0,
-				//Dout: 0,
+				// in the doc it says that doPX shall be false for none bootstrap nodes
+				// but I dunnow if we should never the less enable it on other nodes ?
+				// maybe with ACL at some point we could make a broswer node trustable
+				// and allow it to doPX ? Let me know
 				doPX: true,
-				gossipFactor: 1,
-				ignoreDuplicatePublishError: true,
 				allowPublishToZeroTopicPeers: true,
 				pruneBackoff: 60 * 1000,
 				scoreParams: createPeerScoreParams({
 					topicScoreCap: 50,
-
-					behaviourPenaltyWeight: 0,
-					behaviourPenaltyThreshold: 0,
-					behaviourPenaltyDecay: 0,
-
 					IPColocationFactorWeight: 0,
-
 					appSpecificScore: (peerId: string) => {
-						console.log(
-							"appSpecificScore",
-							peerId,
-							this._config?.bootstrap_peers,
-						);
-						if (
-							this._config?.bootstrap_peers?.includes(peerId) ||
-							peerId === "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ"
-						) {
+						if (_bootstrapPeerID.includes(peerId)) {
 							return 1000;
 						}
 						return 0;
 					},
 					topics: {
 						"drp::discovery": createTopicScoreParams({
+							// TODO: get a better score params this need to be
+							// investigated more before according to some value
+							// also it would be nice to have a way to set that scoring
+							// for each DRP id but the current gossipsub does not support
+							// that, I think we could either make a PR to gossipsub or
+							// make a custom lib with a scoring system that would be live
+							// notable ones: meshMessageXX
+							//               meshFailureXX
+							//               meshFailurePenaltyXX
+							//               timeInMeshXX
+							//               firstMessageDeliveriesXX
 							topicWeight: 1,
-							timeInMeshWeight: 0.1,
-							timeInMeshQuantum: 1000,
-							timeInMeshCap: 3,
-
-							firstMessageDeliveriesWeight: 1,
-							firstMessageDeliveriesDecay: 0.9,
-							firstMessageDeliveriesCap: 5,
-							// P3
-							meshMessageDeliveriesWeight: 0,
-
-							// P3b
-							meshFailurePenaltyWeight: 0,
 						}),
 					},
 				}),
 				scoreThresholds: createPeerScoreThresholds({
-					gossipThreshold: -11110,
-					opportunisticGraftThreshold: 3.5,
+					gossipThreshold: -50,
 				}),
 				fallbackToFloodsub: false,
-				canRelayMessage: true,
-				emitSelf: true,
-				//globalSignaturePolicy: "StrictSign",
 			}),
 		};
+
 		if (this._config?.bootstrap) {
 			_node_services = {
 				..._node_services,
@@ -182,14 +159,13 @@ export class DRPNetworkNode {
 					ignoreDuplicatePublishError: true,
 					allowPublishToZeroTopicPeers: true,
 					scoreParams: createPeerScoreParams({
+						topicScoreCap: 50,
 						IPColocationFactorWeight: 0,
 					}),
 					scoreThresholds: createPeerScoreThresholds({
-						gossipThreshold: -11110,
+						gossipThreshold: -50,
 					}),
 					fallbackToFloodsub: false,
-					canRelayMessage: true,
-					//globalSignaturePolicy: "StrictSign",
 				}),
 			};
 		}
@@ -209,9 +185,24 @@ export class DRPNetworkNode {
 				listen: this._config?.addresses
 					? this._config.addresses
 					: ["/p2p-circuit", "/webrtc"],
+				...(this._config?.announce ? { announce: this._config.announce } : {}),
 			},
 			connectionManager: {
-				maxConnections: 20,
+				// we would need something to know when we are in a browser context to add a maxConnections
+				// maxConnections: 20,
+				addressSorter: (a, b) => {
+					const localRegex =
+						/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
+					const aLocal = localRegex.test(a.toString());
+					const bLocal = localRegex.test(b.toString());
+					const aWebrtc = WebRTC.matches(a.multiaddr);
+					const bWebrtc = WebRTC.matches(b.multiaddr);
+					if (aLocal && !bLocal) return 1;
+					if (!aLocal && bLocal) return -1;
+					if (aWebrtc && !bWebrtc) return -1;
+					if (!aWebrtc && bWebrtc) return 1;
+					return 0;
+				},
 			},
 			connectionEncrypters: [noise()],
 			connectionGater: {
@@ -257,6 +248,10 @@ export class DRPNetworkNode {
 			log.info("::start::peer::connect", e.detail),
 		);
 
+		this._node.addEventListener("peer:discovery", (e) =>
+			log.info("::start::peer::discovery", e.detail),
+		);
+
 		this._node.addEventListener("peer:identify", (e) =>
 			log.info("::start::peer::identify", e.detail),
 		);
@@ -273,6 +268,16 @@ export class DRPNetworkNode {
 		await this.stop();
 		if (config) this._config = config;
 		await this.start();
+	}
+
+	changeTopicScoreParams(topic: string, params: TopicScoreParams) {
+		if (!this._pubsub) return;
+		this._pubsub.score.params.topics[topic] = params;
+	}
+
+	removeTopicScoreParams(topic: string) {
+		if (!this._pubsub) return;
+		delete this._pubsub.score.params.topics[topic];
 	}
 
 	subscribe(topic: string) {
