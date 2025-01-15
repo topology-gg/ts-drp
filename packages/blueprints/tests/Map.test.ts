@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { ConflictResolvingMap } from "../src/index.js";
+import { ActionType } from "@topology-foundation/object/dist/src/hashgraph/index.js";
 
 describe("ConflictResolvingMap tests", () => {
 	let drp: ConflictResolvingMap<string, string>;
@@ -67,5 +68,142 @@ describe("ConflictResolvingMap tests", () => {
 			["key1", "value1"],
 			["key2", "value2"],
 		]);
+	});
+
+	test("Should return no-op when resolve conflict between operations with different keys", () => {
+		const vertex0 = {
+			hash: "hash1",
+			peerId: "peer1",
+			operation: {
+				type: "update",
+				value: ["key1", "value1"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+
+		const vertex1 = {
+			hash: "hash2",
+			peerId: "peer2",
+			operation: {
+				type: "update",
+				value: ["key2", "value2"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+
+		let vertices = [vertex0, vertex1];
+		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
+		vertex0.operation.value[0] = "remove";
+		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
+		vertices = [vertex1, vertex0];
+		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
+	});
+
+	test("Should return no-op when resolve conflict between two remove operations", () => {
+		const vertex0 = {
+			hash: "hash1",
+			peerId: "peer1",
+			operation: {
+				type: "remove",
+				value: ["key1"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+		const vertex1 = {
+			hash: "hash2",
+			peerId: "peer2",
+			operation: {
+				type: "remove",
+				value: ["key2"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+
+		const vertices = [vertex0, vertex1];
+		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
+	});
+
+	test("Should drop operation with lower hash value when resolve conflict between two update operations", () => {
+		const vertex0 = {
+			hash: "hash1",
+			peerId: "peer1",
+			operation: {
+				type: "update",
+				value: ["key1", "value1"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+
+		const vertex1 = {
+			hash: "hash2",
+			peerId: "peer2",
+			operation: {
+				type: "update",
+				value: ["key1", "value2"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+
+		let vertices = [vertex0, vertex1];
+		expect(drp.resolveConflicts(vertices)).toEqual({
+			action: ActionType.DropRight,
+		});
+
+		vertices = [vertex1, vertex0];
+		expect(drp.resolveConflicts(vertices)).toEqual({
+			action: ActionType.DropLeft,
+		});
+
+		vertex1.operation.value[1] = "value1";
+		vertices = [vertex0, vertex1];
+		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
+	});
+
+	test("Should drop remove operation when resolve conflict between update and remove operations", () => {
+		const vertex0 = {
+			hash: "hash1",
+			peerId: "peer1",
+			operation: {
+				type: "update",
+				value: ["key1", "value1"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+
+		const vertex1 = {
+			hash: "hash2",
+			peerId: "peer2",
+			operation: {
+				type: "remove",
+				value: ["key1"],
+			},
+			dependencies: [],
+			timestamp: 0,
+			signature: new Uint8Array(),
+		};
+
+		let vertices = [vertex0, vertex1];
+		expect(drp.resolveConflicts(vertices)).toEqual({
+			action: ActionType.DropRight,
+		});
+
+		vertices = [vertex1, vertex0];
+		expect(drp.resolveConflicts(vertices)).toEqual({
+			action: ActionType.DropLeft,
+		});
 	});
 });
