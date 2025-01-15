@@ -1,6 +1,6 @@
+import { ActionType } from "@topology-foundation/object/dist/src/hashgraph/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 import { ConflictResolvingMap } from "../src/index.js";
-import { ActionType } from "@topology-foundation/object/dist/src/hashgraph/index.js";
 
 describe("ConflictResolvingMap tests", () => {
 	let drp: ConflictResolvingMap<string, string>;
