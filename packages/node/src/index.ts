@@ -95,6 +95,10 @@ export class DRPNode {
 		return object;
 	}
 
+	getObject(id: string) {
+		return this.objectStore.get(id);
+	}
+
 	async subscribeObject(id: string) {
 		return operations.subscribeObject(this, id);
 	}

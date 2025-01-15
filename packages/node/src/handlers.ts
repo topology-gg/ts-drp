@@ -55,7 +55,7 @@ export async function drpMessagesHandler(
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array doesn't contain the full remote operations array
 */
-async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
+export async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 	const updateMessage = NetworkPb.Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
