@@ -85,7 +85,7 @@ export class ConflictResolvingMap<K, V> implements DRP {
 			if (hash0 > hash1) {
 				return { action: ActionType.DropRight };
 			}
-			if (hash1 < hash0) {
+			if (hash0 < hash1) {
 				return { action: ActionType.DropLeft };
 			}
 			// return no-op if two value are equal
