@@ -276,7 +276,9 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 		try {
-			await node.signVertex(vertex);
+			vertex.signature = await node.credentialStore.signWithEd25519(
+				vertex.hash,
+			);
 		} catch (error) {
 			log.error(
 				"::signGeneratedVertices: Error signing vertex:",

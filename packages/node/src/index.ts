@@ -6,7 +6,7 @@ import {
 	type DRPNetworkNodeConfig,
 	NetworkPb,
 } from "@ts-drp/network";
-import { type DRP, DRPObject, type Vertex } from "@ts-drp/object";
+import { type DRP, DRPObject } from "@ts-drp/object";
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
 import {
@@ -113,13 +113,5 @@ export class DRPNode {
 
 	async syncObject(id: string, peerId?: string) {
 		operations.syncObject(this, id, peerId);
-	}
-
-	async signVertex(vertex: Vertex) {
-		if (vertex.peerId !== this.networkNode.peerId) {
-			throw new Error("Invalid peerId");
-		}
-
-		vertex.signature = await this.credentialStore.signWithEd25519(vertex.hash);
 	}
 }
