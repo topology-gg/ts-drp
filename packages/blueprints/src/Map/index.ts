@@ -43,6 +43,14 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		return Array.from(this._map.entries());
 	}
 
+	query_keys(): K[] {
+		return Array.from(this._map.keys());
+	}
+
+	query_values(): V[] {
+		return Array.from(this._map.values());
+	}
+
 	// simple hash function
 	private _computeHash(data: string): string {
 		let hash = 0;

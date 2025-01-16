@@ -18,6 +18,8 @@ describe("ConflictResolvingMap tests", () => {
 			["key1", "value1"],
 			["key2", "value2"],
 		]);
+		expect(drp.query_keys()).toEqual(["key1", "key2"]);
+		expect(drp.query_values()).toEqual(["value1", "value2"]);
 	});
 
 	test("Should update existing entries", () => {
