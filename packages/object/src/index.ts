@@ -106,8 +106,8 @@ export class DRPObject implements IDRPObject {
 		this.drp = new Proxy(drp, this.proxyDRPHandler(DrpType.DRP));
 		this.hashGraph = new HashGraph(
 			this.peerId,
-			drp.resolveConflicts.bind(drp),
 			acl.resolveConflicts.bind(acl),
+			drp.resolveConflicts.bind(drp),
 			drp.semanticsType,
 		);
 		this.vertices = this.hashGraph.getAllVertices();
@@ -293,7 +293,7 @@ export class DRPObject implements IDRPObject {
 	// initialize the attestation store for the given vertex hash
 	private _initializeFinalityState(hash: Hash) {
 		if (!this.acl || !this.originalACL) {
-			return;
+			throw new Error("ACL is undefined");
 		}
 		const fetchedState = this.aclStates.get(hash);
 		if (fetchedState !== undefined) {
@@ -512,7 +512,7 @@ export class DRPObject implements IDRPObject {
 	// update the DRP's attributes based on all the vertices in the hashgraph
 	private _updateDRPState() {
 		if (!this.drp || !this.hashGraph) {
-			return;
+			throw new Error("DRP or hashgraph is undefined");
 		}
 		const currentDRP = this.drp as DRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
@@ -525,7 +525,7 @@ export class DRPObject implements IDRPObject {
 
 	private _updateACLState() {
 		if (!this.acl || !this.hashGraph) {
-			return;
+			throw new Error("ACL or hashgraph is undefined");
 		}
 		const currentACL = this.acl as IACL & DRP;
 		const newState = this._computeACLState(this.hashGraph.getFrontier());

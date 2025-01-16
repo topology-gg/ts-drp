@@ -1,5 +1,5 @@
 import bls from "@chainsafe/bls/herumi";
-import { AddWinsSet } from "@ts-drp/blueprints";
+import { SetDRP } from "@ts-drp/blueprints";
 import { ACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
@@ -20,7 +20,7 @@ describe("DPRNode with verify and sign signature", () => {
 	});
 
 	beforeEach(async () => {
-		drp = new AddWinsSet();
+		drp = new SetDRP();
 		const acl = new ACL(
 			new Map([
 				[
@@ -111,7 +111,7 @@ describe("DPRNode with verify and sign signature", () => {
 });
 
 describe("DRPNode voting tests", () => {
-	let drp1: AddWinsSet<number>;
+	let drp1: SetDRP<number>;
 	let acl1: ACL;
 	let nodeA: DRPNode;
 	let nodeB: DRPNode;
@@ -130,15 +130,15 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeA.credentialStore.getPublicCredential(),
 			undefined,
-			new AddWinsSet(),
+			new SetDRP(),
 		);
-		drp1 = obj1.drp as AddWinsSet<number>;
+		drp1 = obj1.drp as SetDRP<number>;
 		acl1 = obj1.acl as ACL;
 		obj2 = new DRPObject(
 			nodeB.networkNode.peerId,
 			undefined,
 			acl1,
-			new AddWinsSet(),
+			new SetDRP(),
 		);
 	});
 
@@ -146,9 +146,6 @@ describe("DRPNode voting tests", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
-
-		console.log("obj1", obj1);
-		console.log("acl1", acl1);
 
 		acl1.grant(
 			nodeA.networkNode.peerId,
