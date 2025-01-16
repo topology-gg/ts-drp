@@ -23,7 +23,6 @@ import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	Address,
-	Ed25519PrivateKey,
 	EventCallback,
 	Stream,
 	StreamHandler,
