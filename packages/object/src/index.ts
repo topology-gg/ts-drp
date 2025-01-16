@@ -7,7 +7,6 @@ import {
 	HashGraph,
 	type Operation,
 	type ResolveConflictsType,
-	type SemanticsType,
 	type Vertex,
 } from "./hashgraph/index.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
@@ -15,37 +14,15 @@ import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
-
-export interface IACL {
-	grant: (senderId: string, peerId: string, publicKey: string) => void;
-	revoke: (senderId: string, peerId: string) => void;
-	query_isWriter: (peerId: string) => boolean;
-	query_isAdmin: (peerId: string) => boolean;
-	query_getPeerKey: (peerId: string) => string | undefined;
-}
-
-export interface DRP {
-	semanticsType: SemanticsType;
-	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	// biome-ignore lint: attributes can be anything
-	[key: string]: any;
-}
+export * from "./interfaces.js";
 
 type DRPState = {
-	// biome-ignore lint: attributes can be anything
-	state: Map<string, any>;
+	state: Map<string, unknown>;
 };
 
-export type DRPObjectCallback = (
-	object: DRPObject,
-	origin: string,
-	vertices: ObjectPb.Vertex[],
-) => void;
-
-export interface IDRPObject extends ObjectPb.DRPObjectBase {
-	drp: ProxyHandler<DRP> | null;
-	hashGraph: HashGraph;
-	subscriptions: DRPObjectCallback[];
+export enum DrpType {
+	ACL = "ACL",
+	DRP = "DRP",
 }
 
 // snake_casing to match the JSON config
@@ -53,23 +30,11 @@ export interface DRPObjectConfig {
 	log_config?: LoggerOptions;
 }
 
-export interface LcaAndOperations {
-	lca: string;
-	linearizedOperations: Operation[];
-}
-
 export let log: Logger;
 
-export enum DrpType {
-	Acl = "ACL",
-	Drp = "DRP",
-}
-
 export class DRPObject implements IDRPObject {
-	peerId: string;
 	id: string;
-	abi: string;
-	bytecode: Uint8Array;
+	peerId: string;
 	vertices: ObjectPb.Vertex[];
 	drp: ProxyHandler<DRP> | null;
 	acl: ProxyHandler<IACL & DRP> | null;
@@ -83,10 +48,9 @@ export class DRPObject implements IDRPObject {
 
 	constructor(
 		peerId: string,
-		drp: DRP,
-		acl: IACL & DRP,
+		drp?: DRP,
+		acl?: IACL & DRP,
 		id?: string,
-		abi?: string,
 		config?: DRPObjectConfig,
 	) {
 		this.peerId = peerId;
@@ -95,15 +59,12 @@ export class DRPObject implements IDRPObject {
 			id ??
 			crypto
 				.createHash("sha256")
-				.update(abi ?? "")
 				.update(peerId)
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
-		this.abi = abi ?? "";
-		this.bytecode = new Uint8Array();
-		this.vertices = [];
-		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler(DrpType.Drp)) : null;
-		this.acl = acl ? new Proxy(acl, this.proxyDRPHandler(DrpType.Acl)) : null;
+		const aclObj = acl ?? new ACL(new Map());
+		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler(DrpType.DRP)) : null;
+		this.acl = acl ? new Proxy(acl, this.proxyDRPHandler(DrpType.ACL)) : null;
 		this.hashGraph = new HashGraph(
 			peerId,
 			drp?.resolveConflicts?.bind(drp ?? this),
@@ -111,11 +72,31 @@ export class DRPObject implements IDRPObject {
 			drp?.semanticsType,
 		);
 		this.subscriptions = [];
+
 		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.originalDRP = cloneDeep(drp);
 		this.originalACL = cloneDeep(acl);
 		this.vertices = this.hashGraph.getAllVertices();
+	}
+
+	private _initLocalDrpInstance(drp: DRP, acl: DRP) {
+		this.drp = new Proxy(drp, this.proxyDRPHandler(DrpType.DRP));
+		this.hashGraph = new HashGraph(
+			this.peerId,
+			drp.resolveConflicts.bind(drp),
+			acl.resolveConflicts.bind(acl),
+			drp.semanticsType,
+		);
+	}
+
+	private _initNonLocalDrpInstance(acl: DRP) {
+		this.hashGraph = new HashGraph(
+			this.peerId,
+			this.drp.resolveConflicts.bind(this.drp),
+			acl.resolveConflicts.bind(this.acl),
+			acl.semanticsType,
+		);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
