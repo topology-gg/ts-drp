@@ -297,8 +297,14 @@ export class DRPObject implements IDRPObject {
 
 	// initialize the attestation store for the given vertex hash
 	private _initializeFinalityState(hash: Hash) {
-		const acl = this.states.get(hash)?.state.get("acl") as IACL | undefined;
-		if (acl !== undefined) {
+		const fetchedState = this.aclStates.get(hash);
+		if (fetchedState !== undefined) {
+			const state = cloneDeep(fetchedState);
+			const acl = cloneDeep(this.originalACL);
+
+			for (const [key, value] of state.state) {
+				acl[key] = value;
+			}
 			// signer set equals writer set
 			this.finalityStore.initializeState(hash, acl.query_getWriters());
 		}

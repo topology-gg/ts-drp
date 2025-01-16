@@ -101,7 +101,7 @@ export class DRPCredentialStore {
 		const signature = await this._ed25519PrivateKey.sign(
 			uint8ArrayFromString(data),
 		);
-		return signature;
+		return new Uint8Array(signature);
 	}
 
 	signWithBls(data: string): Uint8Array {

@@ -135,6 +135,7 @@ describe("DRPNode voting tests", () => {
 	let nodeB: DRPNode;
 	let obj1: DRPObject;
 	let obj2: DRPObject;
+	let acl1: ACL;
 
 	beforeAll(async () => {
 		nodeA = new DRPNode();
@@ -144,28 +145,20 @@ describe("DRPNode voting tests", () => {
 	});
 
 	beforeEach(async () => {
+		const peerIdToPublicKeyMap = new Map([
+			[nodeA.networkNode.peerId, nodeA.credentialStore.getPublicCredential()],
+		]);
 		obj1 = new DRPObject(
 			nodeA.networkNode.peerId,
-			new AddWinsSetWithACL(
-				new Map([
-					[
-						nodeA.networkNode.peerId,
-						nodeA.credentialStore.getPublicCredential(),
-					],
-				]),
-			),
+			new AddWinsSet(),
+			new ACL(peerIdToPublicKeyMap),
 		);
 		drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		acl1 = obj1.acl as ACL;
 		obj2 = new DRPObject(
 			nodeB.networkNode.peerId,
-			new AddWinsSetWithACL(
-				new Map([
-					[
-						nodeA.networkNode.peerId,
-						nodeA.credentialStore.getPublicCredential(),
-					],
-				]),
-			),
+			new AddWinsSet(),
+			new ACL(peerIdToPublicKeyMap),
 		);
 	});
 
@@ -174,7 +167,7 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		drp1.acl.grant(
+		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
@@ -203,13 +196,13 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
 
-		drp1.acl.grant(
+		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
 		);
 		drp1.add(1);
-		drp1.acl.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId);
+		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId);
 		drp1.add(2);
 
 		obj2.merge(obj1.vertices);
@@ -235,7 +228,7 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		drp1.acl.grant(
+		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),

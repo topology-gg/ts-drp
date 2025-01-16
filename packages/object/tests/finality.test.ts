@@ -1,4 +1,5 @@
 import bls from "@chainsafe/bls/herumi";
+import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { DRPCredentialStore } from "@topology-foundation/node/src/store/index.js";
 import { toString as uint8ArrayToString } from "uint8arrays";
@@ -9,7 +10,7 @@ import { BitSet } from "../src/hashgraph/bitset.js";
 import { DRPObject } from "../src/index.js";
 
 // initialize log
-const _ = new DRPObject("peer1", new AddWinsSet());
+const _ = new DRPObject("peer1", new AddWinsSet(), new ACL(new Map()));
 
 describe("Tests for FinalityState", () => {
 	const N = 128;
@@ -73,8 +74,14 @@ describe("Tests for FinalityState", () => {
 	});
 
 	test("Duplicated signatures", async () => {
-		finalityState.addSignature(peers[0], stores[0].signWithBls(finalityState.data));
-		finalityState.addSignature(peers[0], stores[0].signWithBls(finalityState.data));
+		finalityState.addSignature(
+			peers[0],
+			stores[0].signWithBls(finalityState.data),
+		);
+		finalityState.addSignature(
+			peers[0],
+			stores[0].signWithBls(finalityState.data),
+		);
 		expect(finalityState.numberOfSignatures).toEqual(1);
 	});
 });

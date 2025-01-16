@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, test } from "vitest";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import {
 	DRPObject,
-	type DRPPublicCredential,
 	DrpType,
 	type Operation,
 	OperationType,
