@@ -1,7 +1,13 @@
 import { MapDRP } from "@topology-foundation/blueprints/src/index.js";
 import Benchmark from "benchmark";
-import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
-import { DRPObject } from "../src/index.js";
+import { SetDRP } from "../../blueprints/src/Set/index.js";
+import { ACL, DRPObject } from "../src/index.js";
+
+const acl = new ACL(
+	new Map([
+		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+	]),
+);
 
 function benchmarkForAddWinSet(
 	name: string,
@@ -14,17 +20,17 @@ function benchmarkForAddWinSet(
 		for (let i = 0; i < numDRPs; i++) {
 			const obj: DRPObject = new DRPObject(
 				`peer${i + 1}`,
-				new AddWinsSet<number>(),
-				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-				null as any,
+				undefined,
+				acl,
+				new SetDRP<number>(),
 			);
-			const drp = obj.drp as AddWinsSet<number>;
+			const drp = obj.drp as SetDRP<number>;
 			for (let j = 0; j < verticesPerDRP; j++) {
 				if (i % 3 === 2) {
 					drp.add(j);
-					drp.remove(j);
+					drp.delete(j);
 				} else if (i % 3 === 1) {
-					drp.remove(j);
+					drp.delete(j);
 					drp.add(j);
 				} else {
 					drp.add(j);
@@ -58,9 +64,9 @@ benchmarkForAddWinSet(
 suite.add("Create a HashGraph with 1000 operations for set wins map", () => {
 	const object: DRPObject = new DRPObject(
 		"peer1",
+		undefined,
+		acl,
 		new MapDRP<number, number>(),
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		null as any,
 	);
 	const drp = object.drp as MapDRP<number, number>;
 	for (let i = 0; i < 1000; ++i) {
@@ -73,9 +79,9 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
+			undefined,
+			acl,
 			new MapDRP<number, number>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
 		);
 		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 1000; ++i) {
@@ -93,9 +99,9 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
+			undefined,
+			acl,
 			new MapDRP<number, number>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
 		);
 		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 1000; ++i) {
@@ -113,9 +119,9 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
+			undefined,
+			acl,
 			new MapDRP<number, number>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
 		);
 		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 1000; ++i) {
@@ -133,9 +139,9 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
+			undefined,
+			acl,
 			new MapDRP<number, number>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
 		);
 		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 250; i += 4) {
@@ -179,18 +185,18 @@ suite.add(
 
 		const object1: DRPObject = new DRPObject(
 			"peer1",
+			undefined,
+			acl,
 			new MapDRP<number, number>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
 		);
 		const drp1 = object1.drp as MapDRP<number, number>;
 		initialize(drp1);
 
 		const object2: DRPObject = new DRPObject(
 			"peer2",
+			undefined,
+			acl,
 			new MapDRP<number, number>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
 		);
 		const drp2 = object2.drp as MapDRP<number, number>;
 		initialize(drp2);
