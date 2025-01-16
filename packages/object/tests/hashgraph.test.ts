@@ -1,10 +1,10 @@
-import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
+import { beforeEach, describe, expect, test } from "vitest";
+import { ACL } from "../../blueprints/src/ACL/index.js";
+import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import {
 	ConflictResolvingMap,
 	MapConflictResolution,
-} from "@topology-foundation/blueprints/src/index.js";
-import { beforeEach, describe, expect, test } from "vitest";
-import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
+} from "../../blueprints/src/Map/index.js";
 import {
 	DRPObject,
 	DrpType,

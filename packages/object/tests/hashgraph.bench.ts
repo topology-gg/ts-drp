@@ -15,6 +15,8 @@ function benchmarkForAddWinSet(
 			const obj: DRPObject = new DRPObject(
 				`peer${i + 1}`,
 				new AddWinsSet<number>(),
+				// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+				null as any,
 			);
 			const drp = obj.drp as AddWinsSet<number>;
 			for (let j = 0; j < verticesPerDRP; j++) {
@@ -53,27 +55,31 @@ benchmarkForAddWinSet(
 	true,
 );
 
-suite.add("Create a HashGraph with 1000 vertices for update wins map", () => {
+suite.add("Create a HashGraph with 1000 vertices for set wins map", () => {
 	const object: DRPObject = new DRPObject(
 		"peer1",
 		new ConflictResolvingMap<number, number>(),
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		null as any,
 	);
 	const drp = object.drp as ConflictResolvingMap<number, number>;
 	for (let i = 0; i < 1000; ++i) {
-		drp.update(i, i);
+		drp.set(i, i);
 	}
 });
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for update wins map and read",
+	"Create a HashGraph with 1000 vertices for set wins map and read",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
 			new ConflictResolvingMap<number, number>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
 		);
 		const drp = object.drp as ConflictResolvingMap<number, number>;
 		for (let i = 0; i < 1000; ++i) {
-			drp.update(i, i);
+			drp.set(i, i);
 		}
 
 		for (let i = 0; i < 1000; ++i) {
@@ -83,33 +89,37 @@ suite.add(
 );
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for update wins map and update",
+	"Create a HashGraph with 1000 vertices for set wins map and set",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
 			new ConflictResolvingMap<number, number>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
 		);
 		const drp = object.drp as ConflictResolvingMap<number, number>;
 		for (let i = 0; i < 1000; ++i) {
-			drp.update(i, i);
+			drp.set(i, i);
 		}
 
 		for (let i = 0; i < 1000; ++i) {
-			drp.update(i, i + 1);
+			drp.set(i, i + 1);
 		}
 	},
 );
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for update wins map and remove",
+	"Create a HashGraph with 1000 vertices for set wins map and delete",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
 			new ConflictResolvingMap<number, number>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
 		);
 		const drp = object.drp as ConflictResolvingMap<number, number>;
 		for (let i = 0; i < 1000; ++i) {
-			drp.update(i, i);
+			drp.set(i, i);
 		}
 
 		for (let i = 0; i < 1000; ++i) {
@@ -119,19 +129,21 @@ suite.add(
 );
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for update wins map with random operations",
+	"Create a HashGraph with 1000 vertices for set wins map with random operations",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
 			new ConflictResolvingMap<number, number>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
 		);
 		const drp = object.drp as ConflictResolvingMap<number, number>;
 		for (let i = 0; i < 1000; ++i) {
 			if (i % 3 === 0) {
-				drp.update(i, i);
+				drp.set(i, i);
 			} else if (i % 3 === 1) {
 				if ((i % 3) % 2 === 0) {
-					drp.update(i, i);
+					drp.set(i, i);
 				} else {
 					drp.delete(i);
 				}
@@ -139,23 +151,24 @@ suite.add(
 				if ((i % 3) % 2 === 0) {
 					drp.delete(i - 1);
 				} else {
-					drp.update(i - 1, i - 1);
+					drp.set(i - 1, i - 1);
 				}
 			}
+			drp.query_get(i);
 		}
 	},
 );
 
 suite.add(
-	"Create 2 HashGraphs with 1000 vertices each for update wins map and merge with random operations",
+	"Create 2 HashGraphs with 1000 vertices each for set wins map and merge with random operations",
 	() => {
 		function initialize(drp: ConflictResolvingMap<number, number>) {
 			for (let i = 0; i < 1000; ++i) {
 				if (i % 3 === 0) {
-					drp.update(i, i);
+					drp.set(i, i);
 				} else if (i % 3 === 1) {
 					if ((i % 3) % 2 === 0) {
-						drp.update(i, i);
+						drp.set(i, i);
 					} else {
 						drp.delete(i);
 					}
@@ -163,15 +176,18 @@ suite.add(
 					if ((i % 3) % 2 === 0) {
 						drp.delete(i - 1);
 					} else {
-						drp.update(i - 1, i - 1);
+						drp.set(i - 1, i - 1);
 					}
 				}
+				drp.query_get(i);
 			}
 		}
 
 		const object1: DRPObject = new DRPObject(
 			"peer1",
 			new ConflictResolvingMap<number, number>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
 		);
 		const drp1 = object1.drp as ConflictResolvingMap<number, number>;
 		initialize(drp1);
@@ -179,6 +195,8 @@ suite.add(
 		const object2: DRPObject = new DRPObject(
 			"peer2",
 			new ConflictResolvingMap<number, number>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
 		);
 		const drp2 = object2.drp as ConflictResolvingMap<number, number>;
 		initialize(drp2);
