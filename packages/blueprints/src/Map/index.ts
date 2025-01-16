@@ -7,8 +7,8 @@ import {
 } from "@ts-drp/object";
 
 export enum MapConflictResolution {
-	UpdateWins = 0,
-	RemoveWins = 1,
+	SetWins = 0,
+	DeleteWins = 1,
 }
 
 export class ConflictResolvingMap<K, V> implements DRP {
@@ -20,14 +20,14 @@ export class ConflictResolvingMap<K, V> implements DRP {
 	constructor(conflictResolution?: MapConflictResolution) {
 		this._map = new Map();
 		this._conflictResolution =
-			conflictResolution ?? MapConflictResolution.UpdateWins;
+			conflictResolution ?? MapConflictResolution.SetWins;
 	}
 
-	update(key: K, value: V): void {
+	set(key: K, value: V): void {
 		this._map.set(key, value);
 	}
 
-	remove(key: K): void {
+	delete(key: K): void {
 		this._map.delete(key);
 	}
 
@@ -75,18 +75,18 @@ export class ConflictResolvingMap<K, V> implements DRP {
 			return { action: ActionType.Nop };
 		}
 
-		// if both are remove operations, return no-op
+		// if both are delete operations, return no-op
 		if (
-			vertices[0].operation.opType === "remove" &&
-			vertices[1].operation.opType === "remove"
+			vertices[0].operation.opType === "delete" &&
+			vertices[1].operation.opType === "delete"
 		) {
 			return { action: ActionType.Nop };
 		}
 
-		// if both are updates, keep operation with higher hash value
+		// if both are set operations, keep operation with higher hash value
 		if (
-			vertices[0].operation.opType === "update" &&
-			vertices[1].operation.opType === "update"
+			vertices[0].operation.opType === "set" &&
+			vertices[1].operation.opType === "set"
 		) {
 			const hash0 = this._computeHash(JSON.stringify(values0[1]));
 			const hash1 = this._computeHash(JSON.stringify(values1[1]));
@@ -100,16 +100,16 @@ export class ConflictResolvingMap<K, V> implements DRP {
 			return { action: ActionType.Nop };
 		}
 
-		return this._conflictResolution === MapConflictResolution.UpdateWins
+		return this._conflictResolution === MapConflictResolution.SetWins
 			? {
 					action:
-						vertices[0].operation.opType === "update"
+						vertices[0].operation.opType === "set"
 							? ActionType.DropRight
 							: ActionType.DropLeft,
 				}
 			: {
 					action:
-						vertices[0].operation.opType === "update"
+						vertices[0].operation.opType === "set"
 							? ActionType.DropLeft
 							: ActionType.DropRight,
 				};

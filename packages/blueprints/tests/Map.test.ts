@@ -10,8 +10,8 @@ describe("ConflictResolvingMap tests", () => {
 	});
 
 	test("Should add new entry", () => {
-		drp.update("key1", "value1");
-		drp.update("key2", "value2");
+		drp.set("key1", "value1");
+		drp.set("key2", "value2");
 		expect(drp.query_get("key1")).toBe("value1");
 		expect(drp.query_get("key2")).toBe("value2");
 		expect(drp.query_entries()).toEqual([
@@ -22,48 +22,48 @@ describe("ConflictResolvingMap tests", () => {
 		expect(drp.query_values()).toEqual(["value1", "value2"]);
 	});
 
-	test("Should update existing entries", () => {
-		drp.update("key1", "value1");
-		drp.update("key2", "value2");
+	test("Should set existing entries", () => {
+		drp.set("key1", "value1");
+		drp.set("key2", "value2");
 
 		expect(drp.query_get("key1")).toBe("value1");
 		expect(drp.query_get("key2")).toBe("value2");
 
-		drp.update("key1", "value3");
+		drp.set("key1", "value3");
 		expect(drp.query_get("key1")).toBe("value3");
 
-		drp.update("key2", "value4");
+		drp.set("key2", "value4");
 		expect(drp.query_get("key2")).toBe("value4");
 	});
 
-	test("Should update existing entries multiple times", () => {
-		drp.update("key1", "value1");
+	test("Should set existing entries multiple times", () => {
+		drp.set("key1", "value1");
 		expect(drp.query_get("key1")).toBe("value1");
-		drp.update("key2", "value2");
-		drp.update("key2", "value3");
-		drp.update("key2", "value4");
+		drp.set("key2", "value2");
+		drp.set("key2", "value3");
+		drp.set("key2", "value4");
 		expect(drp.query_get("key2")).toBe("value4");
 	});
 
-	test("Should update and remove existing entries", () => {
-		drp.update("key1", "value1");
+	test("Should set and delete existing entries", () => {
+		drp.set("key1", "value1");
 		expect(drp.query_get("key1")).toBe("value1");
-		drp.remove("key1");
+		drp.delete("key1");
 		expect(drp.query_get("key1")).toBe(undefined);
 
-		drp.update("key1", "value2");
+		drp.set("key1", "value2");
 		expect(drp.query_has("key1")).toBe(true);
 
-		drp.update("key2", "value3");
-		drp.remove("key1");
+		drp.set("key2", "value3");
+		drp.delete("key1");
 		expect(drp.query_has("key1")).toBe(false);
 		expect(drp.query_get("key2")).toBe("value3");
 	});
 
-	test("Should work correctly when remove is called on non-existing key", () => {
-		drp.update("key1", "value1");
-		drp.update("key2", "value2");
-		drp.remove("key3");
+	test("Should work correctly when delete is called on non-existing key", () => {
+		drp.set("key1", "value1");
+		drp.set("key2", "value2");
+		drp.delete("key3");
 		expect(drp.query_get("key1")).toBe("value1");
 		expect(drp.query_get("key2")).toBe("value2");
 		expect(drp.query_entries()).toEqual([
@@ -78,7 +78,7 @@ describe("ConflictResolvingMap tests", () => {
 			peerId: "peer1",
 			operation: {
 				drpType: "DRP",
-				opType: "update",
+				opType: "set",
 				value: ["key1", "value1"],
 			},
 			dependencies: [],
@@ -91,7 +91,7 @@ describe("ConflictResolvingMap tests", () => {
 			peerId: "peer2",
 			operation: {
 				drpType: "DRP",
-				opType: "update",
+				opType: "set",
 				value: ["key2", "value2"],
 			},
 			dependencies: [],
@@ -101,19 +101,19 @@ describe("ConflictResolvingMap tests", () => {
 
 		let vertices = [vertex0, vertex1];
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
-		vertex0.operation.value[0] = "remove";
+		vertex0.operation.value[0] = "delete";
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 		vertices = [vertex1, vertex0];
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 	});
 
-	test("Should return no-op when resolve conflict between two remove operations", () => {
+	test("Should return no-op when resolve conflict between two delete operations", () => {
 		const vertex0 = {
 			hash: "hash1",
 			peerId: "peer1",
 			operation: {
 				drpType: "DRP",
-				opType: "remove",
+				opType: "delete",
 				value: ["key1"],
 			},
 			dependencies: [],
@@ -125,7 +125,7 @@ describe("ConflictResolvingMap tests", () => {
 			peerId: "peer2",
 			operation: {
 				drpType: "DRP",
-				opType: "remove",
+				opType: "delete",
 				value: ["key2"],
 			},
 			dependencies: [],
@@ -137,13 +137,13 @@ describe("ConflictResolvingMap tests", () => {
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 	});
 
-	test("Should drop operation with lower hash value when resolve conflict between two update operations", () => {
+	test("Should drop operation with lower hash value when resolve conflict between two set operations", () => {
 		const vertex0 = {
 			hash: "hash1",
 			peerId: "peer1",
 			operation: {
 				drpType: "DRP",
-				opType: "update",
+				opType: "set",
 				value: ["key1", "value1"],
 			},
 			dependencies: [],
@@ -156,7 +156,7 @@ describe("ConflictResolvingMap tests", () => {
 			peerId: "peer2",
 			operation: {
 				drpType: "DRP",
-				opType: "update",
+				opType: "set",
 				value: ["key1", "value2"],
 			},
 			dependencies: [],
@@ -179,13 +179,13 @@ describe("ConflictResolvingMap tests", () => {
 		expect(drp.resolveConflicts(vertices)).toEqual({ action: ActionType.Nop });
 	});
 
-	test("Should drop remove operation when resolve conflict between update and remove operations", () => {
+	test("Should drop delete operation when resolve conflict between set and delete operations", () => {
 		const vertex0 = {
 			hash: "hash1",
 			peerId: "peer1",
 			operation: {
 				drpType: "DRP",
-				opType: "update",
+				opType: "set",
 				value: ["key1", "value1"],
 			},
 			dependencies: [],
@@ -198,7 +198,7 @@ describe("ConflictResolvingMap tests", () => {
 			peerId: "peer2",
 			operation: {
 				drpType: "DRP",
-				opType: "remove",
+				opType: "delete",
 				value: ["key1"],
 			},
 			dependencies: [],

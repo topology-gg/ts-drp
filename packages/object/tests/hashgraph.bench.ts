@@ -113,7 +113,7 @@ suite.add(
 		}
 
 		for (let i = 0; i < 1000; ++i) {
-			drp.remove(i);
+			drp.delete(i);
 		}
 	},
 );
@@ -133,11 +133,11 @@ suite.add(
 				if ((i % 3) % 2 === 0) {
 					drp.update(i, i);
 				} else {
-					drp.remove(i);
+					drp.delete(i);
 				}
 			} else {
 				if ((i % 3) % 2 === 0) {
-					drp.remove(i - 1);
+					drp.delete(i - 1);
 				} else {
 					drp.update(i - 1, i - 1);
 				}
@@ -157,11 +157,11 @@ suite.add(
 					if ((i % 3) % 2 === 0) {
 						drp.update(i, i);
 					} else {
-						drp.remove(i);
+						drp.delete(i);
 					}
 				} else {
 					if ((i % 3) % 2 === 0) {
-						drp.remove(i - 1);
+						drp.delete(i - 1);
 					} else {
 						drp.update(i - 1, i - 1);
 					}
