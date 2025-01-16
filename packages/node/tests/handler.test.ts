@@ -1,19 +1,21 @@
-import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test } from "vitest";
 import { DRPNode } from "../src/index.js";
-import { DRPObject } from "@topology-foundation/object/src/index.js";
+import { type DRP, DRPObject, type IACL } from "@topology-foundation/object/src/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { NetworkPb } from "@topology-foundation/network/src/index.js";
-import { updateHandler } from "../src/handlers.js";
+import { syncHandler, updateHandler } from "../src/handlers.js";
+import { DrpType } from "@topology-foundation/object/dist/src/index.js";
 
 describe("Handle message correctly", () => {
   let node: DRPNode;
   let drpObject: DRPObject;
+  const mockSender = "12D3KooWEtLcL6DZVTnDe5rkv7a9pg7FwQQAyJpJX1zWH1tgAAEs";
 
   beforeAll(async () => {
     node = new DRPNode();
     await node.start();
 
-    drpObject = new DRPObject("", new AddWinsSet<number>());
+    drpObject = new DRPObject("", new AddWinsSet<number>(), null as unknown as IACL & DRP);
     await node.createObject(new AddWinsSet<number>(), drpObject.id);
 
     (drpObject.drp as AddWinsSet<number>).add(5);
@@ -22,7 +24,7 @@ describe("Handle message correctly", () => {
 
   test("update handler", async () => {
     const message = NetworkPb.Message.create({
-      sender: "",
+      sender: mockSender,
       type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
       data: NetworkPb.Update.encode(
         NetworkPb.Update.create({
@@ -38,9 +40,26 @@ describe("Handle message correctly", () => {
       return vertex.operation
     });
     expect(vertices).toStrictEqual([
-      { type: "-1", value: null },
-      { type: "add", value: [5] },
-      { type: "add", value: [10] },
+      { drpType: '', opType: '-1', value: null },
+      { opType: "add", value: [5], drpType: DrpType.Drp },
+      { opType: "add", value: [10], drpType: DrpType.Drp },
     ]);
+  });
+
+  test("sync handler", async () => {  
+    (drpObject.drp as AddWinsSet<number>).add(1);
+    (drpObject.drp as AddWinsSet<number>).add(2);
+    const message = NetworkPb.Message.create({
+      sender: mockSender,
+      type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC,
+      data: NetworkPb.Sync.encode(
+        NetworkPb.Sync.create({
+          objectId: drpObject.id,
+          vertexHashes: drpObject.vertices.map((vertex) => vertex.hash),
+        }),
+      ).finish(),
+    });
+    const success = await syncHandler(node, message.sender, message.data);
+    expect(success).toBe(true);     
   });
 });

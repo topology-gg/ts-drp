@@ -7,3 +7,4 @@ node_modules/
 **/tsconfig.tsbuildinfo
 coverage/*
 .vscode/*
+**/object_grpc_pb.js

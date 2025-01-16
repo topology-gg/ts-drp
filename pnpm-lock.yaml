@@ -54,10 +54,10 @@ importers:
   examples/canvas:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -76,10 +76,10 @@ importers:
   examples/chat:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -98,10 +98,10 @@ importers:
   examples/grid:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -120,7 +120,7 @@ importers:
   examples/local-bootstrap:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../../packages/node
     devDependencies:
       '@types/node':
@@ -143,7 +143,7 @@ importers:
         version: 4.1.7
     devDependencies:
       '@ts-drp/object':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../object
 
   packages/logger:
@@ -209,7 +209,7 @@ importers:
         specifier: ^12.3.1
         version: 12.3.4
       '@ts-drp/logger':
-        specifier: ^0.5.3
+        specifier: ^0.6.0
         version: link:../logger
       it-length-prefixed:
         specifier: ^9.1.0
@@ -233,6 +233,12 @@ importers:
 
   packages/node:
     dependencies:
+      '@chainsafe/bls':
+        specifier: ^8.1.0
+        version: 8.1.0
+      '@chainsafe/bls-keygen':
+        specifier: ^0.4.0
+        version: 0.4.0
       '@chainsafe/libp2p-gossipsub':
         specifier: ^14.1.0
         version: 14.1.0
@@ -245,20 +251,23 @@ importers:
       '@grpc/reflection':
         specifier: ^1.0.4
         version: 1.0.4(@grpc/grpc-js@1.12.5)
+      '@libp2p/crypto':
+        specifier: ^5.0.5
+        version: 5.0.9
       '@libp2p/interface':
         specifier: ^2.1.3
         version: 2.4.0
       '@ts-drp/blueprints':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../blueprints
       '@ts-drp/logger':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../logger
       '@ts-drp/network':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../network
       '@ts-drp/object':
-        specifier: 0.5.3
+        specifier: 0.6.0
         version: link:../object
       commander:
         specifier: ^13.0.0
@@ -288,8 +297,11 @@ importers:
 
   packages/object:
     dependencies:
+      '@chainsafe/bls':
+        specifier: ^8.1.0
+        version: 8.1.0
       '@ts-drp/logger':
-        specifier: ^0.5.3
+        specifier: ^0.6.0
         version: link:../logger
       es-toolkit:
         specifier: 1.30.1
@@ -300,6 +312,9 @@ importers:
       fast-equals:
         specifier: ^5.2.2
         version: 5.2.2
+      uint8arrays:
+        specifier: ^5.1.0
+        version: 5.1.0
     devDependencies:
       '@bufbuild/protobuf':
         specifier: ^2.0.0
@@ -1816,6 +1831,33 @@ packages:
 
   /@chainsafe/as-sha256@0.4.2:
     resolution: {integrity: sha512-HJ8GZBRjLeWtRsAXf3EbNsNzmTGpzTFjfpSf4yHkLYC+E52DhT6hwz+7qpj6I/EmFzSUm5tYYvT9K8GZokLQCQ==}
+    dev: false
+
+  /@chainsafe/bls-hd-key@0.3.0:
+    resolution: {integrity: sha512-LsYYnfBEEmqGFPDm8hQN3Kc+v9wPFnhn+CToD403KEynUiUSHKLAf5B6UCY5eooShDOcaGCUgAUhIw1CmpEf3Q==}
+    dependencies:
+      '@noble/hashes': 1.7.0
+    dev: false
+
+  /@chainsafe/bls-keygen@0.4.0:
+    resolution: {integrity: sha512-wqtuj4G/sWpIugJW1mb/nSTwcTuZKqB3DS3ANUIOn7pva8EB6LfxgIL34o4qk3lti/8Mdxqtqc2n4xRszrNdzA==}
+    dependencies:
+      '@chainsafe/bls-hd-key': 0.3.0
+      '@noble/hashes': 1.7.0
+      '@scure/bip39': 1.5.1
+    dev: false
+
+  /@chainsafe/bls@8.1.0:
+    resolution: {integrity: sha512-C4a1gUpFHYzJG7aaik4w+7QTeJ4pGCDTZ28YUwAWOFaWgAJSK+769ib6CNBu5Txb3PpvcC5GuhICQaDopIgEHg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@chainsafe/blst': ^1.0.0
+    peerDependenciesMeta:
+      '@chainsafe/blst':
+        optional: true
+    dependencies:
+      '@chainsafe/bls-keygen': 0.4.0
+      bls-eth-wasm: 1.4.0
     dev: false
 
   /@chainsafe/is-ip@2.0.2:
@@ -3718,6 +3760,17 @@ packages:
     dev: true
     optional: true
 
+  /@scure/base@1.2.1:
+    resolution: {integrity: sha512-DGmGtC8Tt63J5GfHgfl5CuAXh96VF/LD8K9Hr/Gv0J2lAoRGlPOMpqMpMbCTOoOJMZCk2Xt+DskdDyn6dEFdzQ==}
+    dev: false
+
+  /@scure/bip39@1.5.1:
+    resolution: {integrity: sha512-GnlufVSP9UdAo/H2Patfv22VTtpNTyfi+I3qCKpvuB5l1KWzEYx+l2TNpBy9Ksh4xTs3Rn06tBlpWCi/1Vz8gw==}
+    dependencies:
+      '@noble/hashes': 1.7.0
+      '@scure/base': 1.2.1
+    dev: false
+
   /@shikijs/core@1.27.0:
     resolution: {integrity: sha512-2RkIwaXVWxJQQw8JvqikTVe4gBxS3elH3qF3b7Ews1KdJc+TH9/nsVEftrtPn0bLOkdlMaGj5H2RBHpfWmRIcA==}
     dependencies:
@@ -4405,6 +4458,10 @@ packages:
       buffer: 5.7.1
       inherits: 2.0.4
       readable-stream: 3.6.2
+
+  /bls-eth-wasm@1.4.0:
+    resolution: {integrity: sha512-9TJR3r3CUJQR97PU6zokV2kVA80H8g4tkVBnaf9HNH3lFMBZUKZETNCwIuN+exFLujdbt1K188rH3mnq8UgmKw==}
+    dev: false
 
   /bn.js@4.12.1:
     resolution: {integrity: sha512-k8TVBiPkPJT9uHLdOKfFpqcfprwBFOAAXXozRubr7R7PfIuKvQlzcI4M0pALeqXN09vdaMbUdUj+pass+uULAg==}

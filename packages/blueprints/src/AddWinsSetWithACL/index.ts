@@ -1,6 +1,7 @@
 import {
 	ActionType,
 	type DRP,
+	type DRPPublicCredential,
 	type IACL,
 	type ResolveConflictsType,
 	SemanticsType,
@@ -14,7 +15,7 @@ export class AddWinsSetWithACL<T> implements DRP {
 	acl: IACL & DRP;
 	semanticsType = SemanticsType.pair;
 
-	constructor(admins: Map<string, string>) {
+	constructor(admins: Map<string, DRPPublicCredential>) {
 		this.acl = new ACL(admins);
 		this.state = new Map<T, boolean>();
 	}
@@ -41,23 +42,23 @@ export class AddWinsSetWithACL<T> implements DRP {
 		if (!vertices[0].operation || !vertices[1].operation)
 			return { action: ActionType.Nop };
 		if (
-			vertices[0].operation.type === vertices[1].operation.type ||
+			vertices[0].operation.opType === vertices[1].operation.opType ||
 			vertices[0].operation.value[0] !== vertices[1].operation.value[0]
 		)
 			return { action: ActionType.Nop };
 
 		if (
-			["grant", "revoke"].includes(vertices[0].operation.type) &&
-			["grant", "revoke"].includes(vertices[1].operation.type)
+			["grant", "revoke"].includes(vertices[0].operation.opType) &&
+			["grant", "revoke"].includes(vertices[1].operation.opType)
 		) {
 			return this.acl.resolveConflicts(vertices);
 		}
 
 		if (
-			this.operations.includes(vertices[0].operation.type) &&
-			this.operations.includes(vertices[1].operation.type)
+			this.operations.includes(vertices[0].operation.opType) &&
+			this.operations.includes(vertices[1].operation.opType)
 		) {
-			return vertices[0].operation.type === "add"
+			return vertices[0].operation.opType === "add"
 				? { action: ActionType.DropRight }
 				: { action: ActionType.DropLeft };
 		}

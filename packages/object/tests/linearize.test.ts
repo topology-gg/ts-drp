@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { ActionType } from "../dist/src/hashgraph/index.js";
 import { SemanticsType } from "../dist/src/hashgraph/index.js";
-import { HashGraph, type Vertex } from "../src/index.js";
+import { DrpType, HashGraph, type Vertex } from "../src/index.js";
 import { linearizeMultipleSemantics } from "../src/linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../src/linearize/pairSemantics.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
@@ -15,14 +15,20 @@ describe("Linearize correctly", () => {
 					action: ActionType.Nop,
 				};
 			},
+			(_vertices: Vertex[]) => {
+				return {
+					action: ActionType.Nop,
+				};
+			},
 			SemanticsType.multiple,
 		);
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
 				{
-					type: "test",
+					opType: "test",
 					value: [i],
+					drpType: DrpType.Drp
 				},
 				frontier,
 				"",
@@ -31,8 +37,9 @@ describe("Linearize correctly", () => {
 			);
 			hashgraph.addVertex(
 				{
-					type: "test",
+					opType: "test",
 					value: [i + 1],
+					drpType: DrpType.Drp
 				},
 				frontier,
 				"",
@@ -64,14 +71,20 @@ describe("Linearize correctly", () => {
 					action: ActionType.DropRight,
 				};
 			},
+			(_vertices: Vertex[]) => {
+				return {
+					action: ActionType.Nop,
+				};
+			},
 			SemanticsType.pair,
 		);
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
 				{
-					type: "test",
+					opType: "test",
 					value: [i],
+					drpType: DrpType.Drp
 				},
 				frontier,
 				"",
@@ -80,8 +93,9 @@ describe("Linearize correctly", () => {
 			);
 			hashgraph.addVertex(
 				{
-					type: "test",
+					opType: "test",
 					value: [i + 1],
+					drpType: DrpType.Drp
 				},
 				frontier,
 				"",

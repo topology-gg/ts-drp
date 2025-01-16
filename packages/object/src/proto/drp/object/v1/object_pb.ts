@@ -21,8 +21,20 @@ export interface Vertex {
 }
 
 export interface Vertex_Operation {
-  type: string;
+  drpType: string;
+  opType: string;
   value: any | undefined;
+}
+
+export interface Attestation {
+  data: string;
+  signature: Uint8Array;
+}
+
+export interface AggregatedAttestation {
+  data: string;
+  signature: Uint8Array;
+  aggregationBits: Uint8Array;
 }
 
 export interface DRPObjectBase {
@@ -177,16 +189,19 @@ export const Vertex: MessageFns<Vertex> = {
 };
 
 function createBaseVertex_Operation(): Vertex_Operation {
-  return { type: "", value: undefined };
+  return { drpType: "", opType: "", value: undefined };
 }
 
 export const Vertex_Operation: MessageFns<Vertex_Operation> = {
   encode(message: Vertex_Operation, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.type !== "") {
-      writer.uint32(10).string(message.type);
+    if (message.drpType !== "") {
+      writer.uint32(10).string(message.drpType);
+    }
+    if (message.opType !== "") {
+      writer.uint32(18).string(message.opType);
     }
     if (message.value !== undefined) {
-      Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
+      Value.encode(Value.wrap(message.value), writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -203,11 +218,19 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
             break;
           }
 
-          message.type = reader.string();
+          message.drpType = reader.string();
           continue;
         }
         case 2: {
           if (tag !== 18) {
+            break;
+          }
+
+          message.opType = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
             break;
           }
 
@@ -225,15 +248,19 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
 
   fromJSON(object: any): Vertex_Operation {
     return {
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      drpType: isSet(object.drpType) ? globalThis.String(object.drpType) : "",
+      opType: isSet(object.opType) ? globalThis.String(object.opType) : "",
       value: isSet(object?.value) ? object.value : undefined,
     };
   },
 
   toJSON(message: Vertex_Operation): unknown {
     const obj: any = {};
-    if (message.type !== "") {
-      obj.type = message.type;
+    if (message.drpType !== "") {
+      obj.drpType = message.drpType;
+    }
+    if (message.opType !== "") {
+      obj.opType = message.opType;
     }
     if (message.value !== undefined) {
       obj.value = message.value;
@@ -246,8 +273,177 @@ export const Vertex_Operation: MessageFns<Vertex_Operation> = {
   },
   fromPartial<I extends Exact<DeepPartial<Vertex_Operation>, I>>(object: I): Vertex_Operation {
     const message = createBaseVertex_Operation();
-    message.type = object.type ?? "";
+    message.drpType = object.drpType ?? "";
+    message.opType = object.opType ?? "";
     message.value = object.value ?? undefined;
+    return message;
+  },
+};
+
+function createBaseAttestation(): Attestation {
+  return { data: "", signature: new Uint8Array(0) };
+}
+
+export const Attestation: MessageFns<Attestation> = {
+  encode(message: Attestation, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.data !== "") {
+      writer.uint32(10).string(message.data);
+    }
+    if (message.signature.length !== 0) {
+      writer.uint32(18).bytes(message.signature);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Attestation {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAttestation();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.data = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.signature = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Attestation {
+    return {
+      data: isSet(object.data) ? globalThis.String(object.data) : "",
+      signature: isSet(object.signature) ? bytesFromBase64(object.signature) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: Attestation): unknown {
+    const obj: any = {};
+    if (message.data !== "") {
+      obj.data = message.data;
+    }
+    if (message.signature.length !== 0) {
+      obj.signature = base64FromBytes(message.signature);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Attestation>, I>>(base?: I): Attestation {
+    return Attestation.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Attestation>, I>>(object: I): Attestation {
+    const message = createBaseAttestation();
+    message.data = object.data ?? "";
+    message.signature = object.signature ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseAggregatedAttestation(): AggregatedAttestation {
+  return { data: "", signature: new Uint8Array(0), aggregationBits: new Uint8Array(0) };
+}
+
+export const AggregatedAttestation: MessageFns<AggregatedAttestation> = {
+  encode(message: AggregatedAttestation, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.data !== "") {
+      writer.uint32(10).string(message.data);
+    }
+    if (message.signature.length !== 0) {
+      writer.uint32(18).bytes(message.signature);
+    }
+    if (message.aggregationBits.length !== 0) {
+      writer.uint32(26).bytes(message.aggregationBits);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AggregatedAttestation {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAggregatedAttestation();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.data = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.signature = reader.bytes();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.aggregationBits = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AggregatedAttestation {
+    return {
+      data: isSet(object.data) ? globalThis.String(object.data) : "",
+      signature: isSet(object.signature) ? bytesFromBase64(object.signature) : new Uint8Array(0),
+      aggregationBits: isSet(object.aggregationBits) ? bytesFromBase64(object.aggregationBits) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: AggregatedAttestation): unknown {
+    const obj: any = {};
+    if (message.data !== "") {
+      obj.data = message.data;
+    }
+    if (message.signature.length !== 0) {
+      obj.signature = base64FromBytes(message.signature);
+    }
+    if (message.aggregationBits.length !== 0) {
+      obj.aggregationBits = base64FromBytes(message.aggregationBits);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AggregatedAttestation>, I>>(base?: I): AggregatedAttestation {
+    return AggregatedAttestation.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AggregatedAttestation>, I>>(object: I): AggregatedAttestation {
+    const message = createBaseAggregatedAttestation();
+    message.data = object.data ?? "";
+    message.signature = object.signature ?? new Uint8Array(0);
+    message.aggregationBits = object.aggregationBits ?? new Uint8Array(0);
     return message;
   },
 };

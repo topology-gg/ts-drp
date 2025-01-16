@@ -7,8 +7,9 @@ import "google/protobuf/struct.proto";
 // Supposed to be the RIBLT stuff
 message Vertex {
   message Operation {
-    string type = 1;
-    google.protobuf.Value value = 2;
+    string drp_type = 1;
+    string op_type = 2;
+    google.protobuf.Value value = 3;
   }
   string hash = 1;
   string peer_id = 2;
@@ -16,6 +17,17 @@ message Vertex {
   repeated string dependencies = 4;
   int64 timestamp = 5;
   bytes signature = 6;
+}
+
+message Attestation {
+  string data = 1;
+  bytes signature = 2;
+}
+
+message AggregatedAttestation {
+  string data = 1;
+  bytes signature = 2;
+  bytes aggregation_bits = 3;
 }
 
 message DRPObjectBase {
