@@ -2,6 +2,7 @@ import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
+import { ACL } from "./acl/index.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import {
 	type Hash,
@@ -10,8 +11,6 @@ import {
 	type ResolveConflictsType,
 	type Vertex,
 } from "./hashgraph/index.js";
-import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
-import { ObjectSet } from "./utils/objectSet.js";
 import type {
 	DRP,
 	DRPObjectCallback,
@@ -20,14 +19,17 @@ import type {
 	IDRPObject,
 	LcaAndOperations,
 } from "./interfaces.js";
-import { ACL } from "./acl/index.js";
+import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
+import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
+export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
 export * from "./interfaces.js";
 
 type DRPState = {
-	state: Map<string, unknown>;
+	// biome-ignore lint: preferable to use any instead of unknown
+	state: Map<string, any>;
 };
 
 export enum DrpType {
@@ -49,7 +51,8 @@ export class DRPObject implements IDRPObject {
 	vertices: ObjectPb.Vertex[] = [];
 	acl?: ProxyHandler<IACL & DRP>;
 	drp?: ProxyHandler<DRP>;
-	hashGraph?: HashGraph;
+	// @ts-ignore: initialized in constructor
+	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	drpStates: Map<string, DRPState>;
 	aclStates: Map<string, DRPState>;
@@ -60,12 +63,18 @@ export class DRPObject implements IDRPObject {
 
 	constructor(
 		peerId: string,
-		publicCredential: DRPPublicCredential,
-		drp?: DRP,
+		publicCredential?: DRPPublicCredential,
 		acl?: IACL & DRP,
+		drp?: DRP,
 		id?: string,
 		config?: DRPObjectConfig,
 	) {
+		if (!acl && !publicCredential) {
+			throw new Error(
+				"Either publicCredential or acl must be provided to create a DRPObject",
+			);
+		}
+
 		this.peerId = peerId;
 		log = new Logger("drp::object", config?.log_config);
 		this.id =
@@ -76,7 +85,9 @@ export class DRPObject implements IDRPObject {
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
 
-		const aclObj = acl ?? new ACL(new Map([[peerId, publicCredential]]));
+		const aclObj =
+			acl ??
+			new ACL(new Map([[peerId, publicCredential as DRPPublicCredential]]));
 		this.acl = new Proxy(aclObj, this.proxyDRPHandler(DrpType.ACL));
 		if (drp) {
 			this._initLocalDrpInstance(drp, aclObj);
@@ -87,7 +98,7 @@ export class DRPObject implements IDRPObject {
 		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.finalityStore = new FinalityStore(config?.finality_config);
-		this.originalACL = cloneDeep(acl);
+		this.originalACL = cloneDeep(aclObj);
 		this.originalDRP = cloneDeep(drp);
 	}
 

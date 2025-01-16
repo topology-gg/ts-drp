@@ -1,4 +1,4 @@
-import { FinalityStore } from "./finality/index.js";
+import type { FinalityStore } from "./finality/index.js";
 import type {
 	HashGraph,
 	Operation,
@@ -42,7 +42,7 @@ export interface DRP {
 export interface IDRPObject extends ObjectPb.DRPObjectBase {
 	acl?: ProxyHandler<IACL & DRP>;
 	drp?: ProxyHandler<DRP>;
-	hashGraph?: HashGraph;
+	hashGraph: HashGraph;
 	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback[];
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];

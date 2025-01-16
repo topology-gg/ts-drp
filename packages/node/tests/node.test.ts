@@ -1,7 +1,6 @@
 import bls from "@chainsafe/bls/herumi";
-import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
-import type { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
-import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
+import { AddWinsSet } from "@ts-drp/blueprints";
+import { ACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
@@ -30,7 +29,7 @@ describe("DPRNode with verify and sign signature", () => {
 				],
 			]),
 		);
-		drpObject = new DRPObject(drpNode.networkNode.peerId, drp, acl);
+		drpObject = new DRPObject(drpNode.networkNode.peerId, undefined, acl, drp);
 	});
 
 	test("Node will not sign vertex if it is not the creator", async () => {
@@ -41,6 +40,7 @@ describe("DPRNode with verify and sign signature", () => {
 				operation: {
 					type: "type",
 					value: "value",
+					vertexType: DrpType.DRP,
 				},
 				dependencies: [],
 				timestamp: Date.now(),
@@ -58,7 +58,8 @@ describe("DPRNode with verify and sign signature", () => {
 				peerId: drpNode.networkNode.peerId,
 				operation: {
 					type: "add",
-					value: 1,
+					value: [1],
+					vertexType: DrpType.DRP,
 				},
 				dependencies: [],
 				timestamp: Date.now(),
@@ -76,7 +77,8 @@ describe("DPRNode with verify and sign signature", () => {
 				peerId: drpNode.networkNode.peerId,
 				operation: {
 					opType: "add",
-					value: 1,
+					value: [1],
+					vertexType: DrpType.DRP,
 				},
 				dependencies: [],
 				timestamp: Date.now(),
@@ -88,27 +90,6 @@ describe("DPRNode with verify and sign signature", () => {
 		expect(verifiedVertices.length).toBe(1);
 	});
 
-	test("Blind merge if the acl is undefined", async () => {
-		const vertices = [
-			{
-				hash: "hash",
-				peerId: "peer1",
-				operation: {
-					type: "add",
-					value: 1,
-				},
-				dependencies: [],
-				timestamp: Date.now(),
-				signature: new Uint8Array(),
-			},
-		];
-
-		const drp1 = new AddWinsSet();
-		const drpObject1 = new DRPObject("peer1", drp1);
-		const verifiedVertices = await verifyIncomingVertices(drpObject1, vertices);
-		expect(verifiedVertices.length).toBe(1);
-	});
-
 	test("Ignore vertex if the signature is invalid", async () => {
 		const vertices = [
 			{
@@ -116,8 +97,8 @@ describe("DPRNode with verify and sign signature", () => {
 				peerId: drpNode.networkNode.peerId,
 				operation: {
 					type: "add",
-					value: 1,
-					vertexType: DrpType.Drp,
+					value: [1],
+					vertexType: DrpType.DRP,
 				},
 				dependencies: [],
 				timestamp: Date.now(),
@@ -130,12 +111,12 @@ describe("DPRNode with verify and sign signature", () => {
 });
 
 describe("DRPNode voting tests", () => {
-	let drp1: AddWinsSetWithACL<number>;
+	let drp1: AddWinsSet<number>;
+	let acl1: ACL;
 	let nodeA: DRPNode;
 	let nodeB: DRPNode;
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	let acl1: ACL;
 
 	beforeAll(async () => {
 		nodeA = new DRPNode();
@@ -145,20 +126,19 @@ describe("DRPNode voting tests", () => {
 	});
 
 	beforeEach(async () => {
-		const peerIdToPublicKeyMap = new Map([
-			[nodeA.networkNode.peerId, nodeA.credentialStore.getPublicCredential()],
-		]);
 		obj1 = new DRPObject(
 			nodeA.networkNode.peerId,
+			nodeA.credentialStore.getPublicCredential(),
+			undefined,
 			new AddWinsSet(),
-			new ACL(peerIdToPublicKeyMap),
 		);
-		drp1 = obj1.drp as AddWinsSetWithACL<number>;
+		drp1 = obj1.drp as AddWinsSet<number>;
 		acl1 = obj1.acl as ACL;
 		obj2 = new DRPObject(
 			nodeB.networkNode.peerId,
+			undefined,
+			acl1,
 			new AddWinsSet(),
-			new ACL(peerIdToPublicKeyMap),
 		);
 	});
 
@@ -166,6 +146,9 @@ describe("DRPNode voting tests", () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
+
+		console.log("obj1", obj1);
+		console.log("acl1", acl1);
 
 		acl1.grant(
 			nodeA.networkNode.peerId,

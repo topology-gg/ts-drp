@@ -3,7 +3,7 @@ import bls from "@chainsafe/bls/herumi";
 import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
-import type { IDRPObject, DRPPublicCredential } from "@ts-drp/object";
+import type { DRPPublicCredential, IDRPObject } from "@ts-drp/object";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 

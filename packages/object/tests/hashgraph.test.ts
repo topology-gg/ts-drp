@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { ACL } from "../../blueprints/src/ACL/index.js";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import {
-	ConflictResolvingMap,
 	MapConflictResolution,
+	MapDRP,
 } from "../../blueprints/src/Map/index.js";
+import { ACL } from "../src/acl/index.js";
 import {
 	DRPObject,
 	DrpType,
@@ -15,12 +15,21 @@ import {
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
+	const acl = new ACL(
+		new Map([
+			[
+				"peer1",
+				{
+					ed25519PublicKey: "publicKey1",
+					blsPublicKey: "publicKey1",
+				},
+			],
+		]),
+	);
 
 	beforeEach(async () => {
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		obj1 = new DRPObject("peer1", new AddWinsSet<number>(), null as any);
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		obj2 = new DRPObject("peer2", new AddWinsSet<number>(), null as any);
+		obj1 = new DRPObject("peer1", undefined, acl, new AddWinsSet<number>());
+		obj2 = new DRPObject("peer2", undefined, acl, new AddWinsSet<number>());
 	});
 
 	test("Test: Vertices are consistent across data structures", () => {
@@ -60,8 +69,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: [2], drpType: DrpType.Drp },
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
 		] as Operation[]);
 	});
 
@@ -77,7 +86,7 @@ describe("HashGraph construction tests", () => {
 			{
 				opType: "root",
 				value: null,
-				drpType: DrpType.Drp,
+				drpType: DrpType.DRP,
 			},
 			[],
 			"",
@@ -88,7 +97,7 @@ describe("HashGraph construction tests", () => {
 			{
 				opType: "add",
 				value: [1],
-				drpType: DrpType.Drp,
+				drpType: DrpType.DRP,
 			},
 			[hash],
 			"",
@@ -99,7 +108,7 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -109,23 +118,22 @@ describe("HashGraph for AddWinSet tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
+	const acl = new ACL(
+		new Map([
+			[
+				"peer1",
+				{
+					ed25519PublicKey: "publicKey1",
+					blsPublicKey: "publicKey1",
+				},
+			],
+		]),
+	);
 
 	beforeEach(async () => {
-		obj1 = new DRPObject(
-			"peer1",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
-		obj2 = new DRPObject(
-			"peer2",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
-		obj3 = new DRPObject(
-			"peer3",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
+		obj1 = new DRPObject("peer1", undefined, acl, new AddWinsSet<number>());
+		obj2 = new DRPObject("peer2", undefined, acl, new AddWinsSet<number>());
+		obj3 = new DRPObject("peer3", undefined, acl, new AddWinsSet<number>());
 	});
 
 	test("Test: Add Two Vertices", () => {
@@ -143,9 +151,9 @@ describe("HashGraph for AddWinSet tests", () => {
 			{
 				opType: "add",
 				value: [1],
-				drpType: DrpType.Drp,
+				drpType: DrpType.DRP,
 			},
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -174,8 +182,8 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -204,9 +212,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
-			{ opType: "add", value: [2], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -239,9 +247,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
-			{ opType: "add", value: [10], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [10], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -272,9 +280,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
-			{ opType: "add", value: [2], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -326,11 +334,11 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
-			{ opType: "add", value: [2], drpType: DrpType.Drp },
-			{ opType: "add", value: [3], drpType: DrpType.Drp },
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			{ opType: "add", value: [3], drpType: DrpType.DRP },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -382,10 +390,10 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
-			{ opType: "remove", value: [1], drpType: DrpType.Drp },
-			{ opType: "add", value: [3], drpType: DrpType.Drp },
-			{ opType: "add", value: [2], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "remove", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [3], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		]);
 	});
 
@@ -417,9 +425,9 @@ describe("HashGraph for AddWinSet tests", () => {
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.Drp },
-			{ opType: "add", value: [2], drpType: DrpType.Drp },
-			{ opType: "remove", value: [2], drpType: DrpType.Drp },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			{ opType: "remove", value: [2], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
@@ -428,18 +436,21 @@ describe("HashGraph for AddWinSet tests", () => {
 describe("HashGraph for undefined operations tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
+	const acl = new ACL(
+		new Map([
+			[
+				"peer1",
+				{
+					ed25519PublicKey: "publicKey1",
+					blsPublicKey: "publicKey1",
+				},
+			],
+		]),
+	);
 
 	beforeEach(async () => {
-		obj1 = new DRPObject(
-			"peer1",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
-		obj2 = new DRPObject(
-			"peer2",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
+		obj1 = new DRPObject("peer1", undefined, acl, new AddWinsSet<number>());
+		obj2 = new DRPObject("peer2", undefined, acl, new AddWinsSet<number>());
 	});
 
 	test("Test: merge should skip undefined operations", () => {
@@ -457,7 +468,7 @@ describe("HashGraph for undefined operations tests", () => {
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		// Should only have one, since we skipped the undefined operations
 		expect(linearOps).toEqual([
-			{ opType: "add", value: [2], drpType: DrpType.Drp },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		]);
 	});
 
@@ -477,23 +488,22 @@ describe("Vertex state tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
+	const acl = new ACL(
+		new Map([
+			[
+				"peer1",
+				{
+					ed25519PublicKey: "publicKey1",
+					blsPublicKey: "publicKey1",
+				},
+			],
+		]),
+	);
 
 	beforeEach(async () => {
-		obj1 = new DRPObject(
-			"peer1",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
-		obj2 = new DRPObject(
-			"peer2",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
-		obj3 = new DRPObject(
-			"peer3",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
+		obj1 = new DRPObject("peer1", undefined, acl, new AddWinsSet<number>());
+		obj2 = new DRPObject("peer2", undefined, acl, new AddWinsSet<number>());
+		obj3 = new DRPObject("peer3", undefined, acl, new AddWinsSet<number>());
 	});
 
 	test("Test: Vertex states work correctly with single HashGraph", () => {
@@ -630,23 +640,22 @@ describe("Vertex timestamp tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
+	const acl = new ACL(
+		new Map([
+			[
+				"peer1",
+				{
+					ed25519PublicKey: "publicKey1",
+					blsPublicKey: "publicKey1",
+				},
+			],
+		]),
+	);
 
 	beforeEach(async () => {
-		obj1 = new DRPObject(
-			"peer1",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
-		obj2 = new DRPObject(
-			"peer1",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
-		obj3 = new DRPObject(
-			"peer1",
-			new AddWinsSet<number>(),
-			null as unknown as ACL,
-		);
+		obj1 = new DRPObject("peer1", undefined, acl, new AddWinsSet<number>());
+		obj2 = new DRPObject("peer1", undefined, acl, new AddWinsSet<number>());
+		obj3 = new DRPObject("peer1", undefined, acl, new AddWinsSet<number>());
 	});
 
 	test("Test: Vertex created in the future is invalid", () => {
@@ -659,7 +668,7 @@ describe("Vertex timestamp tests", () => {
 				{
 					opType: "add",
 					value: 1,
-					drpType: DrpType.Drp,
+					drpType: DrpType.DRP,
 				},
 				obj1.hashGraph.getFrontier(),
 				"",
@@ -694,7 +703,7 @@ describe("Vertex timestamp tests", () => {
 				{
 					opType: "add",
 					value: 1,
-					drpType: DrpType.Drp,
+					drpType: DrpType.DRP,
 				},
 				obj1.hashGraph.getFrontier(),
 				"",
@@ -715,9 +724,9 @@ describe("Writer permission tests", () => {
 			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
 		]);
 		const acl = new ACL(peerIdToPublicKeyMap);
-		obj1 = new DRPObject("peer1", new AddWinsSet(), acl);
-		obj2 = new DRPObject("peer2", new AddWinsSet(), acl);
-		obj3 = new DRPObject("peer3", new AddWinsSet(), acl);
+		obj1 = new DRPObject("peer1", undefined, acl, new AddWinsSet());
+		obj2 = new DRPObject("peer2", undefined, acl, new AddWinsSet());
+		obj3 = new DRPObject("peer3", undefined, acl, new AddWinsSet());
 	});
 
 	test("Node without writer permission can generate vertex locally", () => {
@@ -816,26 +825,22 @@ describe("HashGraph for set wins map tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	let obj3: DRPObject;
+	const acl = new ACL(
+		new Map([
+			[
+				"peer1",
+				{
+					ed25519PublicKey: "publicKey1",
+					blsPublicKey: "publicKey1",
+				},
+			],
+		]),
+	);
 
 	beforeEach(async () => {
-		obj1 = new DRPObject(
-			"peer1",
-			new ConflictResolvingMap<string, string>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
-		);
-		obj2 = new DRPObject(
-			"peer2",
-			new ConflictResolvingMap<string, string>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
-		);
-		obj3 = new DRPObject(
-			"peer3",
-			new ConflictResolvingMap<string, string>(),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
-		);
+		obj1 = new DRPObject("peer1", undefined, acl, new MapDRP<string, string>());
+		obj2 = new DRPObject("peer2", undefined, acl, new MapDRP<string, string>());
+		obj3 = new DRPObject("peer3", undefined, acl, new MapDRP<string, string>());
 	});
 
 	test("Should correctly perform set and delete map operations", () => {
@@ -846,8 +851,8 @@ describe("HashGraph for set wins map tests", () => {
 		      \
 		       -- V2:SET("key2, "value2")
 		*/
-		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
-		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		const drp1 = obj1.drp as MapDRP<string, string>;
+		const drp2 = obj2.drp as MapDRP<string, string>;
 		drp1.set("key1", "value1");
 		drp2.set("key2", "value2");
 		drp1.delete("key1");
@@ -868,8 +873,8 @@ describe("HashGraph for set wins map tests", () => {
 		       --- V2:SET("key1", "value1") -- V3:DELETE("key1") -- V4:SET("key2", "value2")
 		*/
 
-		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
-		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		const drp1 = obj1.drp as MapDRP<string, string>;
+		const drp2 = obj2.drp as MapDRP<string, string>;
 
 		drp1.set("key1", "value2"); // smaller hash
 		drp2.set("key1", "value1"); // greater hash
@@ -897,9 +902,9 @@ describe("HashGraph for set wins map tests", () => {
 		       \                                                    ----------------------------\
 		        -- V6:SET("key2", "eulav3") ---------------------------------------------------- v8:SET("key1", "value")
 		*/
-		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
-		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
-		const drp3 = obj3.drp as ConflictResolvingMap<string, string>;
+		const drp1 = obj1.drp as MapDRP<string, string>;
+		const drp2 = obj2.drp as MapDRP<string, string>;
+		const drp3 = obj3.drp as MapDRP<string, string>;
 
 		drp1.set("key1", "value1");
 		drp1.delete("key2");
@@ -925,23 +930,25 @@ describe("HashGraph for set wins map tests", () => {
 describe("HashGraph for delete wins map tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
+	const acl = new ACL(
+		new Map([
+			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		]),
+	);
 
 	beforeEach(async () => {
 		obj1 = new DRPObject(
 			"peer1",
-			new ConflictResolvingMap<string, string>(
-				MapConflictResolution.DeleteWins,
-			),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
+			undefined,
+			acl,
+			new MapDRP<string, string>(MapConflictResolution.DeleteWins),
 		);
 		obj2 = new DRPObject(
 			"peer2",
-			new ConflictResolvingMap<string, string>(
-				MapConflictResolution.DeleteWins,
-			),
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-			null as any,
+			undefined,
+			acl,
+			new MapDRP<string, string>(MapConflictResolution.DeleteWins),
 		);
 	});
 
@@ -953,12 +960,13 @@ describe("HashGraph for delete wins map tests", () => {
 		      \
 		       -- V2:SET("key1", "value2") -- DELETE("key1")
 		*/
-		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
-		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		const drp1 = obj1.drp as MapDRP<string, string>;
+		const drp2 = obj2.drp as MapDRP<string, string>;
 
 		drp1.set("key1", "value1"); // greater hash
 		drp2.set("key1", "value2"); // smaller hash
 		drp2.delete("key1");
+		console.log(drp2);
 
 		expect(drp1.query_get("key1")).toBe("value1");
 		obj1.merge(obj2.hashGraph.getAllVertices());
@@ -974,8 +982,8 @@ describe("HashGraph for delete wins map tests", () => {
 		       --V2:SET("key1", "value1") -- V4:SET("key2", "value3")
 		*/
 
-		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
-		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		const drp1 = obj1.drp as MapDRP<string, string>;
+		const drp2 = obj2.drp as MapDRP<string, string>;
 
 		drp1.set("key1", "value2");
 		drp2.set("key1", "value1");

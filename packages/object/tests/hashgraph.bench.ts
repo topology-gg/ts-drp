@@ -1,4 +1,4 @@
-import { ConflictResolvingMap } from "@topology-foundation/blueprints/src/index.js";
+import { MapDRP } from "@topology-foundation/blueprints/src/index.js";
 import Benchmark from "benchmark";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject } from "../src/index.js";
@@ -58,11 +58,11 @@ benchmarkForAddWinSet(
 suite.add("Create a HashGraph with 1000 operations for set wins map", () => {
 	const object: DRPObject = new DRPObject(
 		"peer1",
-		new ConflictResolvingMap<number, number>(),
+		new MapDRP<number, number>(),
 		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		null as any,
 	);
-	const drp = object.drp as ConflictResolvingMap<number, number>;
+	const drp = object.drp as MapDRP<number, number>;
 	for (let i = 0; i < 1000; ++i) {
 		drp.set(i, i);
 	}
@@ -73,11 +73,11 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
-			new ConflictResolvingMap<number, number>(),
+			new MapDRP<number, number>(),
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			null as any,
 		);
-		const drp = object.drp as ConflictResolvingMap<number, number>;
+		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 1000; ++i) {
 			drp.set(i, i);
 		}
@@ -93,11 +93,11 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
-			new ConflictResolvingMap<number, number>(),
+			new MapDRP<number, number>(),
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			null as any,
 		);
-		const drp = object.drp as ConflictResolvingMap<number, number>;
+		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 1000; ++i) {
 			drp.set(i, i);
 		}
@@ -113,11 +113,11 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
-			new ConflictResolvingMap<number, number>(),
+			new MapDRP<number, number>(),
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			null as any,
 		);
-		const drp = object.drp as ConflictResolvingMap<number, number>;
+		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 1000; ++i) {
 			drp.set(i, i);
 		}
@@ -133,11 +133,11 @@ suite.add(
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
-			new ConflictResolvingMap<number, number>(),
+			new MapDRP<number, number>(),
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			null as any,
 		);
-		const drp = object.drp as ConflictResolvingMap<number, number>;
+		const drp = object.drp as MapDRP<number, number>;
 		for (let i = 0; i < 250; i += 4) {
 			drp.set(i, i);
 			if (i % 2 === 0) {
@@ -159,7 +159,7 @@ suite.add(
 suite.add(
 	"Create 2 HashGraphs with 1000 operations each for set wins map and merge with random operations",
 	() => {
-		function initialize(drp: ConflictResolvingMap<number, number>) {
+		function initialize(drp: MapDRP<number, number>) {
 			for (let i = 0; i < 250; i += 4) {
 				drp.set(i, i);
 				if (i % 2 === 0) {
@@ -179,20 +179,20 @@ suite.add(
 
 		const object1: DRPObject = new DRPObject(
 			"peer1",
-			new ConflictResolvingMap<number, number>(),
+			new MapDRP<number, number>(),
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			null as any,
 		);
-		const drp1 = object1.drp as ConflictResolvingMap<number, number>;
+		const drp1 = object1.drp as MapDRP<number, number>;
 		initialize(drp1);
 
 		const object2: DRPObject = new DRPObject(
 			"peer2",
-			new ConflictResolvingMap<number, number>(),
+			new MapDRP<number, number>(),
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 			null as any,
 		);
-		const drp2 = object2.drp as ConflictResolvingMap<number, number>;
+		const drp2 = object2.drp as MapDRP<number, number>;
 		initialize(drp2);
 
 		object1.merge(object2.hashGraph.getAllVertices());

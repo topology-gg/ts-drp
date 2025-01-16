@@ -98,9 +98,9 @@ export class DRPNode {
 	) {
 		const object = new DRPObject(
 			this.networkNode.peerId,
-			this.credentialStore.getPublicCredential(),
-			drp,
+			acl ? undefined : this.credentialStore.getPublicCredential(),
 			acl,
+			drp,
 			id,
 		);
 		operations.createObject(this, object);
