@@ -77,16 +77,16 @@ export class ConflictResolvingMap<K, V> implements DRP {
 
 		// if both are remove operations, return no-op
 		if (
-			vertices[0].operation.type === "remove" &&
-			vertices[1].operation.type === "remove"
+			vertices[0].operation.opType === "remove" &&
+			vertices[1].operation.opType === "remove"
 		) {
 			return { action: ActionType.Nop };
 		}
 
 		// if both are updates, keep operation with higher hash value
 		if (
-			vertices[0].operation.type === "update" &&
-			vertices[1].operation.type === "update"
+			vertices[0].operation.opType === "update" &&
+			vertices[1].operation.opType === "update"
 		) {
 			const hash0 = this._computeHash(JSON.stringify(values0[1]));
 			const hash1 = this._computeHash(JSON.stringify(values1[1]));
@@ -103,13 +103,13 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		return this._conflictResolution === MapConflictResolution.UpdateWins
 			? {
 					action:
-						vertices[0].operation.type === "update"
+						vertices[0].operation.opType === "update"
 							? ActionType.DropRight
 							: ActionType.DropLeft,
 				}
 			: {
 					action:
-						vertices[0].operation.type === "update"
+						vertices[0].operation.opType === "update"
 							? ActionType.DropLeft
 							: ActionType.DropRight,
 				};

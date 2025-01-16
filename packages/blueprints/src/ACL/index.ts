@@ -72,7 +72,7 @@ export class ACL implements IACL, DRP {
 		if (!vertices[0].operation || !vertices[1].operation)
 			return { action: ActionType.Nop };
 		if (
-			vertices[0].operation.type === vertices[1].operation.type ||
+			vertices[0].operation.opType === vertices[1].operation.opType ||
 			vertices[0].operation.value[0] !== vertices[1].operation.value[0]
 		)
 			return { action: ActionType.Nop };
@@ -80,13 +80,13 @@ export class ACL implements IACL, DRP {
 		return this._conflictResolution === ACLConflictResolution.GrantWins
 			? {
 					action:
-						vertices[0].operation.type === "grant"
+						vertices[0].operation.opType === "grant"
 							? ActionType.DropRight
 							: ActionType.DropLeft,
 				}
 			: {
 					action:
-						vertices[0].operation.type === "grant"
+						vertices[0].operation.opType === "grant"
 							? ActionType.DropLeft
 							: ActionType.DropRight,
 				};

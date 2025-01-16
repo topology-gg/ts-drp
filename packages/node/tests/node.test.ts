@@ -1,6 +1,6 @@
-import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
+import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
-import { type DRP, DRPObject } from "@ts-drp/object";
+import { type DRP, DRPObject, DrpType } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
 	signGeneratedVertices,
@@ -18,12 +18,13 @@ describe("DPRNode with verify and sign signature", () => {
 	});
 
 	beforeEach(async () => {
-		drp = new AddWinsSetWithACL(
+		drp = new AddWinsSet();
+		const acl = new ACL(
 			new Map([
 				[drpNode.networkNode.peerId, drpNode.networkNode.publicKey || ""],
 			]),
 		);
-		drpObject = new DRPObject(drpNode.networkNode.peerId, drp);
+		drpObject = new DRPObject(drpNode.networkNode.peerId, drp, acl);
 	});
 
 	test("Node will not sign vertex if it is not the creator", async () => {
@@ -68,7 +69,7 @@ describe("DPRNode with verify and sign signature", () => {
 				hash: "hash",
 				peerId: drpNode.networkNode.peerId,
 				operation: {
-					type: "add",
+					opType: "add",
 					value: 1,
 				},
 				dependencies: [],
@@ -110,6 +111,7 @@ describe("DPRNode with verify and sign signature", () => {
 				operation: {
 					type: "add",
 					value: 1,
+					vertexType: DrpType.Drp,
 				},
 				dependencies: [],
 				timestamp: Date.now(),

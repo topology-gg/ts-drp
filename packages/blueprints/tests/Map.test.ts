@@ -77,7 +77,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash1",
 			peerId: "peer1",
 			operation: {
-				type: "update",
+				drpType: "DRP",
+				opType: "update",
 				value: ["key1", "value1"],
 			},
 			dependencies: [],
@@ -89,7 +90,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash2",
 			peerId: "peer2",
 			operation: {
-				type: "update",
+				drpType: "DRP",
+				opType: "update",
 				value: ["key2", "value2"],
 			},
 			dependencies: [],
@@ -110,7 +112,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash1",
 			peerId: "peer1",
 			operation: {
-				type: "remove",
+				drpType: "DRP",
+				opType: "remove",
 				value: ["key1"],
 			},
 			dependencies: [],
@@ -121,7 +124,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash2",
 			peerId: "peer2",
 			operation: {
-				type: "remove",
+				drpType: "DRP",
+				opType: "remove",
 				value: ["key2"],
 			},
 			dependencies: [],
@@ -138,7 +142,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash1",
 			peerId: "peer1",
 			operation: {
-				type: "update",
+				drpType: "DRP",
+				opType: "update",
 				value: ["key1", "value1"],
 			},
 			dependencies: [],
@@ -150,7 +155,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash2",
 			peerId: "peer2",
 			operation: {
-				type: "update",
+				drpType: "DRP",
+				opType: "update",
 				value: ["key1", "value2"],
 			},
 			dependencies: [],
@@ -178,7 +184,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash1",
 			peerId: "peer1",
 			operation: {
-				type: "update",
+				drpType: "DRP",
+				opType: "update",
 				value: ["key1", "value1"],
 			},
 			dependencies: [],
@@ -190,7 +197,8 @@ describe("ConflictResolvingMap tests", () => {
 			hash: "hash2",
 			peerId: "peer2",
 			operation: {
-				type: "remove",
+				drpType: "DRP",
+				opType: "remove",
 				value: ["key1"],
 			},
 			dependencies: [],
