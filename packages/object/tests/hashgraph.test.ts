@@ -1,3 +1,4 @@
+import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import {
 	ConflictResolvingMap,
 	MapConflictResolution,
@@ -10,7 +11,6 @@ import {
 	type Operation,
 	OperationType,
 } from "../src/index.js";
-import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
