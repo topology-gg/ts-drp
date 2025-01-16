@@ -80,23 +80,19 @@ export class DRPNode {
 	}
 
 	async createObject(
-		drp: DRP,
+		drp?: DRP,
+		acl?: IACL & DRP,
 		id?: string,
-		abi?: string,
-		sync?: boolean,
-		peerId?: string,
+		sync?: {
+			enabled: boolean;
+			peerId?: string;
+		},
 	) {
-		const object = new DRPObject(
-			this.networkNode.peerId,
-			drp,
-			null as unknown as IACL & DRP,
-			id,
-			abi,
-		);
+		const object = new DRPObject(this.networkNode.peerId, drp, acl, id);
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
-		if (sync) {
-			operations.syncObject(this, object.id, peerId);
+		if (sync?.enabled) {
+			operations.syncObject(this, object.id, sync.peerId);
 		}
 		return object;
 	}

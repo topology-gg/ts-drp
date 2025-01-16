@@ -1,5 +1,5 @@
 import { NetworkPb } from "@ts-drp/network";
-import type { DRPObject } from "@ts-drp/object";
+import type { IDRPObject } from "@ts-drp/object";
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
@@ -18,7 +18,7 @@ enum _OPERATIONS {
 	SYNC = 4,
 }
 
-export function createObject(node: DRPNode, object: DRPObject) {
+export function createObject(node: DRPNode, object: IDRPObject) {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) =>
 		drpObjectChangesHandler(node, obj, originFn, vertices),
@@ -50,7 +50,7 @@ export async function syncObject(
 	objectId: string,
 	peerId?: string,
 ) {
-	const object: DRPObject | undefined = node.objectStore.get(objectId);
+	const object: IDRPObject | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
 		return;

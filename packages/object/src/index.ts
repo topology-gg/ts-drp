@@ -11,6 +11,14 @@ import {
 } from "./hashgraph/index.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "./utils/objectSet.js";
+import type {
+	DRP,
+	DRPObjectCallback,
+	IACL,
+	IDRPObject,
+	LcaAndOperations,
+} from "./interfaces.js";
+import { ACL } from "./acl/index.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./hashgraph/index.js";
@@ -35,16 +43,16 @@ export let log: Logger;
 export class DRPObject implements IDRPObject {
 	id: string;
 	peerId: string;
-	vertices: ObjectPb.Vertex[];
-	drp: ProxyHandler<DRP> | null;
-	acl: ProxyHandler<IACL & DRP> | null;
-	hashGraph: HashGraph;
+	vertices: ObjectPb.Vertex[] = [];
+	acl?: ProxyHandler<IACL & DRP>;
+	drp?: ProxyHandler<DRP>;
+	hashGraph?: HashGraph;
 	// mapping from vertex hash to the DRP state
 	drpStates: Map<string, DRPState>;
 	aclStates: Map<string, DRPState>;
-	originalDRP: DRP;
-	originalACL: IACL & DRP;
-	subscriptions: DRPObjectCallback[];
+	originalDRP?: DRP;
+	originalACL?: IACL & DRP;
+	subscriptions: DRPObjectCallback[] = [];
 
 	constructor(
 		peerId: string,
@@ -62,22 +70,19 @@ export class DRPObject implements IDRPObject {
 				.update(peerId)
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
-		const aclObj = acl ?? new ACL(new Map());
-		this.drp = drp ? new Proxy(drp, this.proxyDRPHandler(DrpType.DRP)) : null;
-		this.acl = acl ? new Proxy(acl, this.proxyDRPHandler(DrpType.ACL)) : null;
-		this.hashGraph = new HashGraph(
-			peerId,
-			drp?.resolveConflicts?.bind(drp ?? this),
-			acl?.resolveConflicts?.bind(acl ?? this),
-			drp?.semanticsType,
-		);
-		this.subscriptions = [];
 
-		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		const aclObj = acl ?? new ACL(new Map([[peerId, ""]]));
+		this.acl = new Proxy(aclObj, this.proxyDRPHandler(DrpType.ACL));
+		if (drp) {
+			this._initLocalDrpInstance(drp, aclObj);
+		} else {
+			this._initNonLocalDrpInstance(aclObj);
+		}
+
 		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.originalDRP = cloneDeep(drp);
+		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.originalACL = cloneDeep(acl);
-		this.vertices = this.hashGraph.getAllVertices();
+		this.originalDRP = cloneDeep(drp);
 	}
 
 	private _initLocalDrpInstance(drp: DRP, acl: DRP) {
@@ -88,21 +93,21 @@ export class DRPObject implements IDRPObject {
 			acl.resolveConflicts.bind(acl),
 			drp.semanticsType,
 		);
+		this.vertices = this.hashGraph.getAllVertices();
 	}
 
 	private _initNonLocalDrpInstance(acl: DRP) {
 		this.hashGraph = new HashGraph(
 			this.peerId,
-			this.drp.resolveConflicts.bind(this.drp),
 			acl.resolveConflicts.bind(this.acl),
-			acl.semanticsType,
 		);
+		this.vertices = this.hashGraph.getAllVertices();
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (
 			this.acl &&
-			vertices.some((v) => v.operation?.drpType === DrpType.Acl)
+			vertices.some((v) => v.operation?.drpType === DrpType.ACL)
 		) {
 			const acl = this.acl as IACL & DRP;
 			return acl.resolveConflicts(vertices);
@@ -150,9 +155,12 @@ export class DRPObject implements IDRPObject {
 		args: any,
 		drpType: DrpType,
 	) {
+		if (!this.hashGraph) {
+			throw new Error("Hashgraph is undefined");
+		}
 		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		let preOperationDRP: any;
-		if (drpType === DrpType.Acl) {
+		if (drpType === DrpType.ACL) {
 			preOperationDRP = this._computeACL(this.hashGraph.getFrontier());
 		} else {
 			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
@@ -196,6 +204,9 @@ export class DRPObject implements IDRPObject {
 	 * missing vertices and an array with the missing vertices
 	 */
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		if (!this.hashGraph) {
+			throw new Error("Hashgraph is undefined");
+		}
 		const missing = [];
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
@@ -209,7 +220,7 @@ export class DRPObject implements IDRPObject {
 				}
 				const preComputeLca = this.computeLCA(vertex.dependencies);
 
-				if (vertex.operation.drpType === DrpType.Drp) {
+				if (vertex.operation.drpType === DrpType.DRP) {
 					const drp = this._computeDRP(vertex.dependencies, preComputeLca);
 					this.hashGraph.addVertex(
 						vertex.operation,
@@ -293,6 +304,10 @@ export class DRPObject implements IDRPObject {
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
 	): DRP {
+		if (!this.drp || !this.originalDRP) {
+			throw new Error("DRP is undefined");
+		}
+
 		const { lca, linearizedOperations } =
 			preCompute ?? this.computeLCA(vertexDependencies);
 
@@ -310,10 +325,10 @@ export class DRPObject implements IDRPObject {
 		}
 
 		for (const op of linearizedOperations) {
-			op.drpType === DrpType.Drp && this._applyOperation(drp, op);
+			op.drpType === DrpType.DRP && this._applyOperation(drp, op);
 		}
 		if (vertexOperation) {
-			vertexOperation.drpType === DrpType.Drp &&
+			vertexOperation.drpType === DrpType.DRP &&
 				this._applyOperation(drp, vertexOperation);
 		}
 
@@ -325,6 +340,10 @@ export class DRPObject implements IDRPObject {
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
 	): DRP {
+		if (!this.acl || !this.originalACL) {
+			throw new Error("ACL is undefined");
+		}
+
 		const { lca, linearizedOperations } =
 			preCompute ?? this.computeLCA(vertexDependencies);
 
@@ -341,10 +360,10 @@ export class DRPObject implements IDRPObject {
 			acl[key] = value;
 		}
 		for (const op of linearizedOperations) {
-			op.drpType === DrpType.Acl && this._applyOperation(acl, op);
+			op.drpType === DrpType.ACL && this._applyOperation(acl, op);
 		}
 		if (vertexOperation) {
-			vertexOperation.drpType === DrpType.Acl &&
+			vertexOperation.drpType === DrpType.ACL &&
 				this._applyOperation(acl, vertexOperation);
 		}
 
@@ -352,6 +371,13 @@ export class DRPObject implements IDRPObject {
 	}
 
 	private computeLCA(vertexDependencies: string[]) {
+		if (!this.hashGraph) {
+			throw new Error("Hashgraph is undefined");
+		}
+		if (vertexDependencies.length === 0) {
+			return { lca: HashGraph.rootHash, linearizedOperations: [] };
+		}
+
 		const subgraph: ObjectSet<Hash> = new ObjectSet();
 		const lca =
 			vertexDependencies.length === 1
@@ -448,7 +474,7 @@ export class DRPObject implements IDRPObject {
 
 	// update the DRP's attributes based on all the vertices in the hashgraph
 	private _updateDRPState() {
-		if (!this.drp) {
+		if (!this.drp || !this.hashGraph) {
 			return;
 		}
 		const currentDRP = this.drp as DRP;
@@ -461,7 +487,7 @@ export class DRPObject implements IDRPObject {
 	}
 
 	private _updateACLState() {
-		if (!this.acl) {
+		if (!this.acl || !this.hashGraph) {
 			return;
 		}
 		const currentACL = this.acl as IACL & DRP;
