@@ -4,7 +4,6 @@
 		"allowJs": true,
 		"target": "ES2022",
 		"module": "NodeNext",
-		"lib": ["dom", "es2018"],
 
 		"esModuleInterop": true,
 		"moduleResolution": "NodeNext",

@@ -1,3 +1,4 @@
+import { FinalityStore } from "./finality/index.js";
 import type {
 	HashGraph,
 	Operation,
@@ -13,12 +14,22 @@ export type DRPObjectCallback = (
 	vertices: ObjectPb.Vertex[],
 ) => void;
 
+export interface DRPPublicCredential {
+	ed25519PublicKey: string;
+	blsPublicKey: string;
+}
+
 export interface IACL {
-	grant: (senderId: string, peerId: string, publicKey: string) => void;
+	grant: (
+		senderId: string,
+		peerId: string,
+		publicKey: DRPPublicCredential,
+	) => void;
 	revoke: (senderId: string, peerId: string) => void;
+	query_getWriters: () => Map<string, DRPPublicCredential>;
 	query_isWriter: (peerId: string) => boolean;
 	query_isAdmin: (peerId: string) => boolean;
-	query_getPeerKey: (peerId: string) => string | undefined;
+	query_getPeerKey: (peerId: string) => DRPPublicCredential | undefined;
 }
 
 export interface DRP {
@@ -32,6 +43,7 @@ export interface IDRPObject extends ObjectPb.DRPObjectBase {
 	acl?: ProxyHandler<IACL & DRP>;
 	drp?: ProxyHandler<DRP>;
 	hashGraph?: HashGraph;
+	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback[];
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];
 	subscribe(callback: DRPObjectCallback): void;

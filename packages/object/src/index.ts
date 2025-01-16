@@ -2,6 +2,7 @@ import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
+import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import {
 	type Hash,
 	HashGraph,
@@ -14,6 +15,7 @@ import { ObjectSet } from "./utils/objectSet.js";
 import type {
 	DRP,
 	DRPObjectCallback,
+	DRPPublicCredential,
 	IACL,
 	IDRPObject,
 	LcaAndOperations,
@@ -36,6 +38,7 @@ export enum DrpType {
 // snake_casing to match the JSON config
 export interface DRPObjectConfig {
 	log_config?: LoggerOptions;
+	finality_config?: FinalityConfig;
 }
 
 export let log: Logger;
@@ -52,10 +55,12 @@ export class DRPObject implements IDRPObject {
 	aclStates: Map<string, DRPState>;
 	originalDRP?: DRP;
 	originalACL?: IACL & DRP;
+	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback[] = [];
 
 	constructor(
 		peerId: string,
+		publicCredential: DRPPublicCredential,
 		drp?: DRP,
 		acl?: IACL & DRP,
 		id?: string,
@@ -71,7 +76,7 @@ export class DRPObject implements IDRPObject {
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
 
-		const aclObj = acl ?? new ACL(new Map([[peerId, ""]]));
+		const aclObj = acl ?? new ACL(new Map([[peerId, publicCredential]]));
 		this.acl = new Proxy(aclObj, this.proxyDRPHandler(DrpType.ACL));
 		if (drp) {
 			this._initLocalDrpInstance(drp, aclObj);
@@ -81,6 +86,7 @@ export class DRPObject implements IDRPObject {
 
 		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		this.finalityStore = new FinalityStore(config?.finality_config);
 		this.originalACL = cloneDeep(acl);
 		this.originalDRP = cloneDeep(drp);
 	}
@@ -187,6 +193,7 @@ export class DRPObject implements IDRPObject {
 		});
 
 		this._setState(vertex, this._getDRPState(drp));
+		this._initializeFinalityState(vertex.hash);
 
 		const serializedVertex = ObjectPb.Vertex.create({
 			hash: vertex.hash,
@@ -248,6 +255,7 @@ export class DRPObject implements IDRPObject {
 					this._setACLState(vertex, preComputeLca, this._getDRPState(acl));
 					this._setDRPState(vertex, preComputeLca);
 				}
+				this._initializeFinalityState(vertex.hash);
 			} catch (_) {
 				missing.push(vertex.hash);
 			}
@@ -268,6 +276,24 @@ export class DRPObject implements IDRPObject {
 	private _notify(origin: string, vertices: ObjectPb.Vertex[]) {
 		for (const callback of this.subscriptions) {
 			callback(this, origin, vertices);
+		}
+	}
+
+	// initialize the attestation store for the given vertex hash
+	private _initializeFinalityState(hash: Hash) {
+		if (!this.acl || !this.originalACL) {
+			return;
+		}
+		const fetchedState = this.aclStates.get(hash);
+		if (fetchedState !== undefined) {
+			const state = cloneDeep(fetchedState);
+			const acl = cloneDeep(this.originalACL);
+
+			for (const [key, value] of state.state) {
+				acl[key] = value;
+			}
+			// signer set equals writer set
+			this.finalityStore.initializeState(hash, acl.query_getWriters());
 		}
 	}
 

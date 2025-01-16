@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Vertex } from "../../object/v1/object_pb.js";
+import { AggregatedAttestation, Attestation, Vertex } from "../../object/v1/object_pb.js";
 
 export const protobufPackage = "drp.network.v1";
 
@@ -16,7 +16,8 @@ export enum MessageType {
   MESSAGE_TYPE_SYNC = 2,
   MESSAGE_TYPE_SYNC_ACCEPT = 3,
   MESSAGE_TYPE_SYNC_REJECT = 4,
-  MESSAGE_TYPE_CUSTOM = 5,
+  MESSAGE_TYPE_ATTESTATION_UPDATE = 5,
+  MESSAGE_TYPE_CUSTOM = 6,
   UNRECOGNIZED = -1,
 }
 
@@ -38,6 +39,9 @@ export function messageTypeFromJSON(object: any): MessageType {
     case "MESSAGE_TYPE_SYNC_REJECT":
       return MessageType.MESSAGE_TYPE_SYNC_REJECT;
     case 5:
+    case "MESSAGE_TYPE_ATTESTATION_UPDATE":
+      return MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE;
+    case 6:
     case "MESSAGE_TYPE_CUSTOM":
       return MessageType.MESSAGE_TYPE_CUSTOM;
     case -1:
@@ -59,6 +63,8 @@ export function messageTypeToJSON(object: MessageType): string {
       return "MESSAGE_TYPE_SYNC_ACCEPT";
     case MessageType.MESSAGE_TYPE_SYNC_REJECT:
       return "MESSAGE_TYPE_SYNC_REJECT";
+    case MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
+      return "MESSAGE_TYPE_ATTESTATION_UPDATE";
     case MessageType.MESSAGE_TYPE_CUSTOM:
       return "MESSAGE_TYPE_CUSTOM";
     case MessageType.UNRECOGNIZED:
@@ -76,6 +82,12 @@ export interface Message {
 export interface Update {
   objectId: string;
   vertices: Vertex[];
+  attestations: Attestation[];
+}
+
+export interface AttestationUpdate {
+  objectId: string;
+  attestations: Attestation[];
 }
 
 export interface Sync {
@@ -86,6 +98,7 @@ export interface Sync {
 export interface SyncAccept {
   objectId: string;
   requested: Vertex[];
+  attestations: AggregatedAttestation[];
   requesting: string[];
 }
 
@@ -185,7 +198,7 @@ export const Message: MessageFns<Message> = {
 };
 
 function createBaseUpdate(): Update {
-  return { objectId: "", vertices: [] };
+  return { objectId: "", vertices: [], attestations: [] };
 }
 
 export const Update: MessageFns<Update> = {
@@ -195,6 +208,9 @@ export const Update: MessageFns<Update> = {
     }
     for (const v of message.vertices) {
       Vertex.encode(v!, writer.uint32(18).fork()).join();
+    }
+    for (const v of message.attestations) {
+      Attestation.encode(v!, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -222,6 +238,14 @@ export const Update: MessageFns<Update> = {
           message.vertices.push(Vertex.decode(reader, reader.uint32()));
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.attestations.push(Attestation.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -235,6 +259,9 @@ export const Update: MessageFns<Update> = {
     return {
       objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
       vertices: globalThis.Array.isArray(object?.vertices) ? object.vertices.map((e: any) => Vertex.fromJSON(e)) : [],
+      attestations: globalThis.Array.isArray(object?.attestations)
+        ? object.attestations.map((e: any) => Attestation.fromJSON(e))
+        : [],
     };
   },
 
@@ -246,6 +273,9 @@ export const Update: MessageFns<Update> = {
     if (message.vertices?.length) {
       obj.vertices = message.vertices.map((e) => Vertex.toJSON(e));
     }
+    if (message.attestations?.length) {
+      obj.attestations = message.attestations.map((e) => Attestation.toJSON(e));
+    }
     return obj;
   },
 
@@ -256,6 +286,85 @@ export const Update: MessageFns<Update> = {
     const message = createBaseUpdate();
     message.objectId = object.objectId ?? "";
     message.vertices = object.vertices?.map((e) => Vertex.fromPartial(e)) || [];
+    message.attestations = object.attestations?.map((e) => Attestation.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseAttestationUpdate(): AttestationUpdate {
+  return { objectId: "", attestations: [] };
+}
+
+export const AttestationUpdate: MessageFns<AttestationUpdate> = {
+  encode(message: AttestationUpdate, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.objectId !== "") {
+      writer.uint32(10).string(message.objectId);
+    }
+    for (const v of message.attestations) {
+      Attestation.encode(v!, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AttestationUpdate {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAttestationUpdate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.objectId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.attestations.push(Attestation.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AttestationUpdate {
+    return {
+      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
+      attestations: globalThis.Array.isArray(object?.attestations)
+        ? object.attestations.map((e: any) => Attestation.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: AttestationUpdate): unknown {
+    const obj: any = {};
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
+    if (message.attestations?.length) {
+      obj.attestations = message.attestations.map((e) => Attestation.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AttestationUpdate>, I>>(base?: I): AttestationUpdate {
+    return AttestationUpdate.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AttestationUpdate>, I>>(object: I): AttestationUpdate {
+    const message = createBaseAttestationUpdate();
+    message.objectId = object.objectId ?? "";
+    message.attestations = object.attestations?.map((e) => Attestation.fromPartial(e)) || [];
     return message;
   },
 };
@@ -339,7 +448,7 @@ export const Sync: MessageFns<Sync> = {
 };
 
 function createBaseSyncAccept(): SyncAccept {
-  return { objectId: "", requested: [], requesting: [] };
+  return { objectId: "", requested: [], attestations: [], requesting: [] };
 }
 
 export const SyncAccept: MessageFns<SyncAccept> = {
@@ -350,8 +459,11 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     for (const v of message.requested) {
       Vertex.encode(v!, writer.uint32(18).fork()).join();
     }
+    for (const v of message.attestations) {
+      AggregatedAttestation.encode(v!, writer.uint32(26).fork()).join();
+    }
     for (const v of message.requesting) {
-      writer.uint32(26).string(v!);
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -384,6 +496,14 @@ export const SyncAccept: MessageFns<SyncAccept> = {
             break;
           }
 
+          message.attestations.push(AggregatedAttestation.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
           message.requesting.push(reader.string());
           continue;
         }
@@ -402,6 +522,9 @@ export const SyncAccept: MessageFns<SyncAccept> = {
       requested: globalThis.Array.isArray(object?.requested)
         ? object.requested.map((e: any) => Vertex.fromJSON(e))
         : [],
+      attestations: globalThis.Array.isArray(object?.attestations)
+        ? object.attestations.map((e: any) => AggregatedAttestation.fromJSON(e))
+        : [],
       requesting: globalThis.Array.isArray(object?.requesting)
         ? object.requesting.map((e: any) => globalThis.String(e))
         : [],
@@ -416,6 +539,9 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     if (message.requested?.length) {
       obj.requested = message.requested.map((e) => Vertex.toJSON(e));
     }
+    if (message.attestations?.length) {
+      obj.attestations = message.attestations.map((e) => AggregatedAttestation.toJSON(e));
+    }
     if (message.requesting?.length) {
       obj.requesting = message.requesting;
     }
@@ -429,6 +555,7 @@ export const SyncAccept: MessageFns<SyncAccept> = {
     const message = createBaseSyncAccept();
     message.objectId = object.objectId ?? "";
     message.requested = object.requested?.map((e) => Vertex.fromPartial(e)) || [];
+    message.attestations = object.attestations?.map((e) => AggregatedAttestation.fromPartial(e)) || [];
     message.requesting = object.requesting?.map((e) => e) || [];
     return message;
   },

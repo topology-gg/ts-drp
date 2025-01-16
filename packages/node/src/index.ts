@@ -6,15 +6,20 @@ import {
 	type DRPNetworkNodeConfig,
 	NetworkPb,
 } from "@ts-drp/network";
-import { type DRP, DRPObject, type IACL, type Vertex } from "@ts-drp/object";
+import { type DRP, DRPObject, type IACL } from "@ts-drp/object";
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
-import { DRPObjectStore } from "./store/index.js";
+import {
+	type DRPCredentialConfig,
+	DRPCredentialStore,
+	DRPObjectStore,
+} from "./store/index.js";
 
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
 	log_config?: LoggerOptions;
 	network_config?: DRPNetworkNodeConfig;
+	credential_config?: DRPCredentialConfig;
 }
 
 export let log: Logger;
@@ -23,15 +28,18 @@ export class DRPNode {
 	config?: DRPNodeConfig;
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
+	credentialStore: DRPCredentialStore;
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
 		log = new Logger("drp::node", config?.log_config);
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
+		this.credentialStore = new DRPCredentialStore(config?.credential_config);
 	}
 
 	async start(): Promise<void> {
+		await this.credentialStore.start();
 		await this.networkNode.start();
 		this.networkNode.addMessageHandler(async ({ stream }) =>
 			drpMessagesHandler(this, stream),
@@ -88,7 +96,13 @@ export class DRPNode {
 			peerId?: string;
 		},
 	) {
-		const object = new DRPObject(this.networkNode.peerId, drp, acl, id);
+		const object = new DRPObject(
+			this.networkNode.peerId,
+			this.credentialStore.getPublicCredential(),
+			drp,
+			acl,
+			id,
+		);
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
 		if (sync?.enabled) {
@@ -107,13 +121,5 @@ export class DRPNode {
 
 	async syncObject(id: string, peerId?: string) {
 		operations.syncObject(this, id, peerId);
-	}
-
-	async signVertex(vertex: Vertex) {
-		if (vertex.peerId !== this.networkNode.peerId) {
-			throw new Error("Invalid peerId");
-		}
-
-		vertex.signature = await this.networkNode.sign(vertex.hash);
 	}
 }

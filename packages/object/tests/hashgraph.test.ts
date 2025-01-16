@@ -1,6 +1,10 @@
-import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
+import { ACL } from "../../blueprints/src/ACL/index.js";
 import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
+import {
+	ConflictResolvingMap,
+	MapConflictResolution,
+} from "../../blueprints/src/Map/index.js";
 import {
 	DRPObject,
 	DrpType,
@@ -707,7 +711,9 @@ describe("Writer permission tests", () => {
 	let obj3: DRPObject;
 
 	beforeEach(async () => {
-		const peerIdToPublicKeyMap = new Map([["peer1", "publicKey1"]]);
+		const peerIdToPublicKeyMap = new Map([
+			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
+		]);
 		const acl = new ACL(peerIdToPublicKeyMap);
 		obj1 = new DRPObject("peer1", new AddWinsSet(), acl);
 		obj2 = new DRPObject("peer2", new AddWinsSet(), acl);
@@ -744,7 +750,10 @@ describe("Writer permission tests", () => {
 		const acl2 = obj2.acl as ACL;
 
 		drp1.add(1);
-		acl1.grant("peer1", "peer2", "publicKey2");
+		acl1.grant("peer1", "peer2", {
+			ed25519PublicKey: "publicKey2",
+			blsPublicKey: "",
+		});
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -769,8 +778,14 @@ describe("Writer permission tests", () => {
 		const drp3 = obj3.drp as AddWinsSet<number>;
 		const acl1 = obj1.acl as ACL;
 
-		acl1.grant("peer1", "peer2", "publicKey2");
-		acl1.grant("peer1", "peer3", "publicKey3");
+		acl1.grant("peer1", "peer2", {
+			ed25519PublicKey: "publicKey2",
+			blsPublicKey: "",
+		});
+		acl1.grant("peer1", "peer3", {
+			ed25519PublicKey: "publicKey3",
+			blsPublicKey: "",
+		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
 
@@ -794,5 +809,191 @@ describe("Writer permission tests", () => {
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		expect(drp1.query_contains(3)).toBe(false);
 		expect(drp1.query_contains(4)).toBe(true);
+	});
+});
+
+describe("HashGraph for set wins map tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	let obj3: DRPObject;
+
+	beforeEach(async () => {
+		obj1 = new DRPObject(
+			"peer1",
+			new ConflictResolvingMap<string, string>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
+		);
+		obj2 = new DRPObject(
+			"peer2",
+			new ConflictResolvingMap<string, string>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
+		);
+		obj3 = new DRPObject(
+			"peer3",
+			new ConflictResolvingMap<string, string>(),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
+		);
+	});
+
+	test("Should correctly perform set and delete map operations", () => {
+		/*
+		       __ V1:SET("key1", "value1") -- V3:DELETE("key1")
+		      /
+		  ROOT
+		      \
+		       -- V2:SET("key2, "value2")
+		*/
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		drp1.set("key1", "value1");
+		drp2.set("key2", "value2");
+		drp1.delete("key1");
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		expect(drp1.query_get("key2")).toBe("value2");
+		expect(drp2.query_get("key1")).toBe(undefined);
+	});
+
+	test("Should resolve conflicts between concurrent set and delete operations that set wins after merging", () => {
+		/*
+		       __ V1:SET("key1", "value2") ------------------------- V5:DELETE("key2")
+		      /                                                    /
+		  ROOT                                                    /
+		      \                                                  /
+		       --- V2:SET("key1", "value1") -- V3:DELETE("key1") -- V4:SET("key2", "value2")
+		*/
+
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+
+		drp1.set("key1", "value2"); // smaller hash
+		drp2.set("key1", "value1"); // greater hash
+		drp2.delete("key1");
+
+		expect(drp1.query_get("key1")).toBe("value2");
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.query_get("key1")).toBe(undefined);
+
+		drp2.set("key2", "value2");
+		drp1.delete("key2");
+
+		expect(drp2.query_get("key2")).toBe("value2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.query_get("key2")).toBe("value2");
+	});
+
+	test("Should resolve conflict between concurrent set and delete operations that set wins after merging complex case", () => {
+		/*
+		        __ V1:SET("key1", "value1") -- V2:DELETE("key2") -- V5:SET("key2", "value1")
+		       /                                                                            \
+		      /                                                                              \
+		  ROOT -- V3:DELETE("key3") -- V4:SET("key2", "value2") ------------------------------ V7:DELETE("key1")
+		      \                                                    \                           \
+		       \                                                    ----------------------------\
+		        -- V6:SET("key2", "eulav3") ---------------------------------------------------- v8:SET("key1", "value")
+		*/
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+		const drp3 = obj3.drp as ConflictResolvingMap<string, string>;
+
+		drp1.set("key1", "value1");
+		drp1.delete("key2");
+		drp2.delete("key3");
+		drp2.set("key2", "value2");
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp1.query_get("key2")).toBe("value2");
+
+		drp3.set("key2", "eulav3");
+		obj3.merge(obj1.hashGraph.getAllVertices());
+		expect(drp3.query_get("key2")).toBe("eulav3");
+
+		drp2.delete("key1");
+		expect(drp2.query_get("key1")).toBe(undefined);
+		drp3.set("key1", "value");
+		obj1.merge(obj3.hashGraph.getAllVertices());
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.query_get("key1")).toBe("value");
+	});
+});
+
+describe("HashGraph for delete wins map tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+
+	beforeEach(async () => {
+		obj1 = new DRPObject(
+			"peer1",
+			new ConflictResolvingMap<string, string>(
+				MapConflictResolution.DeleteWins,
+			),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
+		);
+		obj2 = new DRPObject(
+			"peer2",
+			new ConflictResolvingMap<string, string>(
+				MapConflictResolution.DeleteWins,
+			),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			null as any,
+		);
+	});
+
+	test("Should resolve conflict between concurrent set and delete operations that delete wins after merging", () => {
+		/*
+		       __ V1:SET("key1", "value1")
+		      /
+		  ROOT
+		      \
+		       -- V2:SET("key1", "value2") -- DELETE("key1")
+		*/
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+
+		drp1.set("key1", "value1"); // greater hash
+		drp2.set("key1", "value2"); // smaller hash
+		drp2.delete("key1");
+
+		expect(drp1.query_get("key1")).toBe("value1");
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.query_get("key1")).toBe(undefined);
+	});
+
+	test("Should resolve conflict between concurrent set and delete operations that delete wins after merging complex case", () => {
+		/*
+		       __V1:SET("key1", "value2") -- V3:DELETE("key1") -- V5:SET("key2", "value3") -- V6:DELETE("key2")
+		      /                          \                      /
+		  ROOT                            \____________________/
+		      \                           /\
+		       --V2:SET("key1", "value1") -- V4:SET("key2", "value3")
+		*/
+
+		const drp1 = obj1.drp as ConflictResolvingMap<string, string>;
+		const drp2 = obj2.drp as ConflictResolvingMap<string, string>;
+
+		drp1.set("key1", "value2");
+		drp2.set("key1", "value1");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		expect(drp2.query_get("key1")).toBe("value1");
+		drp1.delete("key1");
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.query_get("key1")).toBe(undefined);
+
+		drp2.set("key2", "value3");
+		drp1.delete("key2"); // dropped;
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.query_get("key2")).toBe("value3");
+
+		drp1.set("key2", "value3");
+		drp1.delete("key2");
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(drp2.query_get("key2")).toBe(undefined);
 	});
 });
