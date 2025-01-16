@@ -707,7 +707,9 @@ describe("Writer permission tests", () => {
 	let obj3: DRPObject;
 
 	beforeEach(async () => {
-		const peerIdToPublicKeyMap = new Map([["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }]]);
+		const peerIdToPublicKeyMap = new Map([
+			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
+		]);
 		const acl = new ACL(peerIdToPublicKeyMap);
 		obj1 = new DRPObject("peer1", new AddWinsSet(), acl);
 		obj2 = new DRPObject("peer2", new AddWinsSet(), acl);

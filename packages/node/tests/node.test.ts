@@ -1,13 +1,13 @@
 import bls from "@chainsafe/bls/herumi";
 import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
-import { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
+import type { AddWinsSetWithACL } from "@topology-foundation/blueprints/src/AddWinsSetWithACL/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
+	signFinalityVertices,
 	signGeneratedVertices,
 	verifyIncomingVertices,
-	signFinalityVertices,
 } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
