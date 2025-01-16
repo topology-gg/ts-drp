@@ -1,0 +1,79 @@
+import { ActionType } from "@ts-drp/object";
+import { beforeEach, describe, expect, test } from "vitest";
+import { ACL } from "../src/acl/index.js";
+
+describe("AccessControl tests with RevokeWins resolution", () => {
+	let acl: ACL;
+
+	beforeEach(() => {
+		acl = new ACL(
+			new Map([
+				[
+					"peer1",
+					{
+						ed25519PublicKey: "publicKey1",
+						blsPublicKey: "publicKey1",
+					},
+				],
+			]),
+		);
+	});
+
+	test("Admin nodes should have admin privileges", () => {
+		expect(acl.query_isAdmin("peer1")).toBe(true);
+	});
+
+	test("Admin nodes should have write permissions", () => {
+		expect(acl.query_isWriter("peer1")).toBe(true);
+	});
+
+	test("Grant write permissions to a new writer", () => {
+		acl.grant("peer1", "peer3", {
+			ed25519PublicKey: "publicKey3",
+			blsPublicKey: "publicKey3",
+		});
+
+		expect(acl.query_isWriter("peer3")).toBe(true);
+	});
+
+	test("Revoke write permissions from a writer", () => {
+		acl.grant("peer1", "peer3", {
+			ed25519PublicKey: "publicKey3",
+			blsPublicKey: "publicKey3",
+		});
+		acl.revoke("peer1", "peer3");
+
+		expect(acl.query_isWriter("peer3")).toBe(false);
+	});
+
+	test("Cannot revoke admin permissions", () => {
+		expect(() => {
+			acl.revoke("peer1", "peer1");
+		}).toThrow("Cannot revoke permissions from a node with admin privileges.");
+
+		expect(acl.query_isWriter("peer1")).toBe(true);
+	});
+
+	test("Resolve conflicts with RevokeWins", () => {
+		const vertices = [
+			{
+				hash: "",
+				peerId: "peer1",
+				operation: { opType: "grant", value: "peer3" },
+				dependencies: [],
+				signature: new Uint8Array(),
+				timestamp: 0,
+			},
+			{
+				hash: "",
+				peerId: "peer2",
+				operation: { opType: "revoke", value: "peer3" },
+				dependencies: [],
+				signature: new Uint8Array(),
+				timestamp: 0,
+			},
+		];
+		const result = acl.resolveConflicts(vertices);
+		expect(result.action).toBe(ActionType.DropLeft);
+	});
+});

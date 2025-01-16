@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { SetDRP } from "../../blueprints/src/Set/index.js";
 import {
 	MapConflictResolution,
 	MapDRP,
 } from "../../blueprints/src/Map/index.js";
+import { SetDRP } from "../../blueprints/src/Set/index.js";
 import { ACL } from "../src/acl/index.js";
 import {
 	DRPObject,

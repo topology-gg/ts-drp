@@ -1,10 +1,10 @@
 import bls from "@chainsafe/bls/herumi";
-import { ACL } from "../src/acl/index.js";
-import { SetDRP } from "../../blueprints/src/index.js";
 import { DRPCredentialStore } from "@topology-foundation/node/src/store/index.js";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
+import { SetDRP } from "../../blueprints/src/index.js";
 import type { AggregatedAttestation } from "../dist/src/proto/drp/object/v1/object_pb.js";
+import { ACL } from "../src/acl/index.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
 import { DRPObject } from "../src/index.js";
