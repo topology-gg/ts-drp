@@ -16,8 +16,11 @@ export function loadConfig(
 	if (!result.error) {
 		config = {};
 		config.network_config = {
-			addresses: process.env.ADDRESSES
-				? process.env.ADDRESSES.split(",")
+			listen_addresses: process.env.LISTEN_ADDRESSES
+				? process.env.LISTEN_ADDRESSES.split(",")
+				: undefined,
+			announce_addresses: process.env.ANNOUNCE_ADDRESSES
+				? process.env.ANNOUNCE_ADDRESSES.split(",")
 				: undefined,
 			bootstrap: process.env.BOOTSTRAP
 				? process.env.BOOTSTRAP === "true"

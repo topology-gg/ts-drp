@@ -22,6 +22,8 @@ import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
 import type {
+	Address,
+	Ed25519PrivateKey,
 	EventCallback,
 	Stream,
 	StreamHandler,
@@ -50,8 +52,8 @@ let log: Logger;
 
 // snake_casing to match the JSON config
 export interface DRPNetworkNodeConfig {
-	addresses?: string[];
-	announce?: string[];
+	listen_addresses?: string[];
+	announce_addresses?: string[];
 	bootstrap?: boolean;
 	bootstrap_peers?: string[];
 	browser_metrics?: boolean;
@@ -113,9 +115,7 @@ export class DRPNetworkNode {
 				// and allow it to doPX ? Let me know
 				doPX: true,
 				allowPublishToZeroTopicPeers: true,
-				pruneBackoff: 60 * 1000,
 				scoreParams: createPeerScoreParams({
-					topicScoreCap: 50,
 					IPColocationFactorWeight: 0,
 					appSpecificScore: (peerId: string) => {
 						if (_bootstrapPeerID.includes(peerId)) {
@@ -151,6 +151,7 @@ export class DRPNetworkNode {
 			_node_services = {
 				..._node_services,
 				pubsub: gossipsub({
+					// cf: https://github.com/libp2p/specs/blob/master/pubsub/gossipsub/gossipsub-v1.1.md#recommendations-for-network-operators
 					D: 0,
 					Dlo: 0,
 					Dhi: 0,
@@ -182,27 +183,17 @@ export class DRPNetworkNode {
 		this._node = await createLibp2p({
 			privateKey,
 			addresses: {
-				listen: this._config?.addresses
-					? this._config.addresses
+				listen: this._config?.listen_addresses
+					? this._config.listen_addresses
 					: ["/p2p-circuit", "/webrtc"],
-				...(this._config?.announce ? { announce: this._config.announce } : {}),
+				...(this._config?.announce_addresses
+					? { announce: this._config.announce_addresses }
+					: {}),
 			},
 			connectionManager: {
 				// we would need something to know when we are in a browser context to add a maxConnections
 				// maxConnections: 20,
-				addressSorter: (a, b) => {
-					const localRegex =
-						/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
-					const aLocal = localRegex.test(a.toString());
-					const bLocal = localRegex.test(b.toString());
-					const aWebrtc = WebRTC.matches(a.multiaddr);
-					const bWebrtc = WebRTC.matches(b.multiaddr);
-					if (aLocal && !bLocal) return 1;
-					if (!aLocal && bLocal) return -1;
-					if (aWebrtc && !bWebrtc) return -1;
-					if (!aWebrtc && bWebrtc) return 1;
-					return 0;
-				},
+				addressSorter: this._sortAddresses,
 			},
 			connectionEncrypters: [noise()],
 			connectionGater: {
@@ -268,6 +259,20 @@ export class DRPNetworkNode {
 		await this.stop();
 		if (config) this._config = config;
 		await this.start();
+	}
+
+	private _sortAddresses(a: Address, b: Address) {
+		const localRegex =
+			/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
+		const aLocal = localRegex.test(a.toString());
+		const bLocal = localRegex.test(b.toString());
+		const aWebrtc = WebRTC.matches(a.multiaddr);
+		const bWebrtc = WebRTC.matches(b.multiaddr);
+		if (aLocal && !bLocal) return 1;
+		if (!aLocal && bLocal) return -1;
+		if (aWebrtc && !bWebrtc) return -1;
+		if (!aWebrtc && bWebrtc) return 1;
+		return 0;
 	}
 
 	changeTopicScoreParams(topic: string, params: TopicScoreParams) {
