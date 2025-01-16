@@ -147,7 +147,11 @@ suite.add(
 				drp.set(i, i + 1);
 				drp.delete(i);
 			}
-			drp.query_get(i);
+			if (i % 2 === 0) {
+				drp.query_get(i);
+			} else {
+				drp.query_has(i);
+			}
 		}
 	},
 );
@@ -165,7 +169,11 @@ suite.add(
 					drp.set(i, i + 1);
 					drp.delete(i);
 				}
-				drp.query_get(i);
+				if (i % 2 === 0) {
+					drp.query_get(i);
+				} else {
+					drp.query_has(i);
+				}
 			}
 		}
 
