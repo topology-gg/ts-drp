@@ -44,7 +44,8 @@ export type VertexDistance = {
 
 export class HashGraph {
 	peerId: string;
-	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflictsDRP: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsType: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
@@ -69,18 +70,21 @@ export class HashGraph {
 
 	constructor(
 		peerId: string,
-		resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType,
+		resolveConflictsDRP: (vertices: Vertex[]) => ResolveConflictsType,
+		resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType,
 		semanticsType: SemanticsType,
 	) {
 		this.peerId = peerId;
-		this.resolveConflicts = resolveConflicts;
+		this.resolveConflictsDRP = resolveConflictsDRP;
+		this.resolveConflictsACL = resolveConflictsACL;
 		this.semanticsType = semanticsType;
 
 		const rootVertex: Vertex = {
 			hash: HashGraph.rootHash,
 			peerId: "",
 			operation: {
-				type: OperationType.NOP,
+				drpType: "",
+				opType: OperationType.NOP,
 				value: null,
 			},
 			dependencies: [],
@@ -95,6 +99,13 @@ export class HashGraph {
 		});
 	}
 
+	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
+		if (vertices[0].operation?.drpType === "ACL") {
+			return this.resolveConflictsACL(vertices);
+		}
+		return this.resolveConflictsDRP(vertices);
+	}
+
 	addToFrontier(operation: Operation): Vertex {
 		const deps = this.getFrontier();
 		const currentTimestamp = Date.now();
@@ -103,7 +114,7 @@ export class HashGraph {
 		const vertex: Vertex = {
 			hash,
 			peerId: this.peerId,
-			operation: operation ?? { type: OperationType.NOP },
+			operation: operation ?? { opType: OperationType.NOP },
 			dependencies: deps,
 			timestamp: currentTimestamp,
 			signature: new Uint8Array(),

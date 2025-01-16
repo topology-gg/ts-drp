@@ -59,7 +59,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 			{
 				hash: "",
 				peerId: "peer1",
-				operation: { type: "grant", value: "peer3" },
+				operation: { opType: "grant", value: "peer3" },
 				dependencies: [],
 				signature: new Uint8Array(),
 				timestamp: 0,
@@ -67,7 +67,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 			{
 				hash: "",
 				peerId: "peer2",
-				operation: { type: "revoke", value: "peer3" },
+				operation: { opType: "revoke", value: "peer3" },
 				dependencies: [],
 				signature: new Uint8Array(),
 				timestamp: 0,
