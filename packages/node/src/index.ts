@@ -1,5 +1,4 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import { createTopicScoreParams } from "@chainsafe/libp2p-gossipsub/score";
 import type { EventCallback, StreamHandler } from "@libp2p/interface";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import {

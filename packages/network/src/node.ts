@@ -108,10 +108,6 @@ export class DRPNetworkNode {
 			identify: identify(),
 			identifyPush: identifyPush(),
 			pubsub: gossipsub({
-				// in the doc it says that doPX shall be false for none bootstrap nodes
-				// but I dunnow if we should never the less enable it on other nodes ?
-				// maybe with ACL at some point we could make a broswer node trustable
-				// and allow it to doPX ? Let me know
 				doPX: true,
 				allowPublishToZeroTopicPeers: true,
 				scoreParams: createPeerScoreParams({
@@ -124,17 +120,6 @@ export class DRPNetworkNode {
 					},
 					topics: {
 						"drp::discovery": createTopicScoreParams({
-							// TODO: get a better score params this need to be
-							// investigated more before according to some value
-							// also it would be nice to have a way to set that scoring
-							// for each DRP id but the current gossipsub does not support
-							// that, I think we could either make a PR to gossipsub or
-							// make a custom lib with a scoring system that would be live
-							// notable ones: meshMessageXX
-							//               meshFailureXX
-							//               meshFailurePenaltyXX
-							//               timeInMeshXX
-							//               firstMessageDeliveriesXX
 							topicWeight: 1,
 						}),
 					},
