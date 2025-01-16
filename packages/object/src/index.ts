@@ -246,7 +246,7 @@ export class DRPObject implements IDRPObject {
 	private _initializeFinalityState(hash: Hash) {
 		const acl = this.states.get(hash)?.state.get("acl") as IACL | undefined;
 		if (acl !== undefined) {
-			// voter set equals writer set
+			// signer set equals writer set
 			this.finalityStore.initializeState(hash, acl.query_getWriters());
 		}
 	}

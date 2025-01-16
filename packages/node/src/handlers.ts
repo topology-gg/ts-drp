@@ -66,7 +66,7 @@ async function attestationUpdateHandler(
 		return;
 	}
 
-	object.finalityStore.addVotes(sender, attestationUpdate.attestations);
+	object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 }
 
 /*
@@ -91,11 +91,11 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 	if (!merged) {
 		await node.syncObject(updateMessage.objectId, sender);
 	} else {
-		// add their votes
-		object.finalityStore.addVotes(sender, updateMessage.attestations);
+		// add their signatures
+		object.finalityStore.addSignatures(sender, updateMessage.attestations);
 
-		// add my votes
-		const attestations = voteGeneratedVertices(node, object, verifiedVertices);
+		// add my signatures
+		const attestations = signFinalityVertices(node, object, verifiedVertices);
 
 		// broadcast the attestations
 		const message = NetworkPb.Message.create({
@@ -186,12 +186,12 @@ async function syncAcceptHandler(
 
 	if (verifiedVertices.length !== 0) {
 		object.merge(verifiedVertices);
-		object.finalityStore.mergeVotes(syncAcceptMessage.attestations);
+		object.finalityStore.mergeSignatures(syncAcceptMessage.attestations);
 		node.objectStore.put(object.id, object);
 	}
 
 	await signGeneratedVertices(node, object.vertices);
-	voteGeneratedVertices(node, object, object.vertices);
+	signFinalityVertices(node, object, object.vertices);
 
 	// send missing vertices
 	const requested: ObjectPb.Vertex[] = [];
@@ -240,7 +240,7 @@ export function drpObjectChangesHandler(
 			node.objectStore.put(obj.id, obj);
 			break;
 		case "callFn": {
-			const attestations = voteGeneratedVertices(node, obj, vertices);
+			const attestations = signFinalityVertices(node, obj, vertices);
 
 			node.objectStore.put(obj.id, obj);
 
@@ -291,14 +291,14 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 	await Promise.all(signPromises);
 }
 
-// Votes for the vertices. Returns the attestations
-export function voteGeneratedVertices(
+// Signs the vertices. Returns the attestations
+export function signFinalityVertices(
 	node: DRPNode,
 	obj: DRPObject,
 	vertices: Vertex[],
 ) {
 	const attestations = generateAttestations(node, obj, vertices);
-	obj.finalityStore.addVotes(node.networkNode.peerId, attestations, false);
+	obj.finalityStore.addSignatures(node.networkNode.peerId, attestations, false);
 	return attestations;
 }
 
@@ -308,12 +308,12 @@ function generateAttestations(
 	vertices: Vertex[],
 ): ObjectPb.Attestation[] {
 	// Two condition:
-	// - The node can vote for the vertex
-	// - The node hasn't voted for the vertex
+	// - The node can sign the vertex
+	// - The node hasn't signed for the vertex
 	const goodVertices = vertices.filter(
 		(v) =>
-			object.finalityStore.canVote(node.networkNode.peerId, v.hash) &&
-			!object.finalityStore.voted(node.networkNode.peerId, v.hash),
+			object.finalityStore.canSign(node.networkNode.peerId, v.hash) &&
+			!object.finalityStore.signed(node.networkNode.peerId, v.hash),
 	);
 	return goodVertices.map((v) => ({
 		data: v.hash,

@@ -6,7 +6,7 @@ import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
 	signGeneratedVertices,
 	verifyIncomingVertices,
-	voteGeneratedVertices,
+	signFinalityVertices,
 } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
@@ -166,7 +166,7 @@ describe("DRPNode voting tests", () => {
 		);
 	});
 
-	test("Nodes in writer set are able to vote", async () => {
+	test("Nodes in writer set are able to sign", async () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
@@ -184,18 +184,18 @@ describe("DRPNode voting tests", () => {
 		) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
-		voteGeneratedVertices(nodeB, obj2, [V1]);
+		signFinalityVertices(nodeB, obj2, [V1]);
 
-		expect(obj2.finalityStore.canVote(nodeB.networkNode.peerId, V1.hash)).toBe(
+		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V1.hash)).toBe(
 			true,
 		);
 		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
 			nodeB.credentialStore.signWithBls(V1.hash),
 		);
-		expect(obj2.finalityStore.getNumberOfVotes(V1.hash)).toBe(1);
+		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 	});
 
-	test("Other nodes are not able to vote", async () => {
+	test("Other nodes are not able to sign", async () => {
 		/*
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
@@ -215,16 +215,16 @@ describe("DRPNode voting tests", () => {
 		) as Vertex;
 		expect(V2 !== undefined).toBe(true);
 
-		voteGeneratedVertices(nodeB, obj2, [V2]);
+		signFinalityVertices(nodeB, obj2, [V2]);
 
-		expect(obj2.finalityStore.canVote(nodeB.networkNode.peerId, V2.hash)).toBe(
+		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V2.hash)).toBe(
 			false,
 		);
 
 		expect(
 			obj2.finalityStore.getAttestation(V2.hash)?.signature,
 		).toBeUndefined();
-		expect(obj2.finalityStore.getNumberOfVotes(V2.hash)).toBe(0);
+		expect(obj2.finalityStore.getNumberOfSignatures(V2.hash)).toBe(0);
 	});
 
 	test("Signatures are aggregated", async () => {
@@ -245,11 +245,11 @@ describe("DRPNode voting tests", () => {
 		) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
-		voteGeneratedVertices(nodeA, obj2, [V1]);
-		expect(obj2.finalityStore.getNumberOfVotes(V1.hash)).toBe(1);
+		signFinalityVertices(nodeA, obj2, [V1]);
+		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 
-		voteGeneratedVertices(nodeB, obj2, [V1]);
-		expect(obj2.finalityStore.getNumberOfVotes(V1.hash)).toBe(2);
+		signFinalityVertices(nodeB, obj2, [V1]);
+		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(2);
 		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
 			bls.aggregateSignatures([
 				nodeA.credentialStore.signWithBls(V1.hash),

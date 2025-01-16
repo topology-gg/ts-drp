@@ -16,45 +16,45 @@ export interface FinalityConfig {
 
 export class FinalityState {
 	data: string;
-	voterCredentials: DRPPublicCredential[];
-	voterIndices: Map<string, number>;
+	signerCredentials: DRPPublicCredential[];
+	signerIndices: Map<string, number>;
 	aggregation_bits: BitSet;
 	signature?: Uint8Array;
-	numberOfVotes: number;
+	numberOfSignatures: number;
 
-	constructor(hash: Hash, voters: Map<string, DRPPublicCredential>) {
+	constructor(hash: Hash, signers: Map<string, DRPPublicCredential>) {
 		this.data = hash;
 
 		// deterministic order
-		const peerIds = Array.from(voters.keys()).sort();
-		this.voterCredentials = peerIds.map((peerId) =>
-			voters.get(peerId),
+		const peerIds = Array.from(signers.keys()).sort();
+		this.signerCredentials = peerIds.map((peerId) =>
+			signers.get(peerId),
 		) as DRPPublicCredential[];
 
-		this.voterIndices = new Map();
+		this.signerIndices = new Map();
 		for (let i = 0; i < peerIds.length; i++) {
-			this.voterIndices.set(peerIds[i], i);
+			this.signerIndices.set(peerIds[i], i);
 		}
 
 		this.aggregation_bits = new BitSet(peerIds.length);
-		this.numberOfVotes = 0;
+		this.numberOfSignatures = 0;
 	}
 
-	addVote(peerId: string, signature: Uint8Array, verify = true) {
-		const index = this.voterIndices.get(peerId);
+	addSignature(peerId: string, signature: Uint8Array, verify = true) {
+		const index = this.signerIndices.get(peerId);
 		if (index === undefined) {
-			throw new Error("Peer not found in voter list");
+			throw new Error("Peer not found in signer list");
 		}
 
 		if (this.aggregation_bits.get(index)) {
-			// voter already voted
+			// signer already signed
 			return;
 		}
 
 		if (verify) {
 			// verify signature validity
 			const publicKey = uint8ArrayFromString(
-				this.voterCredentials[index].blsPublicKey,
+				this.signerCredentials[index].blsPublicKey,
 				"base64",
 			);
 			const data = uint8ArrayFromString(this.data);
@@ -69,7 +69,7 @@ export class FinalityState {
 		} else {
 			this.signature = bls.aggregateSignatures([this.signature, signature]);
 		}
-		this.numberOfVotes++;
+		this.numberOfSignatures++;
 	}
 
 	merge(attestation: AggregatedAttestation) {
@@ -82,14 +82,14 @@ export class FinalityState {
 		}
 
 		const aggregation_bits = new BitSet(
-			this.voterCredentials.length,
+			this.signerCredentials.length,
 			attestation.aggregationBits,
 		);
 
-		// public keys of voters who voted
-		const publicKeys = this.voterCredentials
+		// public keys of signers who signed
+		const publicKeys = this.signerCredentials
 			.filter((_, i) => aggregation_bits.get(i))
-			.map((voter) => uint8ArrayFromString(voter.blsPublicKey, "base64"));
+			.map((signer) => uint8ArrayFromString(signer.blsPublicKey, "base64"));
 		const data = uint8ArrayFromString(this.data);
 
 		// verify signature validity
@@ -99,7 +99,7 @@ export class FinalityState {
 
 		this.aggregation_bits = aggregation_bits;
 		this.signature = attestation.signature;
-		this.numberOfVotes = publicKeys.length;
+		this.numberOfSignatures = publicKeys.length;
 	}
 }
 
@@ -113,60 +113,60 @@ export class FinalityStore {
 			config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
 	}
 
-	initializeState(hash: Hash, voters: Map<string, DRPPublicCredential>) {
+	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
 		if (!this.states.has(hash)) {
-			this.states.set(hash, new FinalityState(hash, voters));
+			this.states.set(hash, new FinalityState(hash, signers));
 		}
 	}
 
-	// returns the number of votes required for the vertex to be finalized
+	// returns the number of signatures required for the vertex to be finalized
 	getQuorum(hash: Hash): number | undefined {
 		const state = this.states.get(hash);
 		if (state === undefined) {
 			return;
 		}
-		return Math.ceil(state.voterCredentials.length * this.finalityThreshold);
+		return Math.ceil(state.signerCredentials.length * this.finalityThreshold);
 	}
 
-	// returns the number of votes for the vertex
-	getNumberOfVotes(hash: Hash): number | undefined {
-		return this.states.get(hash)?.numberOfVotes;
+	// returns the number of signatures for the vertex
+	getNumberOfSignatures(hash: Hash): number | undefined {
+		return this.states.get(hash)?.numberOfSignatures;
 	}
 
 	// returns true if the vertex is finalized
 	isFinalized(hash: Hash): boolean | undefined {
-		const numberOfVotes = this.getNumberOfVotes(hash);
+		const numberOfSignatures = this.getNumberOfSignatures(hash);
 		const quorum = this.getQuorum(hash);
-		if (numberOfVotes !== undefined && quorum !== undefined) {
-			return numberOfVotes >= quorum;
+		if (numberOfSignatures !== undefined && quorum !== undefined) {
+			return numberOfSignatures >= quorum;
 		}
 	}
 
-	// returns true if the specified peerId can vote on the vertex
-	canVote(peerId: string, hash: Hash): boolean | undefined {
-		return this.states.get(hash)?.voterIndices.has(peerId);
+	// returns true if the specified peerId can sign the vertex
+	canSign(peerId: string, hash: Hash): boolean | undefined {
+		return this.states.get(hash)?.signerIndices.has(peerId);
 	}
 
-	// returns true if the specified peerId has voted on the vertex
-	voted(peerId: string, hash: Hash): boolean | undefined {
+	// returns true if the specified peerId has signed on the vertex
+	signed(peerId: string, hash: Hash): boolean | undefined {
 		const state = this.states.get(hash);
 		if (state !== undefined) {
-			const index = state.voterIndices.get(peerId);
+			const index = state.signerIndices.get(peerId);
 			if (index !== undefined) {
 				return state.aggregation_bits.get(index);
 			}
 		}
 	}
 
-	// add votes to the vertex
-	addVotes(peerId: string, attestations: Attestation[], verify = true) {
+	// add signatures to the vertex
+	addSignatures(peerId: string, attestations: Attestation[], verify = true) {
 		for (const attestation of attestations) {
 			try {
 				this.states
 					.get(attestation.data)
-					?.addVote(peerId, attestation.signature, verify);
+					?.addSignature(peerId, attestation.signature, verify);
 			} catch (e) {
-				log.error("::finality::addVotes", e);
+				log.error("::finality::addSignatures", e);
 			}
 		}
 	}
@@ -183,13 +183,13 @@ export class FinalityStore {
 		}
 	}
 
-	// merge multiple votes
-	mergeVotes(attestations: AggregatedAttestation[]) {
+	// merge multiple signatures
+	mergeSignatures(attestations: AggregatedAttestation[]) {
 		for (const attestation of attestations) {
 			try {
 				this.states.get(attestation.data)?.merge(attestation);
 			} catch (e) {
-				log.error("::finality::mergeVotes", e);
+				log.error("::finality::mergeSignatures", e);
 			}
 		}
 	}
