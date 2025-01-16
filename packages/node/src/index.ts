@@ -87,28 +87,28 @@ export class DRPNode {
 		this.networkNode.sendMessage(peerId, message);
 	}
 
-	async createObject(
-		drp?: DRP,
-		acl?: IACL & DRP,
-		id?: string,
+	async createObject(options: {
+		drp?: DRP;
+		acl?: IACL & DRP;
+		id?: string;
 		sync?: {
 			enabled: boolean;
 			peerId?: string;
-		},
-	) {
+		};
+	}) {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
-			publicCredential: acl
+			publicCredential: options.acl
 				? undefined
 				: this.credentialStore.getPublicCredential(),
-			acl,
-			drp,
-			id,
+			acl: options.acl,
+			drp: options.drp,
+			id: options.id,
 		});
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
-		if (sync?.enabled) {
-			operations.syncObject(this, object.id, sync.peerId);
+		if (options.sync?.enabled) {
+			operations.syncObject(this, object.id, options.sync.peerId);
 		}
 		return object;
 	}
