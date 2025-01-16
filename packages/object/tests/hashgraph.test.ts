@@ -25,8 +25,8 @@ describe("HashGraph construction tests", () => {
 	let obj2: DRPObject;
 
 	beforeEach(async () => {
-		obj1 = new DRPObject("peer1", undefined, acl, new SetDRP<number>());
-		obj2 = new DRPObject("peer2", undefined, acl, new SetDRP<number>());
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
 
 	test("Test: Vertices are consistent across data structures", () => {
@@ -122,8 +122,8 @@ describe("HashGraph for AddWinSet tests", () => {
 	);
 
 	beforeEach(async () => {
-		obj1 = new DRPObject("peer1", undefined, acl, new SetDRP<number>());
-		obj2 = new DRPObject("peer2", undefined, acl, new SetDRP<number>());
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
 
 	test("Test: Add Two Vertices", () => {
@@ -314,8 +314,8 @@ describe("HashGraph for undefined operations tests", () => {
 	let obj2: DRPObject;
 
 	beforeEach(async () => {
-		obj1 = new DRPObject("peer1", undefined, acl, new SetDRP<number>());
-		obj2 = new DRPObject("peer2", undefined, acl, new SetDRP<number>());
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 	});
 
 	test("Test: merge should skip undefined operations", () => {
@@ -355,9 +355,9 @@ describe("Vertex state tests", () => {
 	let obj3: DRPObject;
 
 	beforeEach(async () => {
-		obj1 = new DRPObject("peer1", undefined, acl, new SetDRP<number>());
-		obj2 = new DRPObject("peer2", undefined, acl, new SetDRP<number>());
-		obj3 = new DRPObject("peer3", undefined, acl, new SetDRP<number>());
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
 	});
 
 	test("Test: Vertex states work correctly with single HashGraph", () => {
@@ -450,9 +450,9 @@ describe("Vertex timestamp tests", () => {
 	let obj3: DRPObject;
 
 	beforeEach(async () => {
-		obj1 = new DRPObject("peer1", undefined, acl, new SetDRP<number>());
-		obj2 = new DRPObject("peer2", undefined, acl, new SetDRP<number>());
-		obj3 = new DRPObject("peer3", undefined, acl, new SetDRP<number>());
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
 	});
 
 	test("Test: Vertex created in the future is invalid", () => {
@@ -521,9 +521,9 @@ describe("Writer permission tests", () => {
 			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
 		]);
 		const acl = new ACL(peerIdToPublicKeyMap);
-		obj1 = new DRPObject("peer1", undefined, acl, new SetDRP());
-		obj2 = new DRPObject("peer2", undefined, acl, new SetDRP());
-		obj3 = new DRPObject("peer3", undefined, acl, new SetDRP());
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
 	});
 
 	test("Node without writer permission can generate vertex locally", () => {
@@ -624,9 +624,21 @@ describe("HashGraph for set wins map tests", () => {
 	let obj3: DRPObject;
 
 	beforeEach(async () => {
-		obj1 = new DRPObject("peer1", undefined, acl, new MapDRP<string, string>());
-		obj2 = new DRPObject("peer2", undefined, acl, new MapDRP<string, string>());
-		obj3 = new DRPObject("peer3", undefined, acl, new MapDRP<string, string>());
+		obj1 = new DRPObject({
+			peerId: "peer1",
+			acl,
+			drp: new MapDRP<string, string>(),
+		});
+		obj2 = new DRPObject({
+			peerId: "peer2",
+			acl,
+			drp: new MapDRP<string, string>(),
+		});
+		obj3 = new DRPObject({
+			peerId: "peer3",
+			acl,
+			drp: new MapDRP<string, string>(),
+		});
 	});
 
 	test("Should correctly perform set and delete map operations", () => {
@@ -718,18 +730,16 @@ describe("HashGraph for delete wins map tests", () => {
 	let obj2: DRPObject;
 
 	beforeEach(async () => {
-		obj1 = new DRPObject(
-			"peer1",
-			undefined,
+		obj1 = new DRPObject({
+			peerId: "peer1",
 			acl,
-			new MapDRP<string, string>(MapConflictResolution.DeleteWins),
-		);
-		obj2 = new DRPObject(
-			"peer2",
-			undefined,
+			drp: new MapDRP<string, string>(MapConflictResolution.DeleteWins),
+		});
+		obj2 = new DRPObject({
+			peerId: "peer2",
 			acl,
-			new MapDRP<string, string>(MapConflictResolution.DeleteWins),
-		);
+			drp: new MapDRP<string, string>(MapConflictResolution.DeleteWins),
+		});
 	});
 
 	test("Should resolve conflict between concurrent set and delete operations that delete wins after merging", () => {

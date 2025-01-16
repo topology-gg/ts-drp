@@ -61,45 +61,49 @@ export class DRPObject implements IDRPObject {
 	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback[] = [];
 
-	constructor(
-		peerId: string,
-		publicCredential?: DRPPublicCredential,
-		acl?: IACL & DRP,
-		drp?: DRP,
-		id?: string,
-		config?: DRPObjectConfig,
-	) {
-		if (!acl && !publicCredential) {
+	constructor(options: {
+		peerId: string;
+		publicCredential?: DRPPublicCredential;
+		acl?: IACL & DRP;
+		drp?: DRP;
+		id?: string;
+		config?: DRPObjectConfig;
+	}) {
+		if (!options.acl && !options.publicCredential) {
 			throw new Error(
 				"Either publicCredential or acl must be provided to create a DRPObject",
 			);
 		}
 
-		this.peerId = peerId;
-		log = new Logger("drp::object", config?.log_config);
+		this.peerId = options.peerId;
+		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
-			id ??
+			options.id ??
 			crypto
 				.createHash("sha256")
-				.update(peerId)
+				.update(options.peerId)
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
 
 		const aclObj =
-			acl ??
-			new ACL(new Map([[peerId, publicCredential as DRPPublicCredential]]));
+			options.acl ??
+			new ACL(
+				new Map([
+					[options.peerId, options.publicCredential as DRPPublicCredential],
+				]),
+			);
 		this.acl = new Proxy(aclObj, this.proxyDRPHandler(DrpType.ACL));
-		if (drp) {
-			this._initLocalDrpInstance(drp, aclObj);
+		if (options.drp) {
+			this._initLocalDrpInstance(options.drp, aclObj);
 		} else {
 			this._initNonLocalDrpInstance(aclObj);
 		}
 
 		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.finalityStore = new FinalityStore(config?.finality_config);
+		this.finalityStore = new FinalityStore(options.config?.finality_config);
 		this.originalACL = cloneDeep(aclObj);
-		this.originalDRP = cloneDeep(drp);
+		this.originalDRP = cloneDeep(options.drp);
 	}
 
 	private _initLocalDrpInstance(drp: DRP, acl: DRP) {

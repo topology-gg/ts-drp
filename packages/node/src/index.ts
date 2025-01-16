@@ -96,13 +96,15 @@ export class DRPNode {
 			peerId?: string;
 		},
 	) {
-		const object = new DRPObject(
-			this.networkNode.peerId,
-			acl ? undefined : this.credentialStore.getPublicCredential(),
+		const object = new DRPObject({
+			peerId: this.networkNode.peerId,
+			publicCredential: acl
+				? undefined
+				: this.credentialStore.getPublicCredential(),
 			acl,
 			drp,
 			id,
-		);
+		});
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
 		if (sync?.enabled) {

@@ -10,7 +10,11 @@ import { BitSet } from "../src/hashgraph/bitset.js";
 import { DRPObject } from "../src/index.js";
 
 // initialize log
-const _ = new DRPObject("peer1", undefined, new ACL(new Map()), new SetDRP());
+const _ = new DRPObject({
+	peerId: "peer1",
+	acl: new ACL(new Map()),
+	drp: new SetDRP(),
+});
 
 describe("Tests for FinalityState", () => {
 	const N = 128;

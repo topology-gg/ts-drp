@@ -29,7 +29,7 @@ describe("DPRNode with verify and sign signature", () => {
 				],
 			]),
 		);
-		drpObject = new DRPObject(drpNode.networkNode.peerId, undefined, acl, drp);
+		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
 	test("Node will not sign vertex if it is not the creator", async () => {
@@ -126,20 +126,18 @@ describe("DRPNode voting tests", () => {
 	});
 
 	beforeEach(async () => {
-		obj1 = new DRPObject(
-			nodeA.networkNode.peerId,
-			nodeA.credentialStore.getPublicCredential(),
-			undefined,
-			new SetDRP(),
-		);
+		obj1 = new DRPObject({
+			peerId: nodeA.networkNode.peerId,
+			publicCredential: nodeA.credentialStore.getPublicCredential(),
+			drp: new SetDRP(),
+		});
 		drp1 = obj1.drp as SetDRP<number>;
 		acl1 = obj1.acl as ACL;
-		obj2 = new DRPObject(
-			nodeB.networkNode.peerId,
-			undefined,
-			acl1,
-			new SetDRP(),
-		);
+		obj2 = new DRPObject({
+			peerId: nodeB.networkNode.peerId,
+			acl: acl1,
+			drp: new SetDRP(),
+		});
 	});
 
 	test("Nodes in writer set are able to sign", async () => {
