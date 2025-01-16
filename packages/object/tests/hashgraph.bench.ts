@@ -55,7 +55,7 @@ benchmarkForAddWinSet(
 	true,
 );
 
-suite.add("Create a HashGraph with 1000 vertices for set wins map", () => {
+suite.add("Create a HashGraph with 1000 operations for set wins map", () => {
 	const object: DRPObject = new DRPObject(
 		"peer1",
 		new ConflictResolvingMap<number, number>(),
@@ -69,7 +69,7 @@ suite.add("Create a HashGraph with 1000 vertices for set wins map", () => {
 });
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for set wins map and read",
+	"Create a HashGraph with 1000 operations for set wins map and read",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
@@ -89,7 +89,7 @@ suite.add(
 );
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for set wins map and set",
+	"Create a HashGraph with 1000 operations for set wins map and set",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
@@ -109,7 +109,7 @@ suite.add(
 );
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for set wins map and delete",
+	"Create a HashGraph with 1000 operations for set wins map and delete",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
@@ -129,7 +129,7 @@ suite.add(
 );
 
 suite.add(
-	"Create a HashGraph with 1000 vertices for set wins map with random operations",
+	"Create a HashGraph with 1000 operations for set wins map with random operations",
 	() => {
 		const object: DRPObject = new DRPObject(
 			"peer1",
@@ -138,21 +138,14 @@ suite.add(
 			null as any,
 		);
 		const drp = object.drp as ConflictResolvingMap<number, number>;
-		for (let i = 0; i < 1000; ++i) {
-			if (i % 3 === 0) {
-				drp.set(i, i);
-			} else if (i % 3 === 1) {
-				if ((i % 3) % 2 === 0) {
-					drp.set(i, i);
-				} else {
-					drp.delete(i);
-				}
+		for (let i = 0; i < 250; i += 4) {
+			drp.set(i, i);
+			if (i % 2 === 0) {
+				drp.delete(i);
+				drp.set(i, i + 1);
 			} else {
-				if ((i % 3) % 2 === 0) {
-					drp.delete(i - 1);
-				} else {
-					drp.set(i - 1, i - 1);
-				}
+				drp.set(i, i + 1);
+				drp.delete(i);
 			}
 			drp.query_get(i);
 		}
@@ -160,24 +153,17 @@ suite.add(
 );
 
 suite.add(
-	"Create 2 HashGraphs with 1000 vertices each for set wins map and merge with random operations",
+	"Create 2 HashGraphs with 1000 operations each for set wins map and merge with random operations",
 	() => {
 		function initialize(drp: ConflictResolvingMap<number, number>) {
-			for (let i = 0; i < 1000; ++i) {
-				if (i % 3 === 0) {
-					drp.set(i, i);
-				} else if (i % 3 === 1) {
-					if ((i % 3) % 2 === 0) {
-						drp.set(i, i);
-					} else {
-						drp.delete(i);
-					}
+			for (let i = 0; i < 250; i += 4) {
+				drp.set(i, i);
+				if (i % 2 === 0) {
+					drp.delete(i);
+					drp.set(i, i + 1);
 				} else {
-					if ((i % 3) % 2 === 0) {
-						drp.delete(i - 1);
-					} else {
-						drp.set(i - 1, i - 1);
-					}
+					drp.set(i, i + 1);
+					drp.delete(i);
 				}
 				drp.query_get(i);
 			}
