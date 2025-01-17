@@ -3,7 +3,7 @@ import { DRPNode } from "../src/index.js";
 import { type DRP, DRPObject, type IACL } from "@topology-foundation/object/src/index.js";
 import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { NetworkPb } from "@topology-foundation/network/src/index.js";
-import { syncHandler, updateHandler } from "../src/handlers.js";
+import { syncAcceptHandler, syncHandler, updateHandler } from "../src/handlers.js";
 import { DrpType } from "@topology-foundation/object/dist/src/index.js";
 
 describe("Handle message correctly", () => {
@@ -60,6 +60,27 @@ describe("Handle message correctly", () => {
       ).finish(),
     });
     const success = await syncHandler(node, message.sender, message.data);
-    expect(success).toBe(true);     
+    expect(success).toBe(true);  
+    expect(node.getObject(drpObject.id)?.vertices.length).toBe(3);
+    expect(drpObject.vertices.length).toBe(5);
+  });
+
+  test("sync accept handler", async () => {
+    const message = NetworkPb.Message.create({
+      sender: mockSender,
+      type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
+      data: NetworkPb.SyncAccept.encode(
+        NetworkPb.SyncAccept.create({
+          objectId: drpObject.id,
+          requested: drpObject.vertices.slice(3, 5),
+          requesting: [],
+          attestations: [],
+        }),
+      ).finish(),
+    });
+    const success = await syncAcceptHandler(node, message.sender, message.data);
+    expect(success).toBe(false);
+    expect(node.getObject(drpObject.id)?.vertices.length).toBe(5);
+    expect(drpObject.vertices.length).toBe(5);
   });
 });

@@ -169,7 +169,7 @@ export async function syncHandler(node: DRPNode, sender: string, data: Uint8Arra
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncAcceptHandler(
+export async function syncAcceptHandler(
 	node: DRPNode,
 	sender: string,
 	data: Uint8Array,
@@ -178,7 +178,7 @@ async function syncAcceptHandler(
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {
 		log.error("::syncAcceptHandler: Object not found");
-		return;
+		return false;
 	}
 
 	const verifiedVertices = await verifyIncomingVertices(
@@ -204,7 +204,7 @@ async function syncAcceptHandler(
 		}
 	}
 
-	if (requested.length === 0) return;
+	if (requested.length === 0) return false;
 
 	const attestations = getAttestations(object, requested);
 
@@ -221,6 +221,7 @@ async function syncAcceptHandler(
 		).finish(),
 	});
 	node.networkNode.sendMessage(sender, message);
+	return true;
 }
 
 /* data: { id: string } */

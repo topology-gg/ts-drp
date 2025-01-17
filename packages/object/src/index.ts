@@ -236,6 +236,8 @@ export class DRPObject implements IDRPObject {
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
 				continue;
 			}
+			
+			console.log(vertex);
 
 			try {
 				if (!this._checkWriterPermission(vertex.peerId)) {
@@ -252,6 +254,7 @@ export class DRPObject implements IDRPObject {
 						vertex.timestamp,
 						vertex.signature,
 					);
+					console.log("here");
 					this._applyOperation(drp, vertex.operation);
 
 					this._setACLState(vertex, preComputeLca);
