@@ -4,21 +4,22 @@ import {
 	MapDRP,
 } from "../../blueprints/src/Map/index.js";
 import { SetDRP } from "../../blueprints/src/Set/index.js";
-import { ACL } from "../src/acl/index.js";
+import { ObjectACL } from "../src/acl/index.js";
 import {
+	ACLGroup,
 	DRPObject,
 	DrpType,
 	type Operation,
 	OperationType,
 } from "../src/index.js";
 
-const acl = new ACL(
-	new Map([
+const acl = new ObjectACL({
+	admins: new Map([
 		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
 		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
 		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
 	]),
-);
+});
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -114,12 +115,12 @@ describe("HashGraph construction tests", () => {
 describe("HashGraph for AddWinSet tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	const acl = new ACL(
-		new Map([
+	const acl = new ObjectACL({
+		admins: new Map([
 			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
 			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
 		]),
-	);
+	});
 
 	beforeEach(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -520,7 +521,7 @@ describe("Writer permission tests", () => {
 		const peerIdToPublicKeyMap = new Map([
 			["peer1", { ed25519PublicKey: "publicKey1", blsPublicKey: "" }],
 		]);
-		const acl = new ACL(peerIdToPublicKeyMap);
+		const acl = new ObjectACL({ admins: peerIdToPublicKeyMap });
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl, drp: new SetDRP<number>() });
@@ -552,14 +553,19 @@ describe("Writer permission tests", () => {
 		*/
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
-		const acl1 = obj1.acl as ACL;
-		const acl2 = obj2.acl as ACL;
+		const acl1 = obj1.acl as ObjectACL;
+		const acl2 = obj2.acl as ObjectACL;
 
 		drp1.add(1);
-		acl1.grant("peer1", "peer2", {
-			ed25519PublicKey: "pubKey2",
-			blsPublicKey: "pubKey2",
-		});
+		acl1.grant(
+			"peer1",
+			"peer2",
+			{
+				ed25519PublicKey: "pubKey2",
+				blsPublicKey: "pubKey2",
+			},
+			ACLGroup.Writer,
+		);
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -582,16 +588,26 @@ describe("Writer permission tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
 		const drp3 = obj3.drp as SetDRP<number>;
-		const acl1 = obj1.acl as ACL;
+		const acl1 = obj1.acl as ObjectACL;
 
-		acl1.grant("peer1", "peer2", {
-			ed25519PublicKey: "pubKey2",
-			blsPublicKey: "pubKey2",
-		});
-		acl1.grant("peer1", "peer3", {
-			ed25519PublicKey: "pubKey3",
-			blsPublicKey: "pubKey3",
-		});
+		acl1.grant(
+			"peer1",
+			"peer2",
+			{
+				ed25519PublicKey: "pubKey2",
+				blsPublicKey: "pubKey2",
+			},
+			ACLGroup.Writer,
+		);
+		acl1.grant(
+			"peer1",
+			"peer3",
+			{
+				ed25519PublicKey: "pubKey3",
+				blsPublicKey: "pubKey3",
+			},
+			ACLGroup.Writer,
+		);
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
 
@@ -604,7 +620,7 @@ describe("Writer permission tests", () => {
 		expect(drp1.query_has(1)).toBe(true);
 		expect(drp1.query_has(2)).toBe(true);
 
-		acl1.revoke("peer1", "peer3");
+		acl1.revoke("peer1", "peer3", ACLGroup.Writer);
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		drp3.add(3);
 		obj2.merge(obj3.hashGraph.getAllVertices());

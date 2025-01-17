@@ -6,7 +6,7 @@ import {
 	type DRPNetworkNodeConfig,
 	NetworkPb,
 } from "@ts-drp/network";
-import { type DRP, DRPObject, type IACL } from "@ts-drp/object";
+import { type DRP, DRPObject, type ACL } from "@ts-drp/object";
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
 import {
@@ -89,7 +89,7 @@ export class DRPNode {
 
 	async createObject(options: {
 		drp?: DRP;
-		acl?: IACL & DRP;
+		acl?: ACL & DRP;
 		id?: string;
 		sync?: {
 			enabled: boolean;

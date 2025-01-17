@@ -1,13 +1,14 @@
 import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
-import { ACL } from "../src/acl/index.js";
+import { ObjectACL } from "../src/acl/index.js";
+import { ACLGroup } from "../src/index.js";
 
 describe("AccessControl tests with RevokeWins resolution", () => {
-	let acl: ACL;
+	let acl: ObjectACL;
 
 	beforeEach(() => {
-		acl = new ACL(
-			new Map([
+		acl = new ObjectACL({
+			admins: new Map([
 				[
 					"peer1",
 					{
@@ -16,7 +17,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 					},
 				],
 			]),
-		);
+		});
 	});
 
 	test("Admin nodes should have admin privileges", () => {
@@ -28,28 +29,38 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 
 	test("Grant write permissions to a new writer", () => {
-		acl.grant("peer1", "peer3", {
-			ed25519PublicKey: "publicKey3",
-			blsPublicKey: "publicKey3",
-		});
+		acl.grant(
+			"peer1",
+			"peer3",
+			{
+				ed25519PublicKey: "publicKey3",
+				blsPublicKey: "publicKey3",
+			},
+			ACLGroup.Writer,
+		);
 
 		expect(acl.query_isWriter("peer3")).toBe(true);
 	});
 
 	test("Revoke write permissions from a writer", () => {
-		acl.grant("peer1", "peer3", {
-			ed25519PublicKey: "publicKey3",
-			blsPublicKey: "publicKey3",
-		});
-		acl.revoke("peer1", "peer3");
+		acl.grant(
+			"peer1",
+			"peer3",
+			{
+				ed25519PublicKey: "publicKey3",
+				blsPublicKey: "publicKey3",
+			},
+			ACLGroup.Writer,
+		);
+		acl.revoke("peer1", "peer3", ACLGroup.Writer);
 
 		expect(acl.query_isWriter("peer3")).toBe(false);
 	});
 
 	test("Cannot revoke admin permissions", () => {
 		expect(() => {
-			acl.revoke("peer1", "peer1");
-		}).toThrow("Cannot revoke permissions from a node with admin privileges.");
+			acl.revoke("peer1", "peer1", ACLGroup.Writer);
+		}).toThrow("Cannot revoke permissions from a peer with admin privileges.");
 
 		expect(acl.query_isWriter("peer1")).toBe(true);
 	});

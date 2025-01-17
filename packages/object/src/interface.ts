@@ -1,3 +1,4 @@
+import { ACL } from "./acl/interface.js";
 import type { FinalityStore } from "./finality/index.js";
 import type {
 	HashGraph,
@@ -19,19 +20,6 @@ export interface DRPPublicCredential {
 	blsPublicKey: string;
 }
 
-export interface IACL {
-	grant: (
-		senderId: string,
-		peerId: string,
-		publicKey: DRPPublicCredential,
-	) => void;
-	revoke: (senderId: string, peerId: string) => void;
-	query_getWriters: () => Map<string, DRPPublicCredential>;
-	query_isWriter: (peerId: string) => boolean;
-	query_isAdmin: (peerId: string) => boolean;
-	query_getPeerKey: (peerId: string) => DRPPublicCredential | undefined;
-}
-
 export interface DRP {
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
@@ -40,7 +28,7 @@ export interface DRP {
 }
 
 export interface IDRPObject extends ObjectPb.DRPObjectBase {
-	acl?: ProxyHandler<IACL & DRP>;
+	acl?: ProxyHandler<ACL & DRP>;
 	drp?: ProxyHandler<DRP>;
 	hashGraph: HashGraph;
 	finalityStore: FinalityStore;
