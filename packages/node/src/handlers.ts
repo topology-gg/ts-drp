@@ -97,19 +97,21 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		// add my signatures
 		const attestations = signFinalityVertices(node, object, verifiedVertices);
 
-		// broadcast the attestations
-		const message = NetworkPb.Message.create({
-			sender: node.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
-			data: NetworkPb.AttestationUpdate.encode(
-				NetworkPb.AttestationUpdate.create({
-					objectId: object.id,
-					attestations: attestations,
-				}),
-			).finish(),
-		});
+		if (attestations.length !== 0) {
+			// broadcast the attestations
+			const message = NetworkPb.Message.create({
+				sender: node.networkNode.peerId,
+				type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
+				data: NetworkPb.AttestationUpdate.encode(
+					NetworkPb.AttestationUpdate.create({
+						objectId: object.id,
+						attestations: attestations,
+					}),
+				).finish(),
+			});
 
-		node.networkNode.broadcastMessage(object.id, message);
+			node.networkNode.broadcastMessage(object.id, message);
+		}
 	}
 
 	node.objectStore.put(object.id, object);
