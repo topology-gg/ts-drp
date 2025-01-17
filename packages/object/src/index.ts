@@ -3,6 +3,7 @@ import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import { ObjectACL } from "./acl/index.js";
+import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import {
 	type Hash,
@@ -20,7 +21,6 @@ import type {
 } from "./interface.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "./utils/objectSet.js";
-import type { ACL } from "./acl/interface.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 export * from "./acl/index.js";

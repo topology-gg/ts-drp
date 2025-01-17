@@ -1,4 +1,4 @@
-import { ACL } from "./acl/interface.js";
+import type { ACL } from "./acl/interface.js";
 import type { FinalityStore } from "./finality/index.js";
 import type {
 	HashGraph,

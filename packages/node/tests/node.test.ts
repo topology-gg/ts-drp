@@ -1,6 +1,6 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
-import { ACL } from "@ts-drp/object";
+import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
@@ -21,14 +21,14 @@ describe("DPRNode with verify and sign signature", () => {
 
 	beforeEach(async () => {
 		drp = new SetDRP();
-		const acl = new ACL(
-			new Map([
+		const acl = new ObjectACL({
+			admins: new Map([
 				[
 					drpNode.networkNode.peerId,
 					drpNode.credentialStore.getPublicCredential(),
 				],
 			]),
-		);
+		});
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
@@ -112,7 +112,7 @@ describe("DPRNode with verify and sign signature", () => {
 
 describe("DRPNode voting tests", () => {
 	let drp1: SetDRP<number>;
-	let acl1: ACL;
+	let acl1: ObjectACL;
 	let nodeA: DRPNode;
 	let nodeB: DRPNode;
 	let obj1: DRPObject;
@@ -126,13 +126,19 @@ describe("DRPNode voting tests", () => {
 	});
 
 	beforeEach(async () => {
+		const acl = new ObjectACL({
+			admins: new Map([
+				[nodeA.networkNode.peerId, nodeA.credentialStore.getPublicCredential()],
+			]),
+		});
+
 		obj1 = new DRPObject({
 			peerId: nodeA.networkNode.peerId,
-			publicCredential: nodeA.credentialStore.getPublicCredential(),
+			acl,
 			drp: new SetDRP(),
 		});
 		drp1 = obj1.drp as SetDRP<number>;
-		acl1 = obj1.acl as ACL;
+		acl1 = obj1.acl as ObjectACL;
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
 			acl: acl1,
@@ -149,6 +155,7 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
+			ACLGroup.Finality,
 		);
 		drp1.add(1);
 
@@ -178,9 +185,14 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
+			ACLGroup.Writer,
 		);
 		drp1.add(1);
-		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId);
+		acl1.revoke(
+			nodeA.networkNode.peerId,
+			nodeB.networkNode.peerId,
+			ACLGroup.Writer,
+		);
 		drp1.add(2);
 
 		obj2.merge(obj1.vertices);
@@ -210,6 +222,7 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
+			ACLGroup.Finality,
 		);
 		drp1.add(1);
 
