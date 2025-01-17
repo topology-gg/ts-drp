@@ -1,16 +1,24 @@
-import type { ACL } from "./acl/interface.js";
-import type { FinalityStore } from "./finality/index.js";
 import type {
-	HashGraph,
 	Operation,
 	ResolveConflictsType,
 	SemanticsType,
 	Vertex,
 } from "./hashgraph/index.js";
+import type { DRPObject } from "./index.js";
 import type * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 
+export type DRPState = {
+	// biome-ignore lint: preferable to use any instead of unknown
+	state: Map<string, any>;
+};
+
+export enum DrpType {
+	ACL = "ACL",
+	DRP = "DRP",
+}
+
 export type DRPObjectCallback = (
-	object: IDRPObject,
+	object: DRPObject,
 	origin: string,
 	vertices: ObjectPb.Vertex[],
 ) => void;
@@ -25,16 +33,6 @@ export interface DRP {
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
 	// biome-ignore lint: attributes can be anything
 	[key: string]: any;
-}
-
-export interface IDRPObject extends ObjectPb.DRPObjectBase {
-	acl?: ProxyHandler<ACL & DRP>;
-	drp?: ProxyHandler<DRP>;
-	hashGraph: HashGraph;
-	finalityStore: FinalityStore;
-	subscriptions: DRPObjectCallback[];
-	merge(vertices: Vertex[]): [merged: boolean, missing: string[]];
-	subscribe(callback: DRPObjectCallback): void;
 }
 
 export interface LcaAndOperations {

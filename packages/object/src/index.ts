@@ -12,12 +12,13 @@ import {
 	type ResolveConflictsType,
 	type Vertex,
 } from "./hashgraph/index.js";
-import type {
-	DRP,
-	DRPObjectCallback,
-	DRPPublicCredential,
-	IDRPObject,
-	LcaAndOperations,
+import {
+	type DRP,
+	type DRPObjectCallback,
+	type DRPPublicCredential,
+	type DRPState,
+	DrpType,
+	type LcaAndOperations,
 } from "./interface.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "./utils/objectSet.js";
@@ -28,16 +29,6 @@ export * from "./hashgraph/index.js";
 export * from "./acl/interface.js";
 export * from "./interface.js";
 
-type DRPState = {
-	// biome-ignore lint: preferable to use any instead of unknown
-	state: Map<string, any>;
-};
-
-export enum DrpType {
-	ObjectACL = "ObjectACL",
-	DRP = "DRP",
-}
-
 // snake_casing to match the JSON config
 export interface DRPObjectConfig {
 	log_config?: LoggerOptions;
@@ -46,7 +37,7 @@ export interface DRPObjectConfig {
 
 export let log: Logger;
 
-export class DRPObject implements IDRPObject {
+export class DRPObject implements ObjectPb.DRPObjectBase {
 	id: string;
 	peerId: string;
 	vertices: ObjectPb.Vertex[] = [];
@@ -94,7 +85,7 @@ export class DRPObject implements IDRPObject {
 				]),
 				permissionless: true,
 			});
-		this.acl = new Proxy(aclObj, this.proxyDRPHandler(DrpType.ObjectACL));
+		this.acl = new Proxy(aclObj, this.proxyDRPHandler(DrpType.ACL));
 		if (options.drp) {
 			this._initLocalDrpInstance(options.drp, aclObj);
 		} else {
@@ -130,7 +121,7 @@ export class DRPObject implements IDRPObject {
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (
 			this.acl &&
-			vertices.some((v) => v.operation?.drpType === DrpType.ObjectACL)
+			vertices.some((v) => v.operation?.drpType === DrpType.ACL)
 		) {
 			const acl = this.acl as ACL & DRP;
 			return acl.resolveConflicts(vertices);
@@ -183,7 +174,7 @@ export class DRPObject implements IDRPObject {
 		}
 		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		let preOperationDRP: any;
-		if (drpType === DrpType.ObjectACL) {
+		if (drpType === DrpType.ACL) {
 			preOperationDRP = this._computeObjectACL(this.hashGraph.getFrontier());
 		} else {
 			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
@@ -410,10 +401,10 @@ export class DRPObject implements IDRPObject {
 			acl[key] = value;
 		}
 		for (const op of linearizedOperations) {
-			op.drpType === DrpType.ObjectACL && this._applyOperation(acl, op);
+			op.drpType === DrpType.ACL && this._applyOperation(acl, op);
 		}
 		if (vertexOperation) {
-			vertexOperation.drpType === DrpType.ObjectACL &&
+			vertexOperation.drpType === DrpType.ACL &&
 				this._applyOperation(acl, vertexOperation);
 		}
 

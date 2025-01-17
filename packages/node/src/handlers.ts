@@ -1,6 +1,6 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import type { ACL, IDRPObject, ObjectPb, Vertex } from "@ts-drp/object";
+import type { ACL, DRPObject, ObjectPb, Vertex } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
@@ -231,7 +231,7 @@ function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
 
 export function drpObjectChangesHandler(
 	node: DRPNode,
-	obj: IDRPObject,
+	obj: DRPObject,
 	originFn: string,
 	vertices: ObjectPb.Vertex[],
 ) {
@@ -294,7 +294,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 // Signs the vertices. Returns the attestations
 export function signFinalityVertices(
 	node: DRPNode,
-	obj: IDRPObject,
+	obj: DRPObject,
 	vertices: Vertex[],
 ) {
 	const attestations = generateAttestations(node, obj, vertices);
@@ -304,7 +304,7 @@ export function signFinalityVertices(
 
 function generateAttestations(
 	node: DRPNode,
-	object: IDRPObject,
+	object: DRPObject,
 	vertices: Vertex[],
 ): ObjectPb.Attestation[] {
 	// Two condition:
@@ -322,7 +322,7 @@ function generateAttestations(
 }
 
 function getAttestations(
-	object: IDRPObject,
+	object: DRPObject,
 	vertices: Vertex[],
 ): ObjectPb.AggregatedAttestation[] {
 	return vertices
@@ -331,7 +331,7 @@ function getAttestations(
 }
 
 export async function verifyIncomingVertices(
-	object: IDRPObject,
+	object: DRPObject,
 	incomingVertices: ObjectPb.Vertex[],
 ): Promise<Vertex[]> {
 	const vertices: Vertex[] = incomingVertices.map((vertex) => {

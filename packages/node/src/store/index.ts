@@ -3,30 +3,30 @@ import bls from "@chainsafe/bls/herumi";
 import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
-import type { DRPPublicCredential, IDRPObject } from "@ts-drp/object";
+import type { DRPObject, DRPPublicCredential } from "@ts-drp/object";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 export type DRPObjectStoreCallback = (
 	objectId: string,
-	object: IDRPObject,
+	object: DRPObject,
 ) => void;
 
 export class DRPObjectStore {
 	// TODO: should be abstracted in handling multiple types of storage
-	private _store: Map<string, IDRPObject>;
+	private _store: Map<string, DRPObject>;
 	private _subscriptions: Map<string, DRPObjectStoreCallback[]>;
 
 	constructor() {
-		this._store = new Map<string, IDRPObject>();
+		this._store = new Map<string, DRPObject>();
 		this._subscriptions = new Map<string, DRPObjectStoreCallback[]>();
 	}
 
-	get(objectId: string): IDRPObject | undefined {
+	get(objectId: string): DRPObject | undefined {
 		return this._store.get(objectId);
 	}
 
-	put(objectId: string, object: IDRPObject) {
+	put(objectId: string, object: DRPObject) {
 		this._store.set(objectId, object);
 		this._notifySubscribers(objectId, object);
 	}
@@ -38,7 +38,7 @@ export class DRPObjectStore {
 		this._subscriptions.get(objectId)?.push(callback);
 	}
 
-	private _notifySubscribers(objectId: string, object: IDRPObject): void {
+	private _notifySubscribers(objectId: string, object: DRPObject): void {
 		const callbacks = this._subscriptions.get(objectId);
 		if (callbacks) {
 			for (const callback of callbacks) {
