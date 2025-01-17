@@ -89,7 +89,7 @@ export class DRPNode {
 
 	async createObject(options: {
 		drp?: DRP;
-		acl?: ACL & DRP;
+		acl?: ACL;
 		id?: string;
 		sync?: {
 			enabled: boolean;

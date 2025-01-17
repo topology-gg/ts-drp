@@ -41,7 +41,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	id: string;
 	peerId: string;
 	vertices: ObjectPb.Vertex[] = [];
-	acl?: ProxyHandler<ACL & DRP>;
+	acl?: ProxyHandler<ACL>;
 	drp?: ProxyHandler<DRP>;
 	// @ts-ignore: initialized in constructor
 	hashGraph: HashGraph;
@@ -49,14 +49,14 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	drpStates: Map<string, DRPState>;
 	aclStates: Map<string, DRPState>;
 	originalDRP?: DRP;
-	originalObjectACL?: ACL & DRP;
+	originalObjectACL?: ACL;
 	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback[] = [];
 
 	constructor(options: {
 		peerId: string;
 		publicCredential?: DRPPublicCredential;
-		acl?: ACL & DRP;
+		acl?: ACL;
 		drp?: DRP;
 		id?: string;
 		config?: DRPObjectConfig;
@@ -123,7 +123,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			this.acl &&
 			vertices.some((v) => v.operation?.drpType === DrpType.ACL)
 		) {
-			const acl = this.acl as ACL & DRP;
+			const acl = this.acl as ACL;
 			return acl.resolveConflicts(vertices);
 		}
 		const drp = this.drp as DRP;
@@ -531,7 +531,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		if (!this.acl || !this.hashGraph) {
 			throw new Error("ObjectACL or hashgraph is undefined");
 		}
-		const currentObjectACL = this.acl as ACL & DRP;
+		const currentObjectACL = this.acl as ACL;
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
 		for (const [key, value] of newState.state.entries()) {
 			if (

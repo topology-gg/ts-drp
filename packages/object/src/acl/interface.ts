@@ -1,6 +1,7 @@
 import type { DRPPublicCredential } from "../interface.js";
+import type { DRP } from "../interface.js";
 
-export interface ACL {
+export interface ACL extends DRP {
 	grant: (
 		senderId: string,
 		peerId: string,
