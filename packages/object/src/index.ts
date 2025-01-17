@@ -236,7 +236,7 @@ export class DRPObject implements IDRPObject {
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
 				continue;
 			}
-			
+
 			console.log(vertex);
 
 			try {

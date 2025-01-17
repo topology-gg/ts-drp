@@ -28,7 +28,7 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i],
-					drpType: DrpType.Drp
+					drpType: DrpType.Drp,
 				},
 				frontier,
 				"",
@@ -39,7 +39,7 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i + 1],
-					drpType: DrpType.Drp
+					drpType: DrpType.Drp,
 				},
 				frontier,
 				"",
@@ -84,7 +84,7 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i],
-					drpType: DrpType.Drp
+					drpType: DrpType.Drp,
 				},
 				frontier,
 				"",
@@ -95,7 +95,7 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i + 1],
-					drpType: DrpType.Drp
+					drpType: DrpType.Drp,
 				},
 				frontier,
 				"",

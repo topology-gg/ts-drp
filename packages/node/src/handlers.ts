@@ -73,7 +73,11 @@ async function attestationUpdateHandler(
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array doesn't contain the full remote operations array
 */
-export async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
+export async function updateHandler(
+	node: DRPNode,
+	data: Uint8Array,
+	sender: string,
+) {
 	const updateMessage = NetworkPb.Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
@@ -121,7 +125,11 @@ export async function updateHandler(node: DRPNode, data: Uint8Array, sender: str
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-export async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
+export async function syncHandler(
+	node: DRPNode,
+	sender: string,
+	data: Uint8Array,
+) {
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = NetworkPb.Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
@@ -161,7 +169,7 @@ export async function syncHandler(node: DRPNode, sender: string, data: Uint8Arra
 		).finish(),
 	});
 	node.networkNode.sendMessage(sender, message);
-	
+
 	return true;
 }
 
