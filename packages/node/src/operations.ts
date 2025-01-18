@@ -1,5 +1,5 @@
 import { NetworkPb } from "@ts-drp/network";
-import { type DRP, DRPObject } from "@ts-drp/object";
+import { type DRP, DRPObject, HashGraph } from "@ts-drp/object";
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
@@ -22,7 +22,7 @@ export async function connectObject(
 	});
 	node.objectStore.put(id, object);
 
-	await syncObject(node, id, peerId);
+	await fetchState(node, id, peerId);
 	// sync process needs to finish before subscribing
 	const retry = setInterval(async () => {
 		node.objectStore.get(id);
@@ -52,6 +52,28 @@ export function unsubscribeObject(
 ) {
 	node.networkNode.unsubscribe(objectId);
 	if (purge) node.objectStore.remove(objectId);
+}
+
+export async function fetchState(
+	node: DRPNode,
+	objectId: string,
+	peerId?: string,
+) {
+	const data = NetworkPb.FetchState.create({
+		objectId,
+		vertexHash: HashGraph.rootHash,
+	});
+	const message = NetworkPb.Message.create({
+		sender: node.networkNode.peerId,
+		type: NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE,
+		data: NetworkPb.FetchState.encode(data).finish(),
+	});
+
+	if (!peerId) {
+		await node.networkNode.sendGroupMessageRandomPeer(objectId, message);
+	} else {
+		await node.networkNode.sendMessage(peerId, message);
+	}
 }
 
 /*

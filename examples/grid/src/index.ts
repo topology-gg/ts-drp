@@ -232,12 +232,9 @@ async function main() {
 		const drpId = (<HTMLInputElement>document.getElementById("gridInput"))
 			.value;
 		try {
-			drpObject = await node.createObject({
+			drpObject = await node.connectObject({
 				id: drpId,
 				drp: new Grid(),
-				sync: {
-					enabled: true,
-				},
 			});
 			gridDRP = drpObject.drp as Grid;
 			createConnectHandlers();

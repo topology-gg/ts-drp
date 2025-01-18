@@ -37,6 +37,15 @@ export interface AggregatedAttestation {
   aggregationBits: Uint8Array;
 }
 
+export interface DRPState {
+  state: { [key: string]: any | undefined };
+}
+
+export interface DRPState_StateEntry {
+  key: string;
+  value: any | undefined;
+}
+
 export interface DRPObjectBase {
   id: string;
   vertices: Vertex[];
@@ -446,6 +455,166 @@ export const AggregatedAttestation: MessageFns<AggregatedAttestation> = {
   },
 };
 
+function createBaseDRPState(): DRPState {
+  return { state: {} };
+}
+
+export const DRPState: MessageFns<DRPState> = {
+  encode(message: DRPState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    Object.entries(message.state).forEach(([key, value]) => {
+      if (value !== undefined) {
+        DRPState_StateEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
+      }
+    });
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPState {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPState();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = DRPState_StateEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.state[entry1.key] = entry1.value;
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPState {
+    return {
+      state: isObject(object.state)
+        ? Object.entries(object.state).reduce<{ [key: string]: any | undefined }>((acc, [key, value]) => {
+          acc[key] = value as any | undefined;
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: DRPState): unknown {
+    const obj: any = {};
+    if (message.state) {
+      const entries = Object.entries(message.state);
+      if (entries.length > 0) {
+        obj.state = {};
+        entries.forEach(([k, v]) => {
+          obj.state[k] = v;
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPState>, I>>(base?: I): DRPState {
+    return DRPState.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPState>, I>>(object: I): DRPState {
+    const message = createBaseDRPState();
+    message.state = Object.entries(object.state ?? {}).reduce<{ [key: string]: any | undefined }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseDRPState_StateEntry(): DRPState_StateEntry {
+  return { key: "", value: undefined };
+}
+
+export const DRPState_StateEntry: MessageFns<DRPState_StateEntry> = {
+  encode(message: DRPState_StateEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPState_StateEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPState_StateEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = Value.unwrap(Value.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPState_StateEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object?.value) ? object.value : undefined,
+    };
+  },
+
+  toJSON(message: DRPState_StateEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPState_StateEntry>, I>>(base?: I): DRPState_StateEntry {
+    return DRPState_StateEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPState_StateEntry>, I>>(object: I): DRPState_StateEntry {
+    const message = createBaseDRPState_StateEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? undefined;
+    return message;
+  },
+};
+
 function createBaseDRPObjectBase(): DRPObjectBase {
   return { id: "", vertices: [] };
 }
@@ -568,6 +737,10 @@ function longToNumber(int64: { toString(): string }): number {
     throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
   }
   return num;
+}
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
 }
 
 function isSet(value: any): boolean {

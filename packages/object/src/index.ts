@@ -16,7 +16,6 @@ import {
 	type DRP,
 	type DRPObjectCallback,
 	type DRPPublicCredential,
-	type DRPState,
 	DrpType,
 	type LcaAndOperations,
 } from "./interface.js";
@@ -46,8 +45,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	// @ts-ignore: initialized in constructor
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
-	drpStates: Map<string, DRPState>;
-	aclStates: Map<string, DRPState>;
+	drpStates: Map<string, ObjectPb.DRPState>;
+	aclStates: Map<string, ObjectPb.DRPState>;
 	originalDRP?: DRP;
 	originalObjectACL?: ACL;
 	finalityStore: FinalityStore;
@@ -94,6 +93,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
 		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		this._setRootStates();
+
 		this.finalityStore = new FinalityStore(options.config?.finality_config);
 		this.originalObjectACL = cloneDeep(aclObj);
 		this.originalDRP = cloneDeep(options.drp);
@@ -122,9 +123,14 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		id?: string;
 		drp?: DRP;
 	}) {
+		const aclObj = new ObjectACL({
+			admins: new Map(),
+			permissionless: true,
+		});
 		const object = new DRPObject({
 			peerId: "",
 			id: options.id,
+			acl: aclObj,
 			drp: options.drp,
 		});
 		return object;
@@ -316,7 +322,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			const state = cloneDeep(fetchedState);
 			const acl = cloneDeep(this.originalObjectACL);
 
-			for (const [key, value] of state.state) {
+			for (const [key, value] of state.state.entries()) {
 				acl[key] = value;
 			}
 			// signer set equals writer set
@@ -373,7 +379,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		const state = cloneDeep(fetchedState);
 
-		for (const [key, value] of state.state) {
+		for (const [key, value] of state.state.entries()) {
 			drp[key] = value;
 		}
 
@@ -409,7 +415,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		const state = cloneDeep(fetchedState);
 
-		for (const [key, value] of state.state) {
+		for (const [key, value] of state.state.entries()) {
 			acl[key] = value;
 		}
 		for (const op of linearizedOperations) {
@@ -447,9 +453,9 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 
 	// get the map representing the state of the given DRP by mapping variable names to their corresponding values
-	private _getDRPState(drp: DRP): DRPState {
+	private _getDRPState(drp: DRP): ObjectPb.DRPState {
 		const varNames: string[] = Object.keys(drp);
-		const drpState: DRPState = {
+		const drpState: ObjectPb.DRPState = {
 			state: new Map(),
 		};
 		for (const varName of varNames) {
@@ -462,7 +468,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
-	): DRPState {
+	): ObjectPb.DRPState {
 		const drp = this._computeDRP(
 			vertexDependencies,
 			preCompute,
@@ -475,7 +481,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation,
-	): DRPState {
+	): ObjectPb.DRPState {
 		const acl = this._computeObjectACL(
 			vertexDependencies,
 			preCompute,
@@ -485,7 +491,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 
 	// store the state of the DRP corresponding to the given vertex
-	private _setState(vertex: Vertex, drpState?: DRPState) {
+	private _setState(vertex: Vertex, drpState?: ObjectPb.DRPState) {
 		const preCompute = this.computeLCA(vertex.dependencies);
 		this._setObjectACLState(vertex, preCompute, drpState);
 		this._setDRPState(vertex, preCompute, drpState);
@@ -494,7 +500,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	private _setObjectACLState(
 		vertex: Vertex,
 		preCompute?: LcaAndOperations,
-		drpState?: DRPState,
+		drpState?: ObjectPb.DRPState,
 	) {
 		if (this.acl) {
 			this.aclStates.set(
@@ -512,7 +518,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	private _setDRPState(
 		vertex: Vertex,
 		preCompute?: LcaAndOperations,
-		drpState?: DRPState,
+		drpState?: ObjectPb.DRPState,
 	) {
 		this.drpStates.set(
 			vertex.hash,
@@ -553,5 +559,24 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 				currentObjectACL[key] = value;
 			}
 		}
+	}
+
+	private _setRootStates() {
+		const acl = this.acl as ACL;
+		const aclState = new Map();
+		for (const key of Object.keys(acl)) {
+			if (typeof acl[key] !== "function") {
+				aclState.set(key, acl[key]);
+			}
+		}
+		const drp = this.drp as DRP;
+		const drpState = new Map();
+		for (const key of Object.keys(drp)) {
+			if (typeof drp[key] !== "function") {
+				drpState.set(key, drp[key]);
+			}
+		}
+		this.aclStates.set(HashGraph.rootHash, { state: aclState });
+		this.drpStates.set(HashGraph.rootHash, { state: drpState });
 	}
 }

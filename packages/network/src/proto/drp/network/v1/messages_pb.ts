@@ -6,19 +6,20 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { AggregatedAttestation, Attestation, Vertex } from "../../object/v1/object_pb.js";
+import { AggregatedAttestation, Attestation, DRPState, Vertex } from "../../object/v1/object_pb.js";
 
 export const protobufPackage = "drp.network.v1";
 
 export enum MessageType {
   MESSAGE_TYPE_UNSPECIFIED = 0,
   MESSAGE_TYPE_FETCH_STATE = 1,
-  MESSAGE_TYPE_UPDATE = 2,
-  MESSAGE_TYPE_SYNC = 3,
-  MESSAGE_TYPE_SYNC_ACCEPT = 4,
-  MESSAGE_TYPE_SYNC_REJECT = 5,
-  MESSAGE_TYPE_ATTESTATION_UPDATE = 6,
-  MESSAGE_TYPE_CUSTOM = 7,
+  MESSAGE_TYPE_FETCH_STATE_RESPONSE = 2,
+  MESSAGE_TYPE_UPDATE = 3,
+  MESSAGE_TYPE_SYNC = 4,
+  MESSAGE_TYPE_SYNC_ACCEPT = 5,
+  MESSAGE_TYPE_SYNC_REJECT = 6,
+  MESSAGE_TYPE_ATTESTATION_UPDATE = 7,
+  MESSAGE_TYPE_CUSTOM = 8,
   UNRECOGNIZED = -1,
 }
 
@@ -31,21 +32,24 @@ export function messageTypeFromJSON(object: any): MessageType {
     case "MESSAGE_TYPE_FETCH_STATE":
       return MessageType.MESSAGE_TYPE_FETCH_STATE;
     case 2:
+    case "MESSAGE_TYPE_FETCH_STATE_RESPONSE":
+      return MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE;
+    case 3:
     case "MESSAGE_TYPE_UPDATE":
       return MessageType.MESSAGE_TYPE_UPDATE;
-    case 3:
+    case 4:
     case "MESSAGE_TYPE_SYNC":
       return MessageType.MESSAGE_TYPE_SYNC;
-    case 4:
+    case 5:
     case "MESSAGE_TYPE_SYNC_ACCEPT":
       return MessageType.MESSAGE_TYPE_SYNC_ACCEPT;
-    case 5:
+    case 6:
     case "MESSAGE_TYPE_SYNC_REJECT":
       return MessageType.MESSAGE_TYPE_SYNC_REJECT;
-    case 6:
+    case 7:
     case "MESSAGE_TYPE_ATTESTATION_UPDATE":
       return MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE;
-    case 7:
+    case 8:
     case "MESSAGE_TYPE_CUSTOM":
       return MessageType.MESSAGE_TYPE_CUSTOM;
     case -1:
@@ -61,6 +65,8 @@ export function messageTypeToJSON(object: MessageType): string {
       return "MESSAGE_TYPE_UNSPECIFIED";
     case MessageType.MESSAGE_TYPE_FETCH_STATE:
       return "MESSAGE_TYPE_FETCH_STATE";
+    case MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE:
+      return "MESSAGE_TYPE_FETCH_STATE_RESPONSE";
     case MessageType.MESSAGE_TYPE_UPDATE:
       return "MESSAGE_TYPE_UPDATE";
     case MessageType.MESSAGE_TYPE_SYNC:
@@ -88,6 +94,13 @@ export interface Message {
 export interface FetchState {
   objectId: string;
   vertexHash: string;
+}
+
+export interface FetchStateResponse {
+  objectId: string;
+  vertexHash: string;
+  aclState: DRPState | undefined;
+  drpState: DRPState | undefined;
 }
 
 export interface Update {
@@ -280,6 +293,118 @@ export const FetchState: MessageFns<FetchState> = {
     const message = createBaseFetchState();
     message.objectId = object.objectId ?? "";
     message.vertexHash = object.vertexHash ?? "";
+    return message;
+  },
+};
+
+function createBaseFetchStateResponse(): FetchStateResponse {
+  return { objectId: "", vertexHash: "", aclState: undefined, drpState: undefined };
+}
+
+export const FetchStateResponse: MessageFns<FetchStateResponse> = {
+  encode(message: FetchStateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.objectId !== "") {
+      writer.uint32(10).string(message.objectId);
+    }
+    if (message.vertexHash !== "") {
+      writer.uint32(18).string(message.vertexHash);
+    }
+    if (message.aclState !== undefined) {
+      DRPState.encode(message.aclState, writer.uint32(26).fork()).join();
+    }
+    if (message.drpState !== undefined) {
+      DRPState.encode(message.drpState, writer.uint32(34).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FetchStateResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFetchStateResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.objectId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.vertexHash = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.aclState = DRPState.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.drpState = DRPState.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FetchStateResponse {
+    return {
+      objectId: isSet(object.objectId) ? globalThis.String(object.objectId) : "",
+      vertexHash: isSet(object.vertexHash) ? globalThis.String(object.vertexHash) : "",
+      aclState: isSet(object.aclState) ? DRPState.fromJSON(object.aclState) : undefined,
+      drpState: isSet(object.drpState) ? DRPState.fromJSON(object.drpState) : undefined,
+    };
+  },
+
+  toJSON(message: FetchStateResponse): unknown {
+    const obj: any = {};
+    if (message.objectId !== "") {
+      obj.objectId = message.objectId;
+    }
+    if (message.vertexHash !== "") {
+      obj.vertexHash = message.vertexHash;
+    }
+    if (message.aclState !== undefined) {
+      obj.aclState = DRPState.toJSON(message.aclState);
+    }
+    if (message.drpState !== undefined) {
+      obj.drpState = DRPState.toJSON(message.drpState);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FetchStateResponse>, I>>(base?: I): FetchStateResponse {
+    return FetchStateResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FetchStateResponse>, I>>(object: I): FetchStateResponse {
+    const message = createBaseFetchStateResponse();
+    message.objectId = object.objectId ?? "";
+    message.vertexHash = object.vertexHash ?? "";
+    message.aclState = (object.aclState !== undefined && object.aclState !== null)
+      ? DRPState.fromPartial(object.aclState)
+      : undefined;
+    message.drpState = (object.drpState !== undefined && object.drpState !== null)
+      ? DRPState.fromPartial(object.drpState)
+      : undefined;
     return message;
   },
 };
