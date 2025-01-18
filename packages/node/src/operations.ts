@@ -1,5 +1,5 @@
 import { NetworkPb } from "@ts-drp/network";
-import { DRP, DRPObject } from "@ts-drp/object";
+import { type DRP, DRPObject } from "@ts-drp/object";
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
