@@ -1,28 +1,40 @@
 import { NetworkPb } from "@ts-drp/network";
-import type { DRPObject } from "@ts-drp/object";
+import { DRP, DRPObject } from "@ts-drp/object";
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
-
-/* Object operations */
-enum _OPERATIONS {
-	/* Create a new DRP */
-	CREATE = 0,
-	/* Update operation on a DRP */
-	UPDATE = 1,
-
-	/* Subscribe to a PubSub group (either DRP or custom) */
-	SUBSCRIBE = 2,
-	/* Unsubscribe from a PubSub group */
-	UNSUBSCRIBE = 3,
-	/* Actively send the DRP to a random peer */
-	SYNC = 4,
-}
 
 export function createObject(node: DRPNode, object: DRPObject) {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) =>
 		drpObjectChangesHandler(node, obj, originFn, vertices),
 	);
+}
+
+export async function connectObject(
+	node: DRPNode,
+	id: string,
+	drp?: DRP,
+	peerId?: string,
+): Promise<DRPObject> {
+	const object = DRPObject.createObject({
+		id,
+		drp,
+	});
+	node.objectStore.put(id, object);
+
+	await syncObject(node, id, peerId);
+	// sync process needs to finish before subscribing
+	const retry = setInterval(async () => {
+		node.objectStore.get(id);
+		if (object.acl) {
+			subscribeObject(node, id);
+			object.subscribe((obj, originFn, vertices) =>
+				drpObjectChangesHandler(node, obj, originFn, vertices),
+			);
+			clearInterval(retry);
+		}
+	}, 1000);
+	return object;
 }
 
 /* data: { id: string } */

@@ -32,7 +32,5 @@ message AggregatedAttestation {
 
 message DRPObjectBase {
   string id = 1;
-  optional string abi = 2;
-  optional bytes bytecode = 3;
-  repeated Vertex vertices = 4;
+  repeated Vertex vertices = 2;
 }

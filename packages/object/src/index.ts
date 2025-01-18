@@ -118,6 +118,18 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
+	static createObject(options: {
+		id?: string;
+		drp?: DRP;
+	}) {
+		const object = new DRPObject({
+			peerId: "",
+			id: options.id,
+			drp: options.drp,
+		});
+		return object;
+	}
+
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (
 			this.acl &&

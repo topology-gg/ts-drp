@@ -113,6 +113,29 @@ export class DRPNode {
 		return object;
 	}
 
+	/*
+		Connect to an existing object
+		@param options.id - The object ID
+		@param options.drp - The DRP instance. It can be undefined
+			where we just want the HG state
+		@param options.sync.peerId - The peer ID to sync with
+	*/
+	async connectObject(options: {
+		id: string;
+		drp?: DRP;
+		sync?: {
+			peerId?: string;
+		};
+	}) {
+		const object = operations.connectObject(
+			this,
+			options.id,
+			options.drp,
+			options.sync?.peerId,
+		);
+		return object;
+	}
+
 	async subscribeObject(id: string) {
 		return operations.subscribeObject(this, id);
 	}
