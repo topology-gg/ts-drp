@@ -39,8 +39,6 @@ export interface AggregatedAttestation {
 
 export interface DRPObjectBase {
   id: string;
-  abi?: string | undefined;
-  bytecode?: Uint8Array | undefined;
   vertices: Vertex[];
 }
 
@@ -449,7 +447,7 @@ export const AggregatedAttestation: MessageFns<AggregatedAttestation> = {
 };
 
 function createBaseDRPObjectBase(): DRPObjectBase {
-  return { id: "", abi: undefined, bytecode: undefined, vertices: [] };
+  return { id: "", vertices: [] };
 }
 
 export const DRPObjectBase: MessageFns<DRPObjectBase> = {
@@ -457,14 +455,8 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.abi !== undefined) {
-      writer.uint32(18).string(message.abi);
-    }
-    if (message.bytecode !== undefined) {
-      writer.uint32(26).bytes(message.bytecode);
-    }
     for (const v of message.vertices) {
-      Vertex.encode(v!, writer.uint32(34).fork()).join();
+      Vertex.encode(v!, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -489,22 +481,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
             break;
           }
 
-          message.abi = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.bytecode = reader.bytes();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
           message.vertices.push(Vertex.decode(reader, reader.uint32()));
           continue;
         }
@@ -520,8 +496,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
   fromJSON(object: any): DRPObjectBase {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      abi: isSet(object.abi) ? globalThis.String(object.abi) : undefined,
-      bytecode: isSet(object.bytecode) ? bytesFromBase64(object.bytecode) : undefined,
       vertices: globalThis.Array.isArray(object?.vertices) ? object.vertices.map((e: any) => Vertex.fromJSON(e)) : [],
     };
   },
@@ -530,12 +504,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
     const obj: any = {};
     if (message.id !== "") {
       obj.id = message.id;
-    }
-    if (message.abi !== undefined) {
-      obj.abi = message.abi;
-    }
-    if (message.bytecode !== undefined) {
-      obj.bytecode = base64FromBytes(message.bytecode);
     }
     if (message.vertices?.length) {
       obj.vertices = message.vertices.map((e) => Vertex.toJSON(e));
@@ -549,8 +517,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
   fromPartial<I extends Exact<DeepPartial<DRPObjectBase>, I>>(object: I): DRPObjectBase {
     const message = createBaseDRPObjectBase();
     message.id = object.id ?? "";
-    message.abi = object.abi ?? undefined;
-    message.bytecode = object.bytecode ?? undefined;
     message.vertices = object.vertices?.map((e) => Vertex.fromPartial(e)) || [];
     return message;
   },
