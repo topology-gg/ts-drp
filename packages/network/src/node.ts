@@ -15,10 +15,13 @@ import {
 import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
-import { identify } from "@libp2p/identify";
+import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	EventCallback,
+	EventHandler,
+	Libp2pEvents,
 	PubSub,
+	ServiceMap,
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
@@ -209,6 +212,24 @@ export class DRPNetworkNode {
 		await this.start();
 	}
 
+	addNodeEventListener<K extends keyof Libp2pEvents<ServiceMap>>(
+		type: K,
+		listener: EventHandler<Libp2pEvents<ServiceMap>[K]> | null,
+		options?: boolean | AddEventListenerOptions,
+	): void {
+		if (!this._node) return;
+		this._node.addEventListener(type, listener, options);
+	}
+
+	addPubsubEventListener<K extends keyof GossipsubEvents>(
+		type: K,
+		listener: EventHandler<GossipsubEvents[K]> | null,
+		options?: boolean | AddEventListenerOptions,
+	): void {
+		if (!this._pubsub) return;
+		this._pubsub.addEventListener(type, listener, options);
+	}
+
 	subscribe(topic: string) {
 		if (!this._node) {
 			log.error("::subscribe: Node not initialized, please run .start()");
@@ -325,6 +346,12 @@ export class DRPNetworkNode {
 			if (group && e.detail.msg.topic !== group) return;
 			handler(e);
 		});
+	}
+
+	removeGroupMessageHandler(
+		handler: EventCallback<CustomEvent<GossipsubMessage>>,
+	) {
+		this._pubsub?.removeEventListener("gossipsub:message", handler);
 	}
 
 	async addMessageHandler(handler: StreamHandler) {

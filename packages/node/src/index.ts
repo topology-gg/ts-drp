@@ -1,5 +1,14 @@
-import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback, StreamHandler } from "@libp2p/interface";
+import type {
+	GossipsubEvents,
+	GossipsubMessage,
+} from "@chainsafe/libp2p-gossipsub";
+import type {
+	EventCallback,
+	EventHandler,
+	Libp2pEvents,
+	ServiceMap,
+	StreamHandler,
+} from "@libp2p/interface";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import {
 	DRPNetworkNode,
@@ -54,6 +63,22 @@ export class DRPNode {
 			config ? config.network_config : this.config?.network_config,
 		);
 		await this.start();
+	}
+
+	addNodeEventListener<K extends keyof Libp2pEvents<ServiceMap>>(
+		type: K,
+		listener: EventHandler<Libp2pEvents<ServiceMap>[K]> | null,
+		options?: boolean | AddEventListenerOptions,
+	): void {
+		this.networkNode.addNodeEventListener(type, listener, options);
+	}
+
+	addPubsubEventListener<K extends keyof GossipsubEvents>(
+		type: K,
+		listener: EventHandler<GossipsubEvents[K]> | null,
+		options?: boolean | AddEventListenerOptions,
+	): void {
+		this.networkNode.addPubsubEventListener(type, listener, options);
 	}
 
 	addCustomGroup(group: string) {
