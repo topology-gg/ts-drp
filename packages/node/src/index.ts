@@ -41,9 +41,11 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.credentialStore.start();
 		await this.networkNode.start();
-		this.networkNode.addMessageHandler(async ({ stream }) =>
-			drpMessagesHandler(this, stream),
-		);
+		await this.networkNode.addMessageHandler(({ stream }) => {
+			drpMessagesHandler(this, stream).catch((e) =>
+				log.error("::start:drpMessagesHandler: Error handling message", e),
+			);
+		});
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {
@@ -65,26 +67,29 @@ export class DRPNode {
 		this.networkNode.addGroupMessageHandler(group, handler);
 	}
 
-	sendGroupMessage(group: string, data: Uint8Array) {
+	async sendGroupMessage(group: string, data: Uint8Array) {
 		const message = NetworkPb.Message.create({
 			sender: this.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,
 			data,
 		});
-		this.networkNode.broadcastMessage(group, message);
+		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
-		this.networkNode.addCustomMessageHandler(protocol, handler);
+	async addCustomMessageHandler(
+		protocol: string | string[],
+		handler: StreamHandler,
+	) {
+		await this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
-	sendCustomMessage(peerId: string, data: Uint8Array) {
+	async sendCustomMessage(peerId: string, data: Uint8Array) {
 		const message = NetworkPb.Message.create({
 			sender: this.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,
 			data,
 		});
-		this.networkNode.sendMessage(peerId, message);
+		await this.networkNode.sendMessage(peerId, message);
 	}
 
 	async createObject(
@@ -104,12 +109,12 @@ export class DRPNode {
 		operations.createObject(this, object);
 		operations.subscribeObject(this, object.id);
 		if (sync) {
-			operations.syncObject(this, object.id, peerId);
+			await operations.syncObject(this, object.id, peerId);
 		}
 		return object;
 	}
 
-	async subscribeObject(id: string) {
+	subscribeObject(id: string) {
 		return operations.subscribeObject(this, id);
 	}
 
@@ -118,6 +123,6 @@ export class DRPNode {
 	}
 
 	async syncObject(id: string, peerId?: string) {
-		operations.syncObject(this, id, peerId);
+		await operations.syncObject(this, id, peerId);
 	}
 }

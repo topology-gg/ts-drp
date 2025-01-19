@@ -2,9 +2,7 @@ import fs from "node:fs";
 import * as dotenv from "dotenv";
 import type { DRPNodeConfig } from "./index.js";
 
-export function loadConfig(
-	configPath?: string | undefined,
-): DRPNodeConfig | undefined {
+export function loadConfig(configPath?: string): DRPNodeConfig | undefined {
 	let config: DRPNodeConfig | undefined;
 
 	if (configPath) {

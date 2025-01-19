@@ -20,17 +20,21 @@ enum _OPERATIONS {
 
 export function createObject(node: DRPNode, object: DRPObject) {
 	node.objectStore.put(object.id, object);
-	object.subscribe((obj, originFn, vertices) =>
-		drpObjectChangesHandler(node, obj, originFn, vertices),
-	);
+	object.subscribe((obj, originFn, vertices) => {
+		drpObjectChangesHandler(node, obj, originFn, vertices).catch((e) =>
+			log.error("::createObject: Error handling object changes", e),
+		);
+	});
 }
 
 /* data: { id: string } */
-export async function subscribeObject(node: DRPNode, objectId: string) {
+export function subscribeObject(node: DRPNode, objectId: string) {
 	node.networkNode.subscribe(objectId);
-	node.networkNode.addGroupMessageHandler(objectId, async (e) =>
-		drpMessagesHandler(node, undefined, e.detail.msg.data),
-	);
+	node.networkNode.addGroupMessageHandler(objectId, (e) => {
+		drpMessagesHandler(node, undefined, e.detail.msg.data).catch((e) =>
+			log.error("::subscribeObject: Error handling message", e),
+		);
+	});
 }
 
 export function unsubscribeObject(

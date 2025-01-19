@@ -76,13 +76,13 @@ export function init(node: DRPNode) {
 		callback(null, response);
 	}
 
-	function syncDRPObject(
+	async function syncDRPObject(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>,
 	) {
 		let returnCode = 0;
 		try {
-			node.syncObject(call.request.drpId);
+			await node.syncObject(call.request.drpId);
 		} catch (e) {
 			log.error("::rpc::syncDRPObject: Error", e);
 			returnCode = 1;
@@ -94,13 +94,13 @@ export function init(node: DRPNode) {
 		callback(null, response);
 	}
 
-	function sendCustomMessage(
+	async function sendCustomMessage(
 		call: ServerUnaryCall<SendCustomMessageRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>,
 	) {
 		let returnCode = 0;
 		try {
-			node.sendCustomMessage(call.request.peerId, call.request.data);
+			await node.sendCustomMessage(call.request.peerId, call.request.data);
 		} catch (e) {
 			log.error("::rpc::sendCustomMessage: Error", e);
 			returnCode = 1;
@@ -112,13 +112,13 @@ export function init(node: DRPNode) {
 		callback(null, response);
 	}
 
-	function sendGroupMessage(
+	async function sendGroupMessage(
 		call: ServerUnaryCall<SendGroupMessageRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>,
 	) {
 		let returnCode = 0;
 		try {
-			node.sendGroupMessage(call.request.group, call.request.data);
+			await node.sendGroupMessage(call.request.group, call.request.data);
 		} catch (e) {
 			log.error("::rpc::sendGroupMessage: Error", e);
 			returnCode = 1;

@@ -217,7 +217,6 @@ export class DRPNetworkNode {
 
 		try {
 			this._pubsub?.subscribe(topic);
-			this._pubsub?.getPeers();
 			log.info("::subscribe: Successfuly subscribed the topic", topic);
 		} catch (e) {
 			log.error("::subscribe:", e);
@@ -295,7 +294,7 @@ export class DRPNetworkNode {
 			const connection = await this._node?.dial([multiaddr(`/p2p/${peerId}`)]);
 			const stream = <Stream>await connection?.newStream(DRP_MESSAGE_PROTOCOL);
 			const messageBuffer = Message.encode(message).finish();
-			uint8ArrayToStream(stream, messageBuffer);
+			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
 			log.error("::sendMessage:", e);
 		}
@@ -312,7 +311,7 @@ export class DRPNetworkNode {
 				DRP_MESSAGE_PROTOCOL,
 			)) as Stream;
 			const messageBuffer = Message.encode(message).finish();
-			uint8ArrayToStream(stream, messageBuffer);
+			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
 			log.error("::sendMessageRandomTopicPeer:", e);
 		}
@@ -328,11 +327,14 @@ export class DRPNetworkNode {
 		});
 	}
 
-	addMessageHandler(handler: StreamHandler) {
-		this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
+	async addMessageHandler(handler: StreamHandler) {
+		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
 	}
 
-	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
-		this._node?.handle(protocol, handler);
+	async addCustomMessageHandler(
+		protocol: string | string[],
+		handler: StreamHandler,
+	) {
+		await this._node?.handle(protocol, handler);
 	}
 }

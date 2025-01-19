@@ -6,7 +6,7 @@ import { init as rpc_init } from "./rpc/index.js";
 
 const run = async () => {
 	program.parse(process.argv);
-	const opts = program.opts();
+	const opts = program.opts<{ config: string }>();
 	const config: DRPNodeConfig | undefined = loadConfig(opts.config);
 
 	const node = new DRPNode(config);
@@ -14,4 +14,7 @@ const run = async () => {
 	rpc_init(node);
 };
 
-run();
+run().catch((error) => {
+	console.error(error);
+	process.exit(1);
+});

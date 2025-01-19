@@ -26,21 +26,21 @@ export async function drpMessagesHandler(
 
 	switch (message.type) {
 		case NetworkPb.MessageType.MESSAGE_TYPE_UPDATE:
-			updateHandler(node, message.data, message.sender);
+			await updateHandler(node, message.data, message.sender);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC:
 			if (!stream) {
 				log.error("::messageHandler: Stream is undefined");
 				return;
 			}
-			syncHandler(node, message.sender, message.data);
+			await syncHandler(node, message.sender, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT:
 			if (!stream) {
 				log.error("::messageHandler: Stream is undefined");
 				return;
 			}
-			syncAcceptHandler(node, message.sender, message.data);
+			await syncAcceptHandler(node, message.sender, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC_REJECT:
 			syncRejectHandler(node, message.data);
@@ -54,7 +54,7 @@ export async function drpMessagesHandler(
 	}
 }
 
-async function attestationUpdateHandler(
+function attestationUpdateHandler(
 	node: DRPNode,
 	data: Uint8Array,
 	sender: string,
@@ -109,7 +109,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 			).finish(),
 		});
 
-		node.networkNode.broadcastMessage(object.id, message);
+		await node.networkNode.broadcastMessage(object.id, message);
 	}
 
 	node.objectStore.put(object.id, object);
@@ -160,7 +160,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 			}),
 		).finish(),
 	});
-	node.networkNode.sendMessage(sender, message);
+	await node.networkNode.sendMessage(sender, message);
 }
 
 /*
@@ -218,7 +218,7 @@ async function syncAcceptHandler(
 			}),
 		).finish(),
 	});
-	node.networkNode.sendMessage(sender, message);
+	await node.networkNode.sendMessage(sender, message);
 }
 
 /* data: { id: string } */
@@ -229,7 +229,7 @@ function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
 	// - Do nothing
 }
 
-export function drpObjectChangesHandler(
+export async function drpObjectChangesHandler(
 	node: DRPNode,
 	obj: DRPObject,
 	originFn: string,
@@ -244,21 +244,20 @@ export function drpObjectChangesHandler(
 
 			node.objectStore.put(obj.id, obj);
 
-			signGeneratedVertices(node, vertices).then(() => {
-				// send vertices to the pubsub group
-				const message = NetworkPb.Message.create({
-					sender: node.networkNode.peerId,
-					type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
-					data: NetworkPb.Update.encode(
-						NetworkPb.Update.create({
-							objectId: obj.id,
-							vertices: vertices,
-							attestations: attestations,
-						}),
-					).finish(),
-				});
-				node.networkNode.broadcastMessage(obj.id, message);
+			await signGeneratedVertices(node, vertices);
+			// send vertices to the pubsub group
+			const message = NetworkPb.Message.create({
+				sender: node.networkNode.peerId,
+				type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
+				data: NetworkPb.Update.encode(
+					NetworkPb.Update.create({
+						objectId: obj.id,
+						vertices: vertices,
+						attestations: attestations,
+					}),
+				).finish(),
 			});
+			await node.networkNode.broadcastMessage(obj.id, message);
 
 			break;
 		}
