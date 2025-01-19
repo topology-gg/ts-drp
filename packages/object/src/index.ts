@@ -237,8 +237,6 @@ export class DRPObject implements IDRPObject {
 				continue;
 			}
 
-			console.log(vertex);
-
 			try {
 				if (!this._checkWriterPermission(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
@@ -254,7 +252,6 @@ export class DRPObject implements IDRPObject {
 						vertex.timestamp,
 						vertex.signature,
 					);
-					console.log("here");
 					this._applyOperation(drp, vertex.operation);
 
 					this._setACLState(vertex, preComputeLca);
