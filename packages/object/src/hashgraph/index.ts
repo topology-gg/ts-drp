@@ -1,4 +1,5 @@
 import * as crypto from "node:crypto";
+import { traceFunc } from "@ts-drp/tracer";
 import { log } from "../index.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
@@ -97,6 +98,71 @@ export class HashGraph {
 		this.vertexDistances.set(HashGraph.rootHash, {
 			distance: 0,
 		});
+
+		//this.resolveConflicts = traceFunc(
+		//	"HashGraph.resolveConflicts",
+		//	this.resolveConflicts.bind(this),
+		//);
+		//this.addToFrontier = traceFunc(
+		//	"HashGraph.addToFrontier",
+		//	this.addToFrontier.bind(this),
+		//);
+		//this.addVertex = traceFunc(
+		//	"HashGraph.addVertex",
+		//	this.addVertex.bind(this),
+		//);
+		//this.kahnsAlgorithm = traceFunc(
+		//	"HashGraph.kahnsAlgorithm",
+		//	this.kahnsAlgorithm.bind(this),
+		//);
+		//this.linearizeOperations = traceFunc(
+		//	"HashGraph.linearizeOperations",
+		//	this.linearizeOperations.bind(this),
+		//);
+		//this.topologicalSort = traceFunc(
+		//	"HashGraph.topologicalSort",
+		//	this.topologicalSort.bind(this),
+		//);
+		//this.lowestCommonAncestorMultipleVertices = traceFunc(
+		//	"HashGraph.lowestCommonAncestorMultipleVertices",
+		//	this.lowestCommonAncestorMultipleVertices.bind(this),
+		//);
+		//this.lowestCommonAncestorPairVertices = traceFunc(
+		//	"HashGraph.lowestCommonAncestorPairVertices",
+		//	this.lowestCommonAncestorPairVertices.bind(this),
+		//);
+		//this.areCausallyRelatedUsingBitsets = traceFunc(
+		//	"HashGraph.areCausallyRelatedUsingBitsets",
+		//	this.areCausallyRelatedUsingBitsets.bind(this),
+		//);
+		//this.areCausallyRelatedUsingBFS = traceFunc(
+		//	"HashGraph.areCausallyRelatedUsingBFS",
+		//	this.areCausallyRelatedUsingBFS.bind(this),
+		//);
+		//this.getFrontier = traceFunc(
+		//	"HashGraph.getFrontier",
+		//	this.getFrontier.bind(this),
+		//);
+		//this.getDependencies = traceFunc(
+		//	"HashGraph.getDependencies",
+		//	this.getDependencies.bind(this),
+		//);
+		//this.getVertex = traceFunc(
+		//	"HashGraph.getVertex",
+		//	this.getVertex.bind(this),
+		//);
+		//this.getAllVertices = traceFunc(
+		//	"HashGraph.getAllVertices",
+		//	this.getAllVertices.bind(this),
+		//);
+		//this.getReachablePredecessors = traceFunc(
+		//	"HashGraph.getReachablePredecessors",
+		//	this.getReachablePredecessors.bind(this),
+		//);
+		//this.getCurrentBitsetSize = traceFunc(
+		//	"HashGraph.getCurrentBitsetSize",
+		//	this.getCurrentBitsetSize.bind(this),
+		//);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
@@ -524,13 +590,17 @@ export class HashGraph {
 	}
 }
 
-function computeHash(
-	peerId: string,
-	operation: Operation,
-	deps: Hash[],
-	timestamp: number,
-): Hash {
-	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
-	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
-	return hash;
-}
+const computeHash = traceFunc(
+	"computeHash",
+	(
+		peerId: string,
+		operation: Operation,
+		deps: Hash[],
+		timestamp: number,
+	): Hash => {
+		const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
+		const hash = crypto.createHash("sha256").update(serialized).digest("hex");
+		console.log("returningHash", hash);
+		return hash;
+	},
+);

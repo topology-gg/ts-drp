@@ -6,7 +6,7 @@ import {
 } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
-export function linearizePairSemantics(
+function _linearizePairSemantics(
 	hashGraph: HashGraph,
 	origin: Hash,
 	subgraph: ObjectSet<string>,
@@ -72,3 +72,9 @@ export function linearizePairSemantics(
 
 	return result;
 }
+
+export const linearizePairSemantics = _linearizePairSemantics;
+//traceFunc(
+//	"linearizePairSemantics",
+//	_linearizePairSemantics,
+//);

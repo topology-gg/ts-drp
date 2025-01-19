@@ -7,7 +7,7 @@ import {
 } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
-export function linearizeMultipleSemantics(
+function _linearizeMultipleSemantics(
 	hashGraph: HashGraph,
 	origin: Hash,
 	subgraph: ObjectSet<string>,
@@ -95,3 +95,10 @@ export function linearizeMultipleSemantics(
 
 	return result;
 }
+
+export const linearizeMultipleSemantics = _linearizeMultipleSemantics;
+
+//traceFunc(
+//	"linearizeMultipleSemantics",
+//	_linearizeMultipleSemantics,
+//);

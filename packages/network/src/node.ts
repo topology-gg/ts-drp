@@ -33,6 +33,7 @@ import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { enableTracing } from "@ts-drp/tracer";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
@@ -55,6 +56,7 @@ export interface DRPNetworkNodeConfig {
 	browser_metrics?: boolean;
 	private_key_seed?: string;
 	log_config?: LoggerOptions;
+	telemetry?: boolean;
 }
 
 export class DRPNetworkNode {

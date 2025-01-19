@@ -1,6 +1,6 @@
 import { type Span, SpanStatusCode, context, trace } from "@opentelemetry/api";
 import { AsyncHooksContextManager } from "@opentelemetry/context-async-hooks";
-import { ZoneContextManager } from "@opentelemetry/context-zone-peer-dep";
+import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { Resource } from "@opentelemetry/resources";
 import {
@@ -81,8 +81,12 @@ async function wrapPromise<T>(promise: Promise<T>, span: Span): Promise<T> {
 		});
 }
 
-function isGenerator(obj: unknown): obj is Generator {
-	return (obj as { [Symbol.iterator]?: unknown })?.[Symbol.iterator] != null;
+function isGenerator(obj?: any): obj is Generator {
+	return (
+		obj &&
+		typeof obj[Symbol.iterator] === "function" &&
+		typeof obj.next === "function"
+	);
 }
 
 function wrapGenerator<T>(gen: Generator<T>, span: Span): Generator<T> {
