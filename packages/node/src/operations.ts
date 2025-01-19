@@ -41,7 +41,6 @@ export async function connectObject(
 export async function subscribeObject(node: DRPNode, objectId: string) {
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(objectId, async (e) => {
-		console.log("message handler", e);
 		drpMessagesHandler(node, undefined, e.detail.msg.data);
 	});
 }

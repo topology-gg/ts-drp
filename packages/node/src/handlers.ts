@@ -314,7 +314,6 @@ export function drpObjectChangesHandler(
 	originFn: string,
 	vertices: ObjectPb.Vertex[],
 ) {
-	console.log("drpObjectChangesHandler", obj, originFn);
 	switch (originFn) {
 		case "merge":
 			node.objectStore.put(obj.id, obj);

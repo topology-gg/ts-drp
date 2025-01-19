@@ -327,8 +327,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			const state = cloneDeep(fetchedState);
 			const acl = cloneDeep(this.originalObjectACL);
 
-			for (const [key, value] of state.state.entries()) {
-				acl[key] = value;
+			for (const entry of state.state) {
+				acl[entry.key] = entry.value;
 			}
 			// signer set equals writer set
 			this.finalityStore.initializeState(hash, acl.query_getFinalitySigners());
@@ -384,8 +384,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		const state = cloneDeep(fetchedState);
 
-		for (const [key, value] of state.state.entries()) {
-			drp[key] = value;
+		for (const entry of state.state) {
+			drp[entry.key] = entry.value;
 		}
 
 		for (const op of linearizedOperations) {
@@ -420,8 +420,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		const state = cloneDeep(fetchedState);
 
-		for (const [key, value] of state.state.entries()) {
-			acl[key] = value;
+		for (const entry of state.state) {
+			acl[entry.key] = entry.value;
 		}
 		for (const op of linearizedOperations) {
 			op.drpType === DrpType.ACL && this._applyOperation(acl, op);
@@ -545,9 +545,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 		const currentDRP = this.drp as DRP;
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
-		for (const [key, value] of newState.state.entries()) {
-			if (key in currentDRP && typeof currentDRP[key] !== "function") {
-				currentDRP[key] = value;
+		for (const entry of newState.state) {
+			if (
+				entry.key in currentDRP &&
+				typeof currentDRP[entry.key] !== "function"
+			) {
+				currentDRP[entry.key] = entry.value;
 			}
 		}
 	}
@@ -558,12 +561,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 		const currentObjectACL = this.acl as ACL;
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
-		for (const [key, value] of newState.state.entries()) {
+		for (const entry of newState.state) {
 			if (
-				key in currentObjectACL &&
-				typeof currentObjectACL[key] !== "function"
+				entry.key in currentObjectACL &&
+				typeof currentObjectACL[entry.key] !== "function"
 			) {
-				currentObjectACL[key] = value;
+				currentObjectACL[entry.key] = entry.value;
 			}
 		}
 	}
