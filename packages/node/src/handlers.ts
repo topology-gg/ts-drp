@@ -1,14 +1,15 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
 import {
-	HashGraph,
 	type ACL,
 	type DRPObject,
+	HashGraph,
 	type ObjectPb,
 	type Vertex,
 } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
+import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -68,7 +69,6 @@ export async function drpMessagesHandler(
 
 function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const fetchState = NetworkPb.FetchState.decode(data);
-	console.log("fetchState", fetchState);
 	const drpObject = node.objectStore.get(fetchState.objectId);
 	if (!drpObject) {
 		log.error("::fetchStateHandler: Object not found");
@@ -76,12 +76,12 @@ function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	}
 
 	const aclState = drpObject.aclStates.get(fetchState.vertexHash);
-	console.log("aclState", aclState);
 	const drpState = drpObject.drpStates.get(fetchState.vertexHash);
 	const response = NetworkPb.FetchStateResponse.create({
 		objectId: fetchState.objectId,
-		drpState,
-		aclState,
+		vertexHash: fetchState.vertexHash,
+		aclState: serializeStateMessage(aclState),
+		drpState: serializeStateMessage(drpState),
 	});
 
 	const message = NetworkPb.Message.create({
@@ -94,7 +94,6 @@ function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 
 function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 	const fetchStateResponse = NetworkPb.FetchStateResponse.decode(data);
-	console.log("fetchStateResponse", fetchStateResponse);
 	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
 		log.error("::fetchStateResponseHandler: No state found");
 	}
@@ -108,14 +107,13 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 		return;
 	}
 
+	const aclState = deserializeStateMessage(fetchStateResponse.aclState);
+	const drpState = deserializeStateMessage(fetchStateResponse.drpState);
 	if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
-		const state = fetchStateResponse.aclState?.state;
-		if (!state) {
-			log.error("::fetchStateResponseHandler: No state found");
-			return;
-		}
-		for (const [k, v] of state.entries()) {
-			(object.acl as ACL)[k] = v;
+		const state = aclState;
+		object.aclStates.set(fetchStateResponse.vertexHash, state);
+		for (const e of state.state) {
+			(object.acl as ACL)[e.key] = e.value;
 		}
 		node.objectStore.put(object.id, object);
 		return;
@@ -124,13 +122,13 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 	if (fetchStateResponse.aclState) {
 		object.aclStates.set(
 			fetchStateResponse.vertexHash,
-			fetchStateResponse.aclState as ObjectPb.DRPState,
+			aclState as ObjectPb.DRPState,
 		);
 	}
 	if (fetchStateResponse.drpState) {
 		object.drpStates.set(
 			fetchStateResponse.vertexHash,
-			fetchStateResponse.drpState as ObjectPb.DRPState,
+			drpState as ObjectPb.DRPState,
 		);
 	}
 }
@@ -316,13 +314,13 @@ export function drpObjectChangesHandler(
 	originFn: string,
 	vertices: ObjectPb.Vertex[],
 ) {
+	console.log("drpObjectChangesHandler", obj, originFn);
 	switch (originFn) {
 		case "merge":
 			node.objectStore.put(obj.id, obj);
 			break;
 		case "callFn": {
 			const attestations = signFinalityVertices(node, obj, vertices);
-
 			node.objectStore.put(obj.id, obj);
 
 			signGeneratedVertices(node, vertices).then(() => {

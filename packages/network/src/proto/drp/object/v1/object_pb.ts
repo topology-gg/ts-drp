@@ -37,13 +37,13 @@ export interface AggregatedAttestation {
   aggregationBits: Uint8Array;
 }
 
-export interface DRPState {
-  state: { [key: string]: any | undefined };
-}
-
-export interface DRPState_StateEntry {
+export interface DRPStateEntry {
   key: string;
   value: any | undefined;
+}
+
+export interface DRPState {
+  state: DRPStateEntry[];
 }
 
 export interface DRPObjectBase {
@@ -455,96 +455,12 @@ export const AggregatedAttestation: MessageFns<AggregatedAttestation> = {
   },
 };
 
-function createBaseDRPState(): DRPState {
-  return { state: {} };
-}
-
-export const DRPState: MessageFns<DRPState> = {
-  encode(message: DRPState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    Object.entries(message.state).forEach(([key, value]) => {
-      if (value !== undefined) {
-        DRPState_StateEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
-      }
-    });
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): DRPState {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDRPState();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          const entry1 = DRPState_StateEntry.decode(reader, reader.uint32());
-          if (entry1.value !== undefined) {
-            message.state[entry1.key] = entry1.value;
-          }
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DRPState {
-    return {
-      state: isObject(object.state)
-        ? Object.entries(object.state).reduce<{ [key: string]: any | undefined }>((acc, [key, value]) => {
-          acc[key] = value as any | undefined;
-          return acc;
-        }, {})
-        : {},
-    };
-  },
-
-  toJSON(message: DRPState): unknown {
-    const obj: any = {};
-    if (message.state) {
-      const entries = Object.entries(message.state);
-      if (entries.length > 0) {
-        obj.state = {};
-        entries.forEach(([k, v]) => {
-          obj.state[k] = v;
-        });
-      }
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<DRPState>, I>>(base?: I): DRPState {
-    return DRPState.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<DRPState>, I>>(object: I): DRPState {
-    const message = createBaseDRPState();
-    message.state = Object.entries(object.state ?? {}).reduce<{ [key: string]: any | undefined }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = value;
-        }
-        return acc;
-      },
-      {},
-    );
-    return message;
-  },
-};
-
-function createBaseDRPState_StateEntry(): DRPState_StateEntry {
+function createBaseDRPStateEntry(): DRPStateEntry {
   return { key: "", value: undefined };
 }
 
-export const DRPState_StateEntry: MessageFns<DRPState_StateEntry> = {
-  encode(message: DRPState_StateEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const DRPStateEntry: MessageFns<DRPStateEntry> = {
+  encode(message: DRPStateEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -554,10 +470,10 @@ export const DRPState_StateEntry: MessageFns<DRPState_StateEntry> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): DRPState_StateEntry {
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPStateEntry {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDRPState_StateEntry();
+    const message = createBaseDRPStateEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -586,14 +502,14 @@ export const DRPState_StateEntry: MessageFns<DRPState_StateEntry> = {
     return message;
   },
 
-  fromJSON(object: any): DRPState_StateEntry {
+  fromJSON(object: any): DRPStateEntry {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : "",
       value: isSet(object?.value) ? object.value : undefined,
     };
   },
 
-  toJSON(message: DRPState_StateEntry): unknown {
+  toJSON(message: DRPStateEntry): unknown {
     const obj: any = {};
     if (message.key !== "") {
       obj.key = message.key;
@@ -604,13 +520,73 @@ export const DRPState_StateEntry: MessageFns<DRPState_StateEntry> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<DRPState_StateEntry>, I>>(base?: I): DRPState_StateEntry {
-    return DRPState_StateEntry.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<DRPStateEntry>, I>>(base?: I): DRPStateEntry {
+    return DRPStateEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DRPState_StateEntry>, I>>(object: I): DRPState_StateEntry {
-    const message = createBaseDRPState_StateEntry();
+  fromPartial<I extends Exact<DeepPartial<DRPStateEntry>, I>>(object: I): DRPStateEntry {
+    const message = createBaseDRPStateEntry();
     message.key = object.key ?? "";
     message.value = object.value ?? undefined;
+    return message;
+  },
+};
+
+function createBaseDRPState(): DRPState {
+  return { state: [] };
+}
+
+export const DRPState: MessageFns<DRPState> = {
+  encode(message: DRPState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.state) {
+      DRPStateEntry.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPState {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPState();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.state.push(DRPStateEntry.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPState {
+    return {
+      state: globalThis.Array.isArray(object?.state) ? object.state.map((e: any) => DRPStateEntry.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: DRPState): unknown {
+    const obj: any = {};
+    if (message.state?.length) {
+      obj.state = message.state.map((e) => DRPStateEntry.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPState>, I>>(base?: I): DRPState {
+    return DRPState.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPState>, I>>(object: I): DRPState {
+    const message = createBaseDRPState();
+    message.state = object.state?.map((e) => DRPStateEntry.fromPartial(e)) || [];
     return message;
   },
 };
@@ -737,10 +713,6 @@ function longToNumber(int64: { toString(): string }): number {
     throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
   }
   return num;
-}
-
-function isObject(value: any): boolean {
-  return typeof value === "object" && value !== null;
 }
 
 function isSet(value: any): boolean {

@@ -30,8 +30,13 @@ message AggregatedAttestation {
   bytes aggregation_bits = 3;
 }
 
+message DRPStateEntry {
+  string key = 1;
+  google.protobuf.Value value = 2;
+}
+
 message DRPState {
-  map<string, google.protobuf.Value> state = 1;
+  repeated DRPStateEntry state = 1;
 }
 
 message DRPObjectBase {

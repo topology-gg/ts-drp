@@ -23,6 +23,7 @@ import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
+export * from "./utils/serializer.js";
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
 export * from "./acl/interface.js";
@@ -91,8 +92,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			this._initNonLocalDrpInstance(aclObj);
 		}
 
-		this.aclStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
-		this.drpStates = new Map([[HashGraph.rootHash, { state: new Map() }]]);
+		this.aclStates = new Map([
+			[HashGraph.rootHash, ObjectPb.DRPState.create()],
+		]);
+		this.drpStates = new Map([
+			[HashGraph.rootHash, ObjectPb.DRPState.create()],
+		]);
 		this._setRootStates();
 
 		this.finalityStore = new FinalityStore(options.config?.finality_config);
@@ -456,10 +461,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	private _getDRPState(drp: DRP): ObjectPb.DRPState {
 		const varNames: string[] = Object.keys(drp);
 		const drpState: ObjectPb.DRPState = {
-			state: new Map(),
+			state: [],
 		};
 		for (const varName of varNames) {
-			drpState.state.set(varName, drp[varName]);
+			drpState.state.push(
+				ObjectPb.DRPStateEntry.create({ key: varName, value: drp[varName] }),
+			);
 		}
 		return drpState;
 	}
@@ -563,17 +570,17 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	private _setRootStates() {
 		const acl = this.acl as ACL;
-		const aclState = new Map();
+		const aclState = [];
 		for (const key of Object.keys(acl)) {
 			if (typeof acl[key] !== "function") {
-				aclState.set(key, acl[key]);
+				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: acl[key] }));
 			}
 		}
 		const drp = this.drp as DRP;
-		const drpState = new Map();
+		const drpState = [];
 		for (const key of Object.keys(drp)) {
 			if (typeof drp[key] !== "function") {
-				drpState.set(key, drp[key]);
+				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: drp[key] }));
 			}
 		}
 		this.aclStates.set(HashGraph.rootHash, { state: aclState });
