@@ -7,6 +7,7 @@ import {
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/object";
+import { traceFunc } from "@ts-drp/tracer";
 
 export enum ACLConflictResolution {
 	GrantWins = 0,
@@ -28,6 +29,29 @@ export class ACL implements IACL, DRP {
 		this._writers = new Map(Array.from(admins, ([key, value]) => [key, value]));
 		this._conflictResolution =
 			conflictResolution ?? ACLConflictResolution.RevokeWins;
+
+		this.grant = traceFunc("ACL.grant", this.grant.bind(this));
+		this.revoke = traceFunc("ACL.revoke", this.revoke.bind(this));
+		this.query_getWriters = traceFunc(
+			"ACL.query_getWriters",
+			this.query_getWriters.bind(this),
+		);
+		this.query_isAdmin = traceFunc(
+			"ACL.query_isAdmin",
+			this.query_isAdmin.bind(this),
+		);
+		this.query_isWriter = traceFunc(
+			"ACL.query_isWriter",
+			this.query_isWriter.bind(this),
+		);
+		this.query_getPeerKey = traceFunc(
+			"ACL.query_getPeerKey",
+			this.query_getPeerKey.bind(this),
+		);
+		this.resolveConflicts = traceFunc(
+			"ACL.resolveConflicts",
+			this.resolveConflicts.bind(this),
+		);
 	}
 
 	private _grant(peerId: string, publicKey: DRPPublicCredential): void {

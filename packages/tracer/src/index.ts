@@ -4,8 +4,8 @@ import { ZoneContextManager } from "@opentelemetry/context-zone";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { Resource } from "@opentelemetry/resources";
 import {
+	BatchSpanProcessor,
 	type Tracer as OtTracer,
-	SimpleSpanProcessor,
 	WebTracerProvider,
 } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
@@ -248,10 +248,18 @@ const initProvider = (opts: EnableTracingOptions["provider"]): void => {
 	const resource = new Resource({
 		[ATTR_SERVICE_NAME]: opts?.serviceName ?? "unknown_service",
 	});
+	const exporter = initExporter(opts);
+	const spanProcessor = new BatchSpanProcessor(exporter, {
+		// Configuration options for batching
+		maxQueueSize: 2048, // Maximum number of spans kept in the queue before dropping
+		scheduledDelayMillis: 5000, // Interval for sending queued spans in milliseconds
+		exportTimeoutMillis: 30000, // Timeout for exporting a batch
+		maxExportBatchSize: 512, // Maximum number of spans per batch
+	});
 
 	provider = new WebTracerProvider({
 		resource,
-		spanProcessors: [new SimpleSpanProcessor(initExporter(opts))],
+		spanProcessors: [spanProcessor],
 	});
 
 	provider.register();

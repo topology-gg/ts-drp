@@ -34,6 +34,7 @@ import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { enableTracing } from "@ts-drp/tracer";
+import { traceFunc } from "@ts-drp/tracer";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
@@ -201,6 +202,28 @@ export class DRPNetworkNode {
 		});
 		this._node.addEventListener("peer:identify", (e) =>
 			log.info("::start::peer::identify", e.detail),
+		);
+
+		enableTracing("default", {
+			provider: {
+				serviceName: "DRPNetworkNode",
+			},
+		});
+		this.subscribe = traceFunc(
+			"DRPNetworkNode.subscribe",
+			this.subscribe.bind(this),
+		);
+		this.unsubscribe = traceFunc(
+			"DRPNetworkNode.unsubscribe",
+			this.unsubscribe.bind(this),
+		);
+		this.broadcastMessage = traceFunc(
+			"DRPNetworkNode.broadcastMessage",
+			this.broadcastMessage.bind(this),
+		);
+		this.sendMessage = traceFunc(
+			"DRPNetworkNode.sendMessage",
+			this.sendMessage.bind(this),
 		);
 	}
 

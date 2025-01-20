@@ -1,3 +1,4 @@
+import { traceFunc } from "@ts-drp/tracer";
 import {
 	ActionType,
 	type Hash,
@@ -73,8 +74,7 @@ function _linearizePairSemantics(
 	return result;
 }
 
-export const linearizePairSemantics = _linearizePairSemantics;
-//traceFunc(
-//	"linearizePairSemantics",
-//	_linearizePairSemantics,
-//);
+export const linearizePairSemantics = traceFunc(
+	"linearizePairSemantics",
+	_linearizePairSemantics,
+);

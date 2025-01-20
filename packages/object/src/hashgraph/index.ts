@@ -99,70 +99,70 @@ export class HashGraph {
 			distance: 0,
 		});
 
-		//this.resolveConflicts = traceFunc(
-		//	"HashGraph.resolveConflicts",
-		//	this.resolveConflicts.bind(this),
-		//);
-		//this.addToFrontier = traceFunc(
-		//	"HashGraph.addToFrontier",
-		//	this.addToFrontier.bind(this),
-		//);
-		//this.addVertex = traceFunc(
-		//	"HashGraph.addVertex",
-		//	this.addVertex.bind(this),
-		//);
-		//this.kahnsAlgorithm = traceFunc(
-		//	"HashGraph.kahnsAlgorithm",
-		//	this.kahnsAlgorithm.bind(this),
-		//);
-		//this.linearizeOperations = traceFunc(
-		//	"HashGraph.linearizeOperations",
-		//	this.linearizeOperations.bind(this),
-		//);
-		//this.topologicalSort = traceFunc(
-		//	"HashGraph.topologicalSort",
-		//	this.topologicalSort.bind(this),
-		//);
-		//this.lowestCommonAncestorMultipleVertices = traceFunc(
-		//	"HashGraph.lowestCommonAncestorMultipleVertices",
-		//	this.lowestCommonAncestorMultipleVertices.bind(this),
-		//);
-		//this.lowestCommonAncestorPairVertices = traceFunc(
-		//	"HashGraph.lowestCommonAncestorPairVertices",
-		//	this.lowestCommonAncestorPairVertices.bind(this),
-		//);
-		//this.areCausallyRelatedUsingBitsets = traceFunc(
-		//	"HashGraph.areCausallyRelatedUsingBitsets",
-		//	this.areCausallyRelatedUsingBitsets.bind(this),
-		//);
-		//this.areCausallyRelatedUsingBFS = traceFunc(
-		//	"HashGraph.areCausallyRelatedUsingBFS",
-		//	this.areCausallyRelatedUsingBFS.bind(this),
-		//);
-		//this.getFrontier = traceFunc(
-		//	"HashGraph.getFrontier",
-		//	this.getFrontier.bind(this),
-		//);
-		//this.getDependencies = traceFunc(
-		//	"HashGraph.getDependencies",
-		//	this.getDependencies.bind(this),
-		//);
-		//this.getVertex = traceFunc(
-		//	"HashGraph.getVertex",
-		//	this.getVertex.bind(this),
-		//);
-		//this.getAllVertices = traceFunc(
-		//	"HashGraph.getAllVertices",
-		//	this.getAllVertices.bind(this),
-		//);
-		//this.getReachablePredecessors = traceFunc(
-		//	"HashGraph.getReachablePredecessors",
-		//	this.getReachablePredecessors.bind(this),
-		//);
-		//this.getCurrentBitsetSize = traceFunc(
-		//	"HashGraph.getCurrentBitsetSize",
-		//	this.getCurrentBitsetSize.bind(this),
-		//);
+		this.resolveConflicts = traceFunc(
+			"HashGraph.resolveConflicts",
+			this.resolveConflicts.bind(this),
+		);
+		this.addToFrontier = traceFunc(
+			"HashGraph.addToFrontier",
+			this.addToFrontier.bind(this),
+		);
+		this.addVertex = traceFunc(
+			"HashGraph.addVertex",
+			this.addVertex.bind(this),
+		);
+		this.kahnsAlgorithm = traceFunc(
+			"HashGraph.kahnsAlgorithm",
+			this.kahnsAlgorithm.bind(this),
+		);
+		this.linearizeOperations = traceFunc(
+			"HashGraph.linearizeOperations",
+			this.linearizeOperations.bind(this),
+		);
+		this.topologicalSort = traceFunc(
+			"HashGraph.topologicalSort",
+			this.topologicalSort.bind(this),
+		);
+		this.lowestCommonAncestorMultipleVertices = traceFunc(
+			"HashGraph.lowestCommonAncestorMultipleVertices",
+			this.lowestCommonAncestorMultipleVertices.bind(this),
+		);
+		this.lowestCommonAncestorPairVertices = traceFunc(
+			"HashGraph.lowestCommonAncestorPairVertices",
+			this.lowestCommonAncestorPairVertices.bind(this),
+		);
+		this.areCausallyRelatedUsingBitsets = traceFunc(
+			"HashGraph.areCausallyRelatedUsingBitsets",
+			this.areCausallyRelatedUsingBitsets.bind(this),
+		);
+		this.areCausallyRelatedUsingBFS = traceFunc(
+			"HashGraph.areCausallyRelatedUsingBFS",
+			this.areCausallyRelatedUsingBFS.bind(this),
+		);
+		this.getFrontier = traceFunc(
+			"HashGraph.getFrontier",
+			this.getFrontier.bind(this),
+		);
+		this.getDependencies = traceFunc(
+			"HashGraph.getDependencies",
+			this.getDependencies.bind(this),
+		);
+		this.getVertex = traceFunc(
+			"HashGraph.getVertex",
+			this.getVertex.bind(this),
+		);
+		this.getAllVertices = traceFunc(
+			"HashGraph.getAllVertices",
+			this.getAllVertices.bind(this),
+		);
+		this.getReachablePredecessors = traceFunc(
+			"HashGraph.getReachablePredecessors",
+			this.getReachablePredecessors.bind(this),
+		);
+		this.getCurrentBitsetSize = traceFunc(
+			"HashGraph.getCurrentBitsetSize",
+			this.getCurrentBitsetSize.bind(this),
+		);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {

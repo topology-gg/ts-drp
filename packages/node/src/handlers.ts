@@ -1,6 +1,7 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
 import type { DRPObject, IACL, ObjectPb, Vertex } from "@ts-drp/object";
+import { traceFunc } from "@ts-drp/tracer";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
 
@@ -8,7 +9,7 @@ import { type DRPNode, log } from "./index.js";
   Handler for all DRP messages, including pubsub messages and direct messages
   You need to setup stream xor data
 */
-export async function drpMessagesHandler(
+export async function _drpMessagesHandler(
 	node: DRPNode,
 	stream?: Stream,
 	data?: Uint8Array,
@@ -54,7 +55,7 @@ export async function drpMessagesHandler(
 	}
 }
 
-function attestationUpdateHandler(
+function _attestationUpdateHandler(
 	node: DRPNode,
 	data: Uint8Array,
 	sender: string,
@@ -73,7 +74,7 @@ function attestationUpdateHandler(
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array doesn't contain the full remote operations array
 */
-async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
+async function _updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 	const updateMessage = NetworkPb.Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
@@ -121,7 +122,7 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function _syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = NetworkPb.Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
@@ -167,7 +168,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-async function syncAcceptHandler(
+async function _syncAcceptHandler(
 	node: DRPNode,
 	sender: string,
 	data: Uint8Array,
@@ -222,14 +223,14 @@ async function syncAcceptHandler(
 }
 
 /* data: { id: string } */
-function syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
+function _syncRejectHandler(_node: DRPNode, _data: Uint8Array) {
 	// TODO: handle reject. Possible actions:
 	// - Retry sync
 	// - Ask sync from another peer
 	// - Do nothing
 }
 
-export async function drpObjectChangesHandler(
+export async function _drpObjectChangesHandler(
 	node: DRPNode,
 	obj: DRPObject,
 	originFn: string,
@@ -266,7 +267,10 @@ export async function drpObjectChangesHandler(
 	}
 }
 
-export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
+export async function _signGeneratedVertices(
+	node: DRPNode,
+	vertices: Vertex[],
+) {
 	const signPromises = vertices.map(async (vertex) => {
 		if (
 			vertex.peerId !== node.networkNode.peerId ||
@@ -291,7 +295,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 }
 
 // Signs the vertices. Returns the attestations
-export function signFinalityVertices(
+export function _signFinalityVertices(
 	node: DRPNode,
 	obj: DRPObject,
 	vertices: Vertex[],
@@ -301,7 +305,7 @@ export function signFinalityVertices(
 	return attestations;
 }
 
-function generateAttestations(
+function _generateAttestations(
 	node: DRPNode,
 	object: DRPObject,
 	vertices: Vertex[],
@@ -320,7 +324,7 @@ function generateAttestations(
 	}));
 }
 
-function getAttestations(
+function _getAttestations(
 	object: DRPObject,
 	vertices: Vertex[],
 ): ObjectPb.AggregatedAttestation[] {
@@ -329,7 +333,7 @@ function getAttestations(
 		.filter((a) => a !== undefined);
 }
 
-export async function verifyIncomingVertices(
+export async function _verifyIncomingVertices(
 	object: DRPObject,
 	incomingVertices: ObjectPb.Vertex[],
 ): Promise<Vertex[]> {
@@ -397,3 +401,43 @@ export async function verifyIncomingVertices(
 
 	return verifiedVertices;
 }
+
+export const drpMessagesHandler = traceFunc(
+	"drpMessagesHandler",
+	_drpMessagesHandler,
+);
+export const attestationUpdateHandler = traceFunc(
+	"attestationUpdateHandler",
+	_attestationUpdateHandler,
+);
+export const updateHandler = traceFunc("updateHandler", _updateHandler);
+export const syncHandler = traceFunc("syncHandler", _syncHandler);
+export const syncAcceptHandler = traceFunc(
+	"syncAcceptHandler",
+	_syncAcceptHandler,
+);
+export const syncRejectHandler = traceFunc(
+	"syncRejectHandler",
+	_syncRejectHandler,
+);
+export const drpObjectChangesHandler = traceFunc(
+	"drpObjectChangesHandler",
+	_drpObjectChangesHandler,
+);
+export const signGeneratedVertices = traceFunc(
+	"signGeneratedVertices",
+	_signGeneratedVertices,
+);
+export const signFinalityVertices = traceFunc(
+	"signFinalityVertices",
+	_signFinalityVertices,
+);
+export const generateAttestations = traceFunc(
+	"generateAttestations",
+	_generateAttestations,
+);
+export const getAttestations = traceFunc("getAttestations", _getAttestations);
+export const verifyIncomingVertices = traceFunc(
+	"verifyIncomingVertices",
+	_verifyIncomingVertices,
+);

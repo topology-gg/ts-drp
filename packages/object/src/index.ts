@@ -1,5 +1,6 @@
 import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { traceFunc } from "@ts-drp/tracer";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
@@ -131,77 +132,77 @@ export class DRPObject implements IDRPObject {
 		this.originalACL = cloneDeep(acl);
 		this.vertices = this.hashGraph.getAllVertices();
 
-		//this.resolveConflicts = traceFunc(
-		//	"DRPObject.resolveConflicts",
-		//	this.resolveConflicts.bind(this),
-		//);
-		//this.callFn = traceFunc("DRPObject.callFn", this.callFn.bind(this));
-		//this.merge = traceFunc("DRPObject.merge", this.merge.bind(this));
-		//this.subscribe = traceFunc(
-		//	"DRPObject.subscribe",
-		//	this.subscribe.bind(this),
-		//);
-		//this.subscribe = traceFunc(
-		//	"DRPObject.subscribe",
-		//	this.subscribe.bind(this),
-		//);
-		//this._notify = traceFunc("DRPObject._notify", this._notify.bind(this));
-		//this._initializeFinalityState = traceFunc(
-		//	"DRPObject._initializeFinalityState",
-		//	this._initializeFinalityState.bind(this),
-		//);
-		//this._checkWriterPermission = traceFunc(
-		//	"DRPObject._checkWriterPermission",
-		//	this._checkWriterPermission.bind(this),
-		//);
-		//this._applyOperation = traceFunc(
-		//	"DRPObject._applyOperation",
-		//	this._applyOperation.bind(this),
-		//);
-		//this._computeDRP = traceFunc(
-		//	"DRPObject._computeDRP",
-		//	this._computeDRP.bind(this),
-		//);
-		//this._computeACL = traceFunc(
-		//	"DRPObject._computeACL",
-		//	this._computeACL.bind(this),
-		//);
-		//this.computeLCA = traceFunc(
-		//	"DRPObject.computeLCA",
-		//	this.computeLCA.bind(this),
-		//);
-		//this._getDRPState = traceFunc(
-		//	"DRPObject._getDRPState",
-		//	this._getDRPState.bind(this),
-		//);
-		//this._computeDRPState = traceFunc(
-		//	"DRPObject._computeDRPState",
-		//	this._computeDRPState.bind(this),
-		//);
-		//this._computeACLState = traceFunc(
-		//	"DRPObject._computeACLState",
-		//	this._computeACLState.bind(this),
-		//);
-		//this._setState = traceFunc(
-		//	"DRPObject._setState",
-		//	this._setState.bind(this),
-		//);
-		//this._setACLState = traceFunc(
-		//	"DRPObject._setACLState",
-		//	this._setACLState.bind(this),
-		//);
-		//this._setDRPState = traceFunc(
-		//	"DRPObject._setDRPState",
-		//	this._setDRPState.bind(this),
-		//);
-		//this._updateDRPState = traceFunc(
-		//	"DRPObject._updateDRPState",
-		//	this._updateDRPState.bind(this),
-		//);
-		//this._updateACLState = traceFunc(
-		//	"DRPObject._updateACLState",
-		//	this._updateACLState.bind(this),
-		//);
+		this.resolveConflicts = traceFunc(
+			"DRPObject.resolveConflicts",
+			this.resolveConflicts.bind(this),
+		);
+		this.callFn = traceFunc("DRPObject.callFn", this.callFn.bind(this));
+		this.merge = traceFunc("DRPObject.merge", this.merge.bind(this));
+		this.subscribe = traceFunc(
+			"DRPObject.subscribe",
+			this.subscribe.bind(this),
+		);
+		this.subscribe = traceFunc(
+			"DRPObject.subscribe",
+			this.subscribe.bind(this),
+		);
+		this._notify = traceFunc("DRPObject._notify", this._notify.bind(this));
+		this._initializeFinalityState = traceFunc(
+			"DRPObject._initializeFinalityState",
+			this._initializeFinalityState.bind(this),
+		);
+		this._checkWriterPermission = traceFunc(
+			"DRPObject._checkWriterPermission",
+			this._checkWriterPermission.bind(this),
+		);
+		this._applyOperation = traceFunc(
+			"DRPObject._applyOperation",
+			this._applyOperation.bind(this),
+		);
+		this._computeDRP = traceFunc(
+			"DRPObject._computeDRP",
+			this._computeDRP.bind(this),
+		);
+		this._computeACL = traceFunc(
+			"DRPObject._computeACL",
+			this._computeACL.bind(this),
+		);
+		this.computeLCA = traceFunc(
+			"DRPObject.computeLCA",
+			this.computeLCA.bind(this),
+		);
+		this._getDRPState = traceFunc(
+			"DRPObject._getDRPState",
+			this._getDRPState.bind(this),
+		);
+		this._computeDRPState = traceFunc(
+			"DRPObject._computeDRPState",
+			this._computeDRPState.bind(this),
+		);
+		this._computeACLState = traceFunc(
+			"DRPObject._computeACLState",
+			this._computeACLState.bind(this),
+		);
+		this._setState = traceFunc(
+			"DRPObject._setState",
+			this._setState.bind(this),
+		);
+		this._setACLState = traceFunc(
+			"DRPObject._setACLState",
+			this._setACLState.bind(this),
+		);
+		this._setDRPState = traceFunc(
+			"DRPObject._setDRPState",
+			this._setDRPState.bind(this),
+		);
+		this._updateDRPState = traceFunc(
+			"DRPObject._updateDRPState",
+			this._updateDRPState.bind(this),
+		);
+		this._updateACLState = traceFunc(
+			"DRPObject._updateACLState",
+			this._updateACLState.bind(this),
+		);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {

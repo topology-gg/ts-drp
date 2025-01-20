@@ -1,4 +1,5 @@
 import bls from "@chainsafe/bls/herumi";
+import { traceFunc } from "@ts-drp/tracer";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { BitSet } from "../hashgraph/bitset.js";
 import type { Hash } from "../hashgraph/index.js";
@@ -38,6 +39,12 @@ export class FinalityState {
 
 		this.aggregation_bits = new BitSet(peerIds.length);
 		this.numberOfSignatures = 0;
+
+		this.addSignature = traceFunc(
+			"FinalityState.addSignature",
+			this.addSignature.bind(this),
+		);
+		this.merge = traceFunc("FinalityState.merge", this.merge.bind(this));
 	}
 
 	addSignature(peerId: string, signature: Uint8Array, verify = true) {
@@ -111,6 +118,37 @@ export class FinalityStore {
 		this.states = new Map();
 		this.finalityThreshold =
 			config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
+
+		this.initializeState = traceFunc(
+			"FinalityStore.initializeState",
+			this.initializeState.bind(this),
+		);
+		this.getQuorum = traceFunc(
+			"FinalityStore.getQuorum",
+			this.getQuorum.bind(this),
+		);
+		this.getNumberOfSignatures = traceFunc(
+			"FinalityStore.getNumberOfSignatures",
+			this.getNumberOfSignatures.bind(this),
+		);
+		this.isFinalized = traceFunc(
+			"FinalityStore.isFinalized",
+			this.isFinalized.bind(this),
+		);
+		this.canSign = traceFunc("FinalityStore.canSign", this.canSign.bind(this));
+		this.signed = traceFunc("FinalityStore.signed", this.signed.bind(this));
+		this.addSignatures = traceFunc(
+			"FinalityStore.addSignatures",
+			this.addSignatures.bind(this),
+		);
+		this.getAttestation = traceFunc(
+			"FinalityStore.getAttestation",
+			this.getAttestation.bind(this),
+		);
+		this.mergeSignatures = traceFunc(
+			"FinalityStore.mergeSignatures",
+			this.mergeSignatures.bind(this),
+		);
 	}
 
 	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
