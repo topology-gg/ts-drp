@@ -8,3 +8,5 @@ node_modules/
 coverage/*
 .vscode/*
 **/object_grpc_pb.js
+
+.DS_Store
