@@ -6,13 +6,12 @@ import {
 import {
 	type TopicScoreParams,
 	createPeerScoreParams,
-	createPeerScoreThresholds,
 	createTopicScoreParams,
 } from "@chainsafe/libp2p-gossipsub/score";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
-import { bootstrap } from "@libp2p/bootstrap";
+import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
 import {
 	circuitRelayServer,
 	circuitRelayTransport,
@@ -24,10 +23,15 @@ import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	Address,
 	EventCallback,
+	PeerDiscovery,
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
 import { ping } from "@libp2p/ping";
+import {
+	type PubSubPeerDiscoveryComponents,
+	pubsubPeerDiscovery,
+} from "@libp2p/pubsub-peer-discovery";
 import { webRTC, webRTCDirect } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
@@ -60,6 +64,10 @@ export interface DRPNetworkNodeConfig {
 	log_config?: LoggerOptions;
 }
 
+type PeerDiscoveryFunction =
+	| ((components: PubSubPeerDiscoveryComponents) => PeerDiscovery)
+	| ((components: BootstrapComponents) => PeerDiscovery);
+
 export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
@@ -86,7 +94,13 @@ export class DRPNetworkNode {
 			? this._config.bootstrap_peers
 			: BOOTSTRAP_NODES;
 
-		const _peerDiscovery = [];
+		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
+			pubsubPeerDiscovery({
+				topics: ["drp::discovery"],
+				interval: 10_000,
+			}),
+		];
+
 		const _bootstrapPeerID: string[] = [];
 		if (_bootstrapNodesList.length) {
 			_peerDiscovery.push(
@@ -113,7 +127,7 @@ export class DRPNetworkNode {
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
 					appSpecificScore: (peerId: string) => {
-						if (_bootstrapPeerID.includes(peerId)) {
+						if (_bootstrapNodesList.some((node) => node.includes(peerId))) {
 							return 1000;
 						}
 						return 0;
@@ -123,9 +137,6 @@ export class DRPNetworkNode {
 							topicWeight: 1,
 						}),
 					},
-				}),
-				scoreThresholds: createPeerScoreThresholds({
-					gossipThreshold: -50,
 				}),
 				fallbackToFloodsub: false,
 			}),
@@ -146,9 +157,6 @@ export class DRPNetworkNode {
 					scoreParams: createPeerScoreParams({
 						topicScoreCap: 50,
 						IPColocationFactorWeight: 0,
-					}),
-					scoreThresholds: createPeerScoreThresholds({
-						gossipThreshold: -50,
 					}),
 					fallbackToFloodsub: false,
 				}),
