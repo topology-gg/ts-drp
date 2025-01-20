@@ -44,8 +44,13 @@ export const enableTracing = (
 	}
 };
 
+// disableTracing should reset the tracer, provider, and exporter
+// there for testing purposes
 export const disableTracing = (): void => {
 	enabled = false;
+	tracer = undefined;
+	provider = undefined;
+	exporter = undefined;
 };
 
 const initContextManager = (): void => {
