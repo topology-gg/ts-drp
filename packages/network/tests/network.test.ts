@@ -33,28 +33,31 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			bootstrap_peers: [
 				`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`,
 			],
+			discovery_interval: 1000,
 			log_config: {
 				level: "silent",
 			},
 		});
-		await node1.start();
-		node1PeerId = node1.peerId;
-
 		node2 = new DRPNetworkNode({
 			bootstrap_peers: [
 				`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`,
 			],
+			discovery_interval: 1000,
 			log_config: {
 				level: "silent",
 			},
 		});
+
+		await Promise.all([node1.start(), node2.start()]);
 		await node2.start();
+		await node1.start();
+		node1PeerId = node1.peerId;
 		node2PeerId = node2.peerId;
+
+		await Promise.all([node1.isDiablable(), node2.isDiablable()]);
 	});
 
 	test("Node can discovery", async () => {
-		await new Promise((resolve) => setTimeout(resolve, 10000));
-
 		const node1peers = node1.getAllPeers();
 		expect(node1peers.includes(node2PeerId)).toBe(true);
 		expect(node1peers.includes(bootstrapNodePeerId)).toBe(true);
@@ -67,32 +70,43 @@ describe("DRPNetworkNode can connect & send messages", () => {
 	test("Node can send message to peer", async () => {
 		const data = "Hello World!";
 		let boolean = false;
-		node2.addMessageHandler(async ({ stream }) => {
+		await node2.addMessageHandler(async ({ stream }) => {
 			const byteArray = await streamToUint8Array(stream);
 			const message = NetworkPb.Message.decode(byteArray);
 			expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
 			boolean = true;
 		});
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		node1.sendMessage(node2PeerId, {
+
+		await node1.sendMessage(node2PeerId, {
 			sender: "",
 			type: 0,
 			data: new Uint8Array(Buffer.from(data)),
 		});
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-		expect(boolean).toBe(true);
-	});
 
-	// test("Node can send message to group", async () => {
-	// 	const data = "Hello Group!";
-	// 	let boolean = false;
-	// 	node2.addGroupMessageHandler("test", async (e) => {
-	// 		expect(Buffer.from(e.detail.msg.data).toString("utf-8")).toBe(data);
-	// 		boolean = true;
-	// 	});
-	// 	await new Promise((resolve) => setTimeout(resolve, 5000));
-	// 	await node1.broadcastMessage("test", { sender: "", type: 0, data: new Uint8Array(Buffer.from(data)) });
-	// 	await new Promise((resolve) => setTimeout(resolve, 5000));
-	// 	expect(boolean).toBe(true);
-	// }, 50000);
+		expect(boolean).toBe(true);
+	}, 10000);
+
+	test("Node can send message to group", async () => {
+		const data = "Hello Group!";
+		const group = "test";
+		let boolean = false;
+
+		node2.subscribe(group);
+
+		node2.addGroupMessageHandler(group, async (e) => {
+			console.error("::start::group:message:handler", e.detail.msg.data);
+			const message = NetworkPb.Message.decode(e.detail.msg.data);
+			expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
+			boolean = true;
+		});
+
+		await new Promise((resolve) => setTimeout(resolve, 5000));
+		await node1.broadcastMessage(group, {
+			sender: "",
+			type: 0,
+			data: new Uint8Array(Buffer.from(data)),
+		});
+		await new Promise((resolve) => setTimeout(resolve, 5000));
+		expect(boolean).toBe(true);
+	}, 10000);
 });

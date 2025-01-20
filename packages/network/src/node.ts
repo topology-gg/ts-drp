@@ -15,7 +15,7 @@ import {
 import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
-import { identify } from "@libp2p/identify";
+import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	EventCallback,
 	PubSub,
@@ -52,6 +52,7 @@ export interface DRPNetworkNodeConfig {
 	browser_metrics?: boolean;
 	private_key_seed?: string;
 	log_config?: LoggerOptions;
+	discovery_interval?: number;
 }
 
 export class DRPNetworkNode {
@@ -81,7 +82,7 @@ export class DRPNetworkNode {
 			: BOOTSTRAP_NODES;
 
 		const _pubsubPeerDiscovery = pubsubPeerDiscovery({
-			interval: 10_000,
+			interval: this._config?.discovery_interval ?? 10_000,
 			topics: ["drp::discovery"],
 		});
 
@@ -99,6 +100,7 @@ export class DRPNetworkNode {
 			autonat: autoNAT(),
 			dcutr: dcutr(),
 			identify: identify(),
+			identifyPush: identifyPush(),
 			pubsub: gossipsub({
 				allowPublishToZeroTopicPeers: true,
 				scoreParams: createPeerScoreParams({
@@ -209,6 +211,49 @@ export class DRPNetworkNode {
 		await this.start();
 	}
 
+	isDiablable(timeout = 5000) {
+		return new Promise((resolve) => {
+			if (!this._node) {
+				resolve(false);
+				return;
+			}
+
+			const timeoutId = setTimeout(() => {
+				resolve(false);
+			}, timeout);
+
+			const transportListeningListener = async () => {
+				if (!this._node) {
+					resolve(false);
+					clearTimeout(timeoutId);
+					return;
+				}
+
+				try {
+					const isDialable = await this._node.isDialable(
+						this._node.getMultiaddrs(),
+					);
+					if (isDialable) {
+						resolve(isDialable);
+					}
+				} catch {
+					resolve(false);
+				} finally {
+					this._node.removeEventListener(
+						"transport:listening",
+						transportListeningListener,
+					);
+					clearTimeout(timeoutId);
+				}
+			};
+
+			this._node.addEventListener(
+				"transport:listening",
+				transportListeningListener,
+			);
+		});
+	}
+
 	subscribe(topic: string) {
 		if (!this._node) {
 			log.error("::subscribe: Node not initialized, please run .start()");
@@ -295,7 +340,7 @@ export class DRPNetworkNode {
 			const connection = await this._node?.dial([multiaddr(`/p2p/${peerId}`)]);
 			const stream = <Stream>await connection?.newStream(DRP_MESSAGE_PROTOCOL);
 			const messageBuffer = Message.encode(message).finish();
-			uint8ArrayToStream(stream, messageBuffer);
+			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
 			log.error("::sendMessage:", e);
 		}
@@ -328,8 +373,8 @@ export class DRPNetworkNode {
 		});
 	}
 
-	addMessageHandler(handler: StreamHandler) {
-		this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
+	async addMessageHandler(handler: StreamHandler) {
+		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
 	}
 
 	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
