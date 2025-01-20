@@ -68,7 +68,7 @@ export async function attestationUpdateHandler(
 
 	try {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
-	} catch(e) {
+	} catch (e) {
 		log.error("::attestationUpdateHandler: ", e);
 		return false;
 	}

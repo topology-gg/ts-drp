@@ -103,12 +103,14 @@ describe("Handle message correctly", () => {
 	test("should handle update attestation message correctly", async () => {
 		const node2 = new DRPNode();
 		await node2.start();
-		const attestations = node.getObject(drpObject.id)?.vertices.map((vertex) => {
-			return {
-				data: vertex.hash,
-				signature: node2.credentialStore.signWithBls(vertex.hash)
-			}
-		});
+		const attestations = node
+			.getObject(drpObject.id)
+			?.vertices.map((vertex) => {
+				return {
+					data: vertex.hash,
+					signature: node2.credentialStore.signWithBls(vertex.hash),
+				};
+			});
 		const message = NetworkPb.Message.create({
 			sender: mockSender,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
@@ -119,7 +121,11 @@ describe("Handle message correctly", () => {
 				}),
 			).finish(),
 		});
-		const success = await attestationUpdateHandler(node, message.data, message.sender);
+		const success = await attestationUpdateHandler(
+			node,
+			message.data,
+			message.sender,
+		);
 		expect(success).toBe(true);
 	});
 });
