@@ -160,10 +160,15 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		return false;
 	}
 
-	const verifiedVertices = await verifyIncomingVertices(
-		object,
-		updateMessage.vertices,
-	);
+	let verifiedVertices: Vertex[] = [];
+	if ((object.acl as ACL).permissionless) {
+		verifiedVertices = updateMessage.vertices;
+	} else {
+		verifiedVertices = await verifyIncomingVertices(
+			object,
+			updateMessage.vertices,
+		);
+	}
 
 	const [merged, _] = object.merge(verifiedVertices);
 

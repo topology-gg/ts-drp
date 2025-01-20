@@ -10,12 +10,12 @@ import { type ACL, ACLConflictResolution, ACLGroup } from "./interface.js";
 export class ObjectACL implements ACL, DRP {
 	semanticsType = SemanticsType.pair;
 
+	// if true, any peer can write to the object
+	permissionless: boolean;
 	private _conflictResolution: ACLConflictResolution;
 	private _admins: Map<string, DRPPublicCredential>;
 	// peers who can sign finality
 	private _finalitySigners: Map<string, DRPPublicCredential>;
-	// if true, any peer can write to the object
-	private _permissionless: boolean;
 	private _writers: Map<string, DRPPublicCredential>;
 
 	constructor(options: {
@@ -23,13 +23,13 @@ export class ObjectACL implements ACL, DRP {
 		permissionless?: boolean;
 		conflictResolution?: ACLConflictResolution;
 	}) {
+		this.permissionless = options.permissionless ?? false;
 		this._admins = new Map(
 			Array.from(options.admins, ([key, value]) => [key, value]),
 		);
 		this._finalitySigners = new Map(
 			Array.from(options.admins, ([key, value]) => [key, value]),
 		);
-		this._permissionless = options.permissionless ?? false;
 		this._writers = options.permissionless
 			? new Map()
 			: new Map(Array.from(options.admins, ([key, value]) => [key, value]));
@@ -54,7 +54,7 @@ export class ObjectACL implements ACL, DRP {
 				this._finalitySigners.set(peerId, publicKey);
 				break;
 			case ACLGroup.Writer:
-				if (this._permissionless) {
+				if (this.permissionless) {
 					throw new Error(
 						"Cannot grant write permissions to a peer in permissionless mode.",
 					);
