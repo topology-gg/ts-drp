@@ -77,7 +77,7 @@ export async function updateHandler(
 	node: DRPNode,
 	data: Uint8Array,
 	sender: string,
-) {
+): Promise<boolean> {
 	const updateMessage = NetworkPb.Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
@@ -129,7 +129,7 @@ export async function syncHandler(
 	node: DRPNode,
 	sender: string,
 	data: Uint8Array,
-) {
+): Promise<boolean> {
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = NetworkPb.Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
@@ -181,7 +181,7 @@ export async function syncAcceptHandler(
 	node: DRPNode,
 	sender: string,
 	data: Uint8Array,
-) {
+): Promise<boolean> {
 	const syncAcceptMessage = NetworkPb.SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {

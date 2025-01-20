@@ -1,6 +1,7 @@
 import { loadConfig } from "@topology-foundation/node/src/config.js";
 import { beforeAll, describe, expect, test } from "vitest";
-import { DRPNetworkNode } from "../src/node.js";
+import { NetworkPb } from "../src/index.js";
+import { DRPNetworkNode, streamToUint8Array } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
 	let node1: DRPNetworkNode;
@@ -62,4 +63,36 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		expect(node2peers.includes(node1PeerId)).toBe(true);
 		expect(node2peers.includes(bootstrapNodePeerId)).toBe(true);
 	}, 20000);
+
+	test("Node can send message to peer", async () => {
+		const data = "Hello World!";
+		let boolean = false;
+		node2.addMessageHandler(async ({ stream }) => {
+			const byteArray = await streamToUint8Array(stream);
+			const message = NetworkPb.Message.decode(byteArray);
+			expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
+			boolean = true;
+		});
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+		node1.sendMessage(node2PeerId, {
+			sender: "",
+			type: 0,
+			data: new Uint8Array(Buffer.from(data)),
+		});
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+		expect(boolean).toBe(true);
+	});
+
+	// test("Node can send message to group", async () => {
+	// 	const data = "Hello Group!";
+	// 	let boolean = false;
+	// 	node2.addGroupMessageHandler("test", async (e) => {
+	// 		expect(Buffer.from(e.detail.msg.data).toString("utf-8")).toBe(data);
+	// 		boolean = true;
+	// 	});
+	// 	await new Promise((resolve) => setTimeout(resolve, 5000));
+	// 	await node1.broadcastMessage("test", { sender: "", type: 0, data: new Uint8Array(Buffer.from(data)) });
+	// 	await new Promise((resolve) => setTimeout(resolve, 5000));
+	// 	expect(boolean).toBe(true);
+	// }, 50000);
 });

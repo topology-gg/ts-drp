@@ -286,6 +286,7 @@ export class DRPNetworkNode {
 				topic,
 			);
 		} catch (e) {
+			console.log("error", e);
 			log.error("::broadcastMessage:", e);
 		}
 	}
@@ -323,6 +324,7 @@ export class DRPNetworkNode {
 		handler: EventCallback<CustomEvent<GossipsubMessage>>,
 	) {
 		this._pubsub?.addEventListener("gossipsub:message", (e) => {
+			console.log(e.detail.msg.topic);
 			if (group && e.detail.msg.topic !== group) return;
 			handler(e);
 		});

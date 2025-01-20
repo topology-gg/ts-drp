@@ -34,7 +34,7 @@ describe("Handle message correctly", () => {
 		(drpObject.drp as AddWinsSet<number>).add(10);
 	});
 
-	test("update handler", async () => {
+	test("should handle update message correctly", async () => {
 		const message = NetworkPb.Message.create({
 			sender: mockSender,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
@@ -61,7 +61,7 @@ describe("Handle message correctly", () => {
 		]);
 	});
 
-	test("sync handler", async () => {
+	test("should handle sync message correctly", async () => {
 		(drpObject.drp as AddWinsSet<number>).add(1);
 		(drpObject.drp as AddWinsSet<number>).add(2);
 		const message = NetworkPb.Message.create({
@@ -80,7 +80,7 @@ describe("Handle message correctly", () => {
 		expect(drpObject.vertices.length).toBe(5);
 	});
 
-	test("sync accept handler", async () => {
+	test("should handle sync accept message correctly", async () => {
 		const message = NetworkPb.Message.create({
 			sender: mockSender,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
