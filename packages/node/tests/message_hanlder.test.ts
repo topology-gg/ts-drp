@@ -8,6 +8,7 @@ import {
 } from "@topology-foundation/object/src/index.js";
 import { beforeAll, describe, expect, test } from "vitest";
 import {
+	attestationUpdateHandler,
 	syncAcceptHandler,
 	syncHandler,
 	updateHandler,
@@ -97,5 +98,28 @@ describe("Handle message correctly", () => {
 		expect(success).toBe(false);
 		expect(node.getObject(drpObject.id)?.vertices.length).toBe(5);
 		expect(drpObject.vertices.length).toBe(5);
+	});
+
+	test("should handle update attestation message correctly", async () => {
+		const node2 = new DRPNode();
+		await node2.start();
+		const attestations = node.getObject(drpObject.id)?.vertices.map((vertex) => {
+			return {
+				data: vertex.hash,
+				signature: node2.credentialStore.signWithBls(vertex.hash)
+			}
+		});
+		const message = NetworkPb.Message.create({
+			sender: mockSender,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
+			data: NetworkPb.AttestationUpdate.encode(
+				NetworkPb.AttestationUpdate.create({
+					objectId: drpObject.id,
+					attestations,
+				}),
+			).finish(),
+		});
+		const success = await attestationUpdateHandler(node, message.data, message.sender);
+		expect(success).toBe(true);
 	});
 });

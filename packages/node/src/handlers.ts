@@ -54,19 +54,25 @@ export async function drpMessagesHandler(
 	}
 }
 
-async function attestationUpdateHandler(
+export async function attestationUpdateHandler(
 	node: DRPNode,
 	data: Uint8Array,
 	sender: string,
-) {
+): Promise<boolean> {
 	const attestationUpdate = NetworkPb.AttestationUpdate.decode(data);
 	const object = node.objectStore.get(attestationUpdate.objectId);
 	if (!object) {
 		log.error("::attestationUpdateHandler: Object not found");
-		return;
+		return false;
 	}
 
-	object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+	try {
+		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+	} catch(e) {
+		log.error("::attestationUpdateHandler: ", e);
+		return false;
+	}
+	return true;
 }
 
 /*
