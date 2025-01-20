@@ -18,9 +18,11 @@ import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	EventCallback,
+	PeerId,
 	PubSub,
 	Stream,
 	StreamHandler,
+	SubscriptionChangeData,
 } from "@libp2p/interface";
 import { ping } from "@libp2p/ping";
 import { pubsubPeerDiscovery } from "@libp2p/pubsub-peer-discovery";
@@ -211,6 +213,12 @@ export class DRPNetworkNode {
 		await this.start();
 	}
 
+	libp2pPeerId() {
+		if (!this._node)
+			throw new Error("Node not initialized, please run .start()");
+		return this._node.peerId;
+	}
+
 	isDiablable(timeout = 5000) {
 		return new Promise((resolve) => {
 			if (!this._node) {
@@ -250,6 +258,41 @@ export class DRPNetworkNode {
 			this._node.addEventListener(
 				"transport:listening",
 				transportListeningListener,
+			);
+		});
+	}
+
+	isSubscribed(topic: string, peerId: PeerId, timeout = 5000) {
+		return new Promise((resolve) => {
+			if (this._pubsub?.getSubscribers(topic)?.includes(peerId)) {
+				resolve(true);
+				return;
+			}
+
+			const timeoutId = setTimeout(() => {
+				resolve(false);
+			}, timeout);
+
+			const subscriptionChangeListener = (
+				e: CustomEvent<SubscriptionChangeData>,
+			) => {
+				if (
+					e.detail.subscriptions.some(
+						(s) => s.topic === topic && e.detail.peerId === peerId,
+					)
+				) {
+					resolve(true);
+					this._pubsub?.removeEventListener(
+						"subscription-change",
+						subscriptionChangeListener,
+					);
+					clearTimeout(timeoutId);
+				}
+			};
+
+			this._pubsub?.addEventListener(
+				"subscription-change",
+				subscriptionChangeListener,
 			);
 		});
 	}

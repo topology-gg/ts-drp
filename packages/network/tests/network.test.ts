@@ -65,16 +65,20 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		const node2peers = node2.getAllPeers();
 		expect(node2peers.includes(node1PeerId)).toBe(true);
 		expect(node2peers.includes(bootstrapNodePeerId)).toBe(true);
-	}, 20000);
+	}, 10000);
 
 	test("Node can send message to peer", async () => {
 		const data = "Hello World!";
 		let boolean = false;
-		await node2.addMessageHandler(async ({ stream }) => {
-			const byteArray = await streamToUint8Array(stream);
-			const message = NetworkPb.Message.decode(byteArray);
-			expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
-			boolean = true;
+
+		const messageProcessed = new Promise((resolve) => {
+			node2.addMessageHandler(async ({ stream }) => {
+				const byteArray = await streamToUint8Array(stream);
+				const message = NetworkPb.Message.decode(byteArray);
+				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
+				boolean = true;
+				resolve(true);
+			});
 		});
 
 		await node1.sendMessage(node2PeerId, {
@@ -83,6 +87,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			data: new Uint8Array(Buffer.from(data)),
 		});
 
+		await messageProcessed;
 		expect(boolean).toBe(true);
 	}, 10000);
 
@@ -92,21 +97,23 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		let boolean = false;
 
 		node2.subscribe(group);
-
-		node2.addGroupMessageHandler(group, async (e) => {
-			console.error("::start::group:message:handler", e.detail.msg.data);
-			const message = NetworkPb.Message.decode(e.detail.msg.data);
-			expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
-			boolean = true;
+		const messageProcessed = new Promise((resolve) => {
+			node2.addGroupMessageHandler(group, async (e) => {
+				const message = NetworkPb.Message.decode(e.detail.msg.data);
+				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
+				boolean = true;
+				resolve(true);
+			});
 		});
 
-		await new Promise((resolve) => setTimeout(resolve, 5000));
+		await node1.isSubscribed(group, node2.libp2pPeerId());
 		await node1.broadcastMessage(group, {
 			sender: "",
 			type: 0,
 			data: new Uint8Array(Buffer.from(data)),
 		});
-		await new Promise((resolve) => setTimeout(resolve, 5000));
+		await messageProcessed;
+
 		expect(boolean).toBe(true);
 	}, 10000);
 });
