@@ -91,7 +91,7 @@ async function init() {
 
 	const create_button = <HTMLButtonElement>document.getElementById("create");
 	create_button.addEventListener("click", async () => {
-		drpObject = await node.createObject(new Canvas(5, 10));
+		drpObject = await node.createObject({ drp: new Canvas(5, 10) });
 		canvasDRP = drpObject.drp as Canvas;
 
 		createConnectHandlers();
@@ -103,12 +103,10 @@ async function init() {
 		const drpId = (<HTMLInputElement>document.getElementById("canvasIdInput"))
 			.value;
 		try {
-			drpObject = await node.createObject(
-				new Canvas(5, 10),
-				drpId,
-				undefined,
-				true,
-			);
+			drpObject = await node.createObject({
+				id: drpId,
+				drp: new Canvas(5, 10),
+			});
 			canvasDRP = drpObject.drp as Canvas;
 
 			createConnectHandlers();
