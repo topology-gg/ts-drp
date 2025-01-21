@@ -259,15 +259,7 @@ export class DRPObject implements IDRPObject {
 						vertex.timestamp,
 						vertex.signature,
 					);
-					try {
-						this._applyOperation(drp, vertex.operation);
-					} catch (e) {
-						log.error(
-							`Object ${this.id} failed to apply operation: ${e} in merge`,
-						);
-						missing.push(vertex.hash);
-						continue;
-					}
+					this._applyOperation(drp, vertex.operation);
 
 					this._setACLState(vertex, preComputeLca);
 					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
@@ -281,15 +273,7 @@ export class DRPObject implements IDRPObject {
 						vertex.timestamp,
 						vertex.signature,
 					);
-					try {
-						this._applyOperation(acl, vertex.operation);
-					} catch (e) {
-						log.error(
-							`Object ${this.id} failed to apply operation: ${e} in merge`,
-						);
-						missing.push(vertex.hash);
-						continue;
-					}
+					this._applyOperation(acl, vertex.operation);
 
 					this._setACLState(vertex, preComputeLca, this._getDRPState(acl));
 					this._setDRPState(vertex, preComputeLca);
