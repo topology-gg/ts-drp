@@ -194,7 +194,9 @@ export class DRPObject implements IDRPObject {
 		try {
 			this._applyOperation(drp, { opType: fn, value: args, drpType });
 		} catch (e) {
-			log.error(`Object ${this.id} failed to apply operation: ${e} in callFn ${fn}`);
+			log.error(
+				`Object ${this.id} failed to apply operation: ${e} in callFn ${fn}`,
+			);
 			return;
 		}
 
@@ -260,7 +262,9 @@ export class DRPObject implements IDRPObject {
 					try {
 						this._applyOperation(drp, vertex.operation);
 					} catch (e) {
-						log.error(`Object ${this.id} failed to apply operation: ${e} in merge`);
+						log.error(
+							`Object ${this.id} failed to apply operation: ${e} in merge`,
+						);
 						missing.push(vertex.hash);
 						continue;
 					}
@@ -280,7 +284,9 @@ export class DRPObject implements IDRPObject {
 					try {
 						this._applyOperation(acl, vertex.operation);
 					} catch (e) {
-						log.error(`Object ${this.id} failed to apply operation: ${e} in merge`);
+						log.error(
+							`Object ${this.id} failed to apply operation: ${e} in merge`,
+						);
 						missing.push(vertex.hash);
 						continue;
 					}
