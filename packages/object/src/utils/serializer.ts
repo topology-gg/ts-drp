@@ -1,5 +1,4 @@
 import { Value } from "../proto/google/protobuf/struct_pb.js";
-import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
 export function serializeValue(obj: any): Uint8Array {
 	const serialized = _serializeToJSON(obj);
