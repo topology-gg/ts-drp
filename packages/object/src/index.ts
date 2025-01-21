@@ -194,9 +194,7 @@ export class DRPObject implements IDRPObject {
 		try {
 			this._applyOperation(drp, { opType: fn, value: args, drpType });
 		} catch (e) {
-			log.error(
-				`Object ${this.id} failed to apply operation: ${e} in callFn ${fn}`,
-			);
+			log.error(`::drpObject::callFn: ${e}`);
 			return;
 		}
 
