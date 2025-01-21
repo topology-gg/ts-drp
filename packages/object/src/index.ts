@@ -580,7 +580,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: acl[key] }));
 			}
 		}
-		const drp = this.drp as DRP;
+		const drp = (this.drp as DRP) ?? {};
 		const drpState = [];
 		for (const key of Object.keys(drp)) {
 			if (typeof drp[key] !== "function") {
