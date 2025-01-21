@@ -38,6 +38,16 @@ export class DRPObjectStore {
 		this._subscriptions.get(objectId)?.push(callback);
 	}
 
+	unsubscribe(objectId: string, callback: DRPObjectStoreCallback): void {
+		const callbacks = this._subscriptions.get(objectId);
+		if (callbacks) {
+			this._subscriptions.set(
+				objectId,
+				callbacks.filter((c) => c !== callback),
+			);
+		}
+	}
+
 	private _notifySubscribers(objectId: string, object: DRPObject): void {
 		const callbacks = this._subscriptions.get(objectId);
 		if (callbacks) {
