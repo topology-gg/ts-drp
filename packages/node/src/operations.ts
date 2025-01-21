@@ -26,7 +26,6 @@ export async function connectObject(
 	await fetchState(node, id, peerId);
 	// sync process needs to finish before subscribing
 	const retry = setInterval(async () => {
-		node.objectStore.get(id);
 		if (object.acl) {
 			await syncObject(node, id, peerId);
 			subscribeObject(node, id);
