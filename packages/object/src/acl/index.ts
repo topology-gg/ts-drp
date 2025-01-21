@@ -4,10 +4,10 @@ import {
 	SemanticsType,
 	type Vertex,
 } from "../index.js";
-import type { DRP, DRPPublicCredential } from "../interface.js";
+import type { DRPPublicCredential } from "../interface.js";
 import { type ACL, ACLConflictResolution, ACLGroup } from "./interface.js";
 
-export class ObjectACL implements ACL, DRP {
+export class ObjectACL implements ACL {
 	semanticsType = SemanticsType.pair;
 
 	// if true, any peer can write to the object

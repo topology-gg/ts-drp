@@ -77,7 +77,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
 				.digest("hex");
 
-		const aclObj =
+		const objAcl =
 			options.acl ??
 			new ObjectACL({
 				admins: new Map([
@@ -85,11 +85,11 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 				]),
 				permissionless: true,
 			});
-		this.acl = new Proxy(aclObj, this.proxyDRPHandler(DrpType.ACL));
+		this.acl = new Proxy(objAcl, this.proxyDRPHandler(DrpType.ACL));
 		if (options.drp) {
-			this._initLocalDrpInstance(options.drp, aclObj);
+			this._initLocalDrpInstance(options.drp, objAcl);
 		} else {
-			this._initNonLocalDrpInstance(aclObj);
+			this._initNonLocalDrpInstance(objAcl);
 		}
 
 		this.aclStates = new Map([
@@ -101,7 +101,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this._setRootStates();
 
 		this.finalityStore = new FinalityStore(options.config?.finality_config);
-		this.originalObjectACL = cloneDeep(aclObj);
+		this.originalObjectACL = cloneDeep(objAcl);
 		this.originalDRP = cloneDeep(options.drp);
 	}
 
