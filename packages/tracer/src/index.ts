@@ -15,7 +15,7 @@ let tracer: OtTracer | undefined;
 let provider: WebTracerProvider | undefined;
 let exporter: OTLPTraceExporter | undefined;
 
-const DEFAULT_EXPORTER_URL = "http://127.0.0.1:9999/v1/traces";
+const DEFAULT_EXPORTER_URL = "http://127.0.0.1:4318/v1/traces";
 const DEFAULT_EXPORTER_HEADERS = {
 	"Content-Type": "application/json",
 	"Access-Control-Allow-Headers": "*",
