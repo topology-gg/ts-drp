@@ -4,15 +4,15 @@ package drp.network.v1;
 import "drp/object/v1/object.proto";
 
 enum MessageType {
-  MESSAGE_TYPE_UNSPECIFIED				= 0;
-  MESSAGE_TYPE_FETCH_STATE				= 1;
-  MESSAGE_TYPE_FETCH_STATE_RESPONSE		= 2;
-  MESSAGE_TYPE_UPDATE					= 3;
-  MESSAGE_TYPE_SYNC						= 4;
-  MESSAGE_TYPE_SYNC_ACCEPT				= 5;
-  MESSAGE_TYPE_SYNC_REJECT				= 6;
-  MESSAGE_TYPE_ATTESTATION_UPDATE		= 7;
-  MESSAGE_TYPE_CUSTOM					= 8;
+  MESSAGE_TYPE_UNSPECIFIED             = 0;
+  MESSAGE_TYPE_FETCH_STATE             = 1;
+  MESSAGE_TYPE_FETCH_STATE_RESPONSE    = 2;
+  MESSAGE_TYPE_UPDATE                  = 3;
+  MESSAGE_TYPE_SYNC                    = 4;
+  MESSAGE_TYPE_SYNC_ACCEPT             = 5;
+  MESSAGE_TYPE_SYNC_REJECT             = 6;
+  MESSAGE_TYPE_ATTESTATION_UPDATE      = 7;
+  MESSAGE_TYPE_CUSTOM                  = 8;
 }
 
 message Message {
