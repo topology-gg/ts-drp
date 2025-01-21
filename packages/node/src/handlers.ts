@@ -113,6 +113,7 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 		const state = aclState;
 		object.aclStates.set(fetchStateResponse.vertexHash, state);
 		for (const e of state.state) {
+			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
 			(object.acl as ACL)[e.key] = e.value;
 		}
 		node.objectStore.put(object.id, object);
@@ -144,8 +145,9 @@ async function attestationUpdateHandler(
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
-
-	object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
+		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+	}
 }
 
 /*
@@ -387,6 +389,9 @@ export function signFinalityVertices(
 	obj: DRPObject,
 	vertices: Vertex[],
 ) {
+	if (!(obj.acl as ACL).query_isFinalitySigner(node.networkNode.peerId)) {
+		return [];
+	}
 	const attestations = generateAttestations(node, obj, vertices);
 	obj.finalityStore.addSignatures(node.networkNode.peerId, attestations, false);
 	return attestations;
