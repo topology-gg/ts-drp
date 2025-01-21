@@ -265,10 +265,15 @@ async function syncAcceptHandler(
 		return;
 	}
 
-	const verifiedVertices = await verifyIncomingVertices(
-		object,
-		syncAcceptMessage.requested,
-	);
+	let verifiedVertices: Vertex[] = [];
+	if ((object.acl as ACL).permissionless) {
+		verifiedVertices = syncAcceptMessage.requested;
+	} else {
+		verifiedVertices = await verifyIncomingVertices(
+			object,
+			syncAcceptMessage.requested,
+		);
+	}
 
 	if (verifiedVertices.length !== 0) {
 		object.merge(verifiedVertices);

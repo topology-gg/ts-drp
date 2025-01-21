@@ -125,6 +125,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 
 	static createObject(options: {
+		peerId: string;
 		id?: string;
 		drp?: DRP;
 	}) {
@@ -133,7 +134,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			permissionless: true,
 		});
 		const object = new DRPObject({
-			peerId: "",
+			peerId: options.peerId,
 			id: options.id,
 			acl: aclObj,
 			drp: options.drp,
@@ -337,7 +338,10 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string): boolean {
-		return this.acl ? (this.acl as ACL).query_isWriter(peerId) : true;
+		return this.acl
+			? (this.acl as ACL).permissionless ||
+					(this.acl as ACL).query_isWriter(peerId)
+			: true;
 	}
 
 	// apply the operation to the DRP
@@ -437,9 +441,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	private computeLCA(vertexDependencies: string[]) {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
-		}
-		if (vertexDependencies.length === 0) {
-			return { lca: HashGraph.rootHash, linearizedOperations: [] };
 		}
 
 		const subgraph: ObjectSet<Hash> = new ObjectSet();
@@ -587,6 +588,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 		}
 		this.aclStates.set(HashGraph.rootHash, { state: aclState });
-		this.drpStates.set(HashGraph.rootHash, { state: drpState });
+		// this.drpStates.set(HashGraph.rootHash, { state: drpState });
 	}
 }

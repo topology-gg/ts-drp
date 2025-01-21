@@ -17,6 +17,7 @@ export async function connectObject(
 	peerId?: string,
 ): Promise<DRPObject> {
 	const object = DRPObject.createObject({
+		peerId: node.networkNode.peerId,
 		id,
 		drp,
 	});
@@ -27,6 +28,7 @@ export async function connectObject(
 	const retry = setInterval(async () => {
 		node.objectStore.get(id);
 		if (object.acl) {
+			await syncObject(node, id, peerId);
 			subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) =>
 				drpObjectChangesHandler(node, obj, originFn, vertices),
