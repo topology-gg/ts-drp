@@ -15,22 +15,26 @@ import {
 import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
-import { identify } from "@libp2p/identify";
+import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	EventCallback,
 	PubSub,
 	Stream,
 	StreamHandler,
 } from "@libp2p/interface";
+import { type KadDHTInit, kadDHT, passthroughMapper } from "@libp2p/kad-dht";
 import { ping } from "@libp2p/ping";
-import { pubsubPeerDiscovery } from "@libp2p/pubsub-peer-discovery";
 import { webRTC, webRTCDirect } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { type Libp2p, createLibp2p } from "libp2p";
+import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
+import { fromString } from "multiformats/bytes";
+import { CID } from "multiformats/cid";
+import * as raw from "multiformats/codecs/raw";
+import { sha256 } from "multiformats/hashes/sha2";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
@@ -80,33 +84,49 @@ export class DRPNetworkNode {
 			? this._config.bootstrap_peers
 			: BOOTSTRAP_NODES;
 
-		const _pubsubPeerDiscovery = pubsubPeerDiscovery({
-			interval: 10_000,
-			topics: ["drp::discovery"],
-		});
-
 		const _peerDiscovery = _bootstrapNodesList.length
 			? [
-					_pubsubPeerDiscovery,
 					bootstrap({
 						list: _bootstrapNodesList,
 					}),
 				]
-			: [_pubsubPeerDiscovery];
+			: [];
 
-		const _node_services = {
+		const defaultDHTConfig: KadDHTInit = {
+			protocol: "/drp/dht/0.0.1",
+			clientMode: true,
+			peerInfoMapper: passthroughMapper,
+			reprovide: {
+				concurrency: 10,
+				maxQueueSize: 16_384,
+				interval: 1_800_000, // 30 minutes
+				validity: 3_600_000, // 1 hour
+			},
+		};
+
+		const _node_services: ServiceFactoryMap = {
 			ping: ping(),
+			kadDHT: kadDHT(defaultDHTConfig),
 			autonat: autoNAT(),
 			dcutr: dcutr(),
 			identify: identify(),
-			pubsub: gossipsub({
+			identifyPush: identifyPush(),
+		};
+
+		if (this._config?.addresses) {
+			_node_services.kadDHT = kadDHT({
+				...defaultDHTConfig,
+				clientMode: false,
+			});
+		} else {
+			_node_services.pubsub = gossipsub({
 				allowPublishToZeroTopicPeers: true,
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
 				}),
 				fallbackToFloodsub: false,
-			}),
-		};
+			});
+		}
 
 		const _bootstrap_services = {
 			..._node_services,
@@ -167,33 +187,6 @@ export class DRPNetworkNode {
 		this._node.addEventListener("peer:connect", (e) =>
 			log.info("::start::peer::connect", e.detail),
 		);
-		this._node.addEventListener("peer:discovery", async (e) => {
-			// current bug in v11.0.0 requires manual dial (https://github.com/libp2p/js-libp2p-pubsub-peer-discovery/issues/149)
-			const sortedAddrs = e.detail.multiaddrs.sort((a, b) => {
-				const localRegex =
-					/(^\/ip4\/127\.)|(^\/ip4\/10\.)|(^\/ip4\/172\.1[6-9]\.)|(^\/ip4\/172\.2[0-9]\.)|(^\/ip4\/172\.3[0-1]\.)|(^\/ip4\/192\.168\.)/;
-				const aLocal = localRegex.test(a.toString());
-				const bLocal = localRegex.test(b.toString());
-				const aWebrtc = a.toString().includes("/webrtc/");
-				const bWebrtc = b.toString().includes("/webrtc/");
-				if (aLocal && !bLocal) return 1;
-				if (!aLocal && bLocal) return -1;
-				if (aWebrtc && !bWebrtc) return -1;
-				if (!aWebrtc && bWebrtc) return 1;
-				return 0;
-			});
-
-			// Dial non-local multiaddrs, then WebRTC multiaddrs
-			for (const address of sortedAddrs) {
-				try {
-					await this._node?.dial(address);
-				} catch (e) {
-					log.error("::start::peer::dial::error", e);
-				}
-			}
-
-			log.info("::start::peer::discovery", e.detail);
-		});
 		this._node.addEventListener("peer:identify", (e) =>
 			log.info("::start::peer::identify", e.detail),
 		);
@@ -209,6 +202,30 @@ export class DRPNetworkNode {
 		await this.start();
 	}
 
+	async getTopicCid(topic: string) {
+		const digest = await sha256.digest(fromString(topic));
+		const cid = CID.create(1, raw.code, digest);
+		console.log("CID", cid.toV1().toString());
+		return cid;
+	}
+
+	async provideTopic(topic: string) {
+		const cid = await this.getTopicCid(topic);
+		await this._node?.contentRouting.provide(cid);
+	}
+
+	async findPeerInTopic(topic: string) {
+		const cid = await this.getTopicCid(topic);
+		const providers = this._node?.contentRouting.findProviders(cid, {
+			useNetwork: true,
+		});
+		if (!providers) return;
+		for await (const provider of providers) {
+			console.log("PROVIDER", provider.id.toString());
+		}
+		return providers;
+	}
+
 	subscribe(topic: string) {
 		if (!this._node) {
 			log.error("::subscribe: Node not initialized, please run .start()");
@@ -217,7 +234,12 @@ export class DRPNetworkNode {
 
 		try {
 			this._pubsub?.subscribe(topic);
-			this._pubsub?.getPeers();
+			this.provideTopic(topic).catch((e) => {
+				log.error("::subscribe: Error providing topic", e);
+			});
+			this.findPeerInTopic(topic).catch((e) => {
+				log.error("::subscribe: Error finding peer in topic", e);
+			});
 			log.info("::subscribe: Successfuly subscribed the topic", topic);
 		} catch (e) {
 			log.error("::subscribe:", e);
