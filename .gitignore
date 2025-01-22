@@ -12,3 +12,4 @@ coverage/*
 .DS_Store
 
 packages/object/benchmark-output.txt
+packages/object/isolate-*.log
