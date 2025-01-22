@@ -10,3 +10,5 @@ coverage/*
 **/object_grpc_pb.js
 
 .DS_Store
+
+packages/object/benchmark-output.txt
