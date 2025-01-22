@@ -18,6 +18,7 @@
 	},
 	"scripts": {
 		"benchmark": "tsx tests/hashgraph.bench.ts | tee benchmark-output.txt",
+		"flamegraph": "perf record -F 99 -a -g -- pnpm exec tsx --perf-basic-prof tests/hashgraph.bench.ts",
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
 		"prepack": "tsc -b",
