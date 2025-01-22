@@ -205,7 +205,6 @@ export class DRPNetworkNode {
 	async getTopicCid(topic: string) {
 		const digest = await sha256.digest(fromString(topic));
 		const cid = CID.create(1, raw.code, digest);
-		console.log("CID", cid.toV1().toString());
 		return cid;
 	}
 
@@ -221,7 +220,7 @@ export class DRPNetworkNode {
 		});
 		if (!providers) return;
 		for await (const provider of providers) {
-			console.log("PROVIDER", provider.id.toString());
+			console.log("provider", provider.id.toString());
 		}
 		return providers;
 	}

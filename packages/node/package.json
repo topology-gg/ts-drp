@@ -42,7 +42,7 @@
 		"@libp2p/interface": "^2.4.0",
 		"@ts-drp/blueprints": "0.6.1",
 		"@ts-drp/logger": "0.6.1",
-		"@ts-drp/network": "0.6.1",
+		"@ts-drp/network": "github:topology-foundation/ts-drp#feat/dht-peer-topic-discovery&path:/packages/network",
 		"@ts-drp/object": "0.6.1",
 		"commander": "^13.0.0",
 		"dotenv": "^16.4.5",

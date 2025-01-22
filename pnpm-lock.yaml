@@ -270,8 +270,8 @@ importers:
         specifier: 0.6.1
         version: link:../logger
       '@ts-drp/network':
-        specifier: 0.6.1
-        version: link:../network
+        specifier: github:topology-foundation/ts-drp#feat/dht-peer-topic-discovery&path:/packages/network
+        version: https://codeload.github.com/topology-foundation/ts-drp/tar.gz/cab0565c1fb777c994dab292a58dd131a9503dd1#path:/packages/network
       '@ts-drp/object':
         specifier: 0.6.1
         version: link:../object
@@ -2268,6 +2268,13 @@ packages:
 
   '@tootallnate/quickjs-emscripten@0.23.0':
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
+
+  '@ts-drp/logger@0.6.1':
+    resolution: {integrity: sha512-J8Ud1ThNrT24JWOsud1TkC7lHRRDweqKCRua98Po7K1S5CZRpeK2QtNAflh7LnQuczJAsJgQzl/kiYZHj8nO1w==}
+
+  '@ts-drp/network@https://codeload.github.com/topology-foundation/ts-drp/tar.gz/cab0565c1fb777c994dab292a58dd131a9503dd1#path:/packages/network':
+    resolution: {path: /packages/network, tarball: https://codeload.github.com/topology-foundation/ts-drp/tar.gz/cab0565c1fb777c994dab292a58dd131a9503dd1}
+    version: 0.6.1
 
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
@@ -7984,6 +7991,44 @@ snapshots:
       '@thi.ng/errors': 2.5.23
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
+
+  '@ts-drp/logger@0.6.1':
+    dependencies:
+      loglevel: 1.9.2
+      loglevel-plugin-prefix: 0.8.4
+
+  '@ts-drp/network@https://codeload.github.com/topology-foundation/ts-drp/tar.gz/cab0565c1fb777c994dab292a58dd131a9503dd1#path:/packages/network':
+    dependencies:
+      '@bufbuild/protobuf': 2.2.3
+      '@chainsafe/libp2p-gossipsub': 14.1.0
+      '@chainsafe/libp2p-noise': 16.0.1
+      '@chainsafe/libp2p-yamux': 7.0.1
+      '@libp2p/autonat': 2.0.16
+      '@libp2p/bootstrap': 11.0.17
+      '@libp2p/circuit-relay-v2': 3.1.7
+      '@libp2p/crypto': 5.0.9
+      '@libp2p/dcutr': 2.0.15
+      '@libp2p/devtools-metrics': 1.2.0
+      '@libp2p/identify': 3.0.15
+      '@libp2p/kad-dht': 14.2.0
+      '@libp2p/ping': 2.0.11
+      '@libp2p/pubsub-peer-discovery': 11.0.1
+      '@libp2p/webrtc': 5.0.23(react-native@0.77.0(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(react@18.3.1))
+      '@libp2p/websockets': 9.1.2
+      '@libp2p/webtransport': 5.0.22
+      '@multiformats/multiaddr': 12.3.4
+      '@ts-drp/logger': 0.6.1
+      it-length-prefixed: 9.1.0
+      it-map: 3.1.1
+      it-pipe: 3.0.1
+      libp2p: 2.5.0
+      multiformats: 13.3.1
+      uint8arrays: 5.1.0
+    transitivePeerDependencies:
+      - bufferutil
+      - react-native
+      - supports-color
+      - utf-8-validate
 
   '@tsconfig/node10@1.0.11': {}
 
