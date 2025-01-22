@@ -32,9 +32,3 @@ jobs:
 
       - name: Generate Flame Graph
         run: perf script > out.perf && ~/FlameGraph/stackcollapse-perf.pl out.perf > out.folded && ~/FlameGraph/flamegraph.pl out.folded > flamegraph.svg
-
-      - name: Upload Flame Graph
-        uses: actions/upload-artifact@v2
-        with:
-          name: flamegraph
-          path: flamegraph.svg
