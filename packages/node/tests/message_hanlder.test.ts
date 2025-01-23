@@ -1,3 +1,4 @@
+import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
 import { NetworkPb } from "@topology-foundation/network/src/index.js";
 import { DrpType } from "@topology-foundation/object/dist/src/index.js";
 import { DRPObject, ObjectACL } from "@topology-foundation/object/src/index.js";
@@ -10,7 +11,6 @@ import {
 	updateHandler,
 } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
-import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
 
 describe("Handle message correctly", () => {
 	let node: DRPNode;

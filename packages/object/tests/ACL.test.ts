@@ -1,5 +1,6 @@
 import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
+import { DrpType } from "../dist/src/interface.js";
 import { ObjectACL } from "../src/acl/index.js";
 import { ACLGroup } from "../src/index.js";
 
@@ -70,7 +71,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 			{
 				hash: "",
 				peerId: "peer1",
-				operation: { opType: "grant", value: "peer3" },
+				operation: { opType: "grant", value: "peer3", drpType: DrpType.ACL },
 				dependencies: [],
 				signature: new Uint8Array(),
 				timestamp: 0,
@@ -78,7 +79,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 			{
 				hash: "",
 				peerId: "peer2",
-				operation: { opType: "revoke", value: "peer3" },
+				operation: { opType: "revoke", value: "peer3", drpType: DrpType.ACL },
 				dependencies: [],
 				signature: new Uint8Array(),
 				timestamp: 0,
