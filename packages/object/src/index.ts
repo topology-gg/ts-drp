@@ -43,7 +43,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	vertices: ObjectPb.Vertex[] = [];
 	acl?: ProxyHandler<ACL>;
 	drp?: ProxyHandler<DRP>;
-	// @ts-ignore: initialized in constructor
+	// @ts-expect-error: initialized in constructor
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	drpStates: Map<string, ObjectPb.DRPState>;
@@ -156,6 +156,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
 	proxyDRPHandler(vertexType: DrpType): ProxyHandler<object> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const obj = this;
 		return {
 			get(target, propKey, receiver) {

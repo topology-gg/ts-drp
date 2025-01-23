@@ -1,8 +1,0 @@
-**/dist/*,
-**/docs/*,
-**/doc/*,
-**/*_pb.js,
-**/*_pb.ts,
-**/serializer.ts,
-**/bundle/*,
-coverage/*
