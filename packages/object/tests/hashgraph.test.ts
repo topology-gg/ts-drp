@@ -80,29 +80,35 @@ describe("HashGraph construction tests", () => {
 		const drp1 = obj1.drp as SetDRP<number>;
 		drp1.add(1);
 		// add fake root
-		const hash = obj1.hashGraph.addVertex(
-			{
-				opType: "root",
-				value: null,
-				drpType: DrpType.DRP,
-			},
-			[],
-			"",
-			Date.now(),
-			new Uint8Array(),
-		);
-		obj1.hashGraph.addVertex(
-			{
-				opType: "add",
-				value: [1],
-				drpType: DrpType.DRP,
-			},
-			[hash],
-			"",
-			Date.now(),
-			new Uint8Array(),
-		);
-		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
+		expect(() => {
+			obj1.hashGraph.addVertex(
+				{
+					opType: "root",
+					value: null,
+					drpType: DrpType.DRP,
+				},
+				[],
+				"",
+				Date.now(),
+				new Uint8Array(),
+			);
+		}).toThrowError("Vertex dependencies are empty.");
+		expect(
+			() => {
+				obj1.hashGraph.addVertex(
+				{
+					opType: "add",
+					value: [1],
+					drpType: DrpType.DRP,
+				},
+				["123"],
+				"",
+				Date.now(),
+				new Uint8Array(),
+			)
+			}
+		).toThrowError("Invalid dependency detected.");
+		expect(obj1.hashGraph.selfCheckConstraints()).toBe(true);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
