@@ -7,11 +7,18 @@ on:
 
 jobs:
   quality:
+    name: Run benchmark
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Run ESLint
-        uses: stefanoeb/eslint-action@1.0.2
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          files: .
+          version: 9.10.0
+      - shell: bash
+        run: |
+          pnpm install --no-frozen-lockfile
+
+      - shell: bash
+        run: |
+          cd packages/object
+          pnpm run lint
