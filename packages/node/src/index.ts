@@ -142,6 +142,7 @@ export class DRPNode {
 
 	unsubscribeObject(id: string, purge?: boolean) {
 		operations.unsubscribeObject(this, id, purge);
+		this.networkNode.removeTopicScoreParams(id);
 	}
 
 	async syncObject(id: string, peerId?: string) {
