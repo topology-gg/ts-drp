@@ -136,7 +136,7 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 	}
 }
 
-async function attestationUpdateHandler(
+export async function attestationUpdateHandler(
 	node: DRPNode,
 	sender: string,
 	data: Uint8Array,
@@ -149,13 +149,15 @@ async function attestationUpdateHandler(
 	}
 
 	try {
-		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+		if ((object.acl as ACL).query_isFinalitySigner(sender)) {
+			object.finalityStore.addSignatures(
+				sender,
+				attestationUpdate.attestations,
+			);
+		}
 	} catch (e) {
 		log.error("::attestationUpdateHandler: ", e);
 		return false;
-	}
-	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
-		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 	}
 	return true;
 }
@@ -164,7 +166,11 @@ async function attestationUpdateHandler(
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array doesn't contain the full remote operations array
 */
-async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
+export async function updateHandler(
+	node: DRPNode,
+	sender: string,
+	data: Uint8Array,
+) {
 	const updateMessage = NetworkPb.Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {

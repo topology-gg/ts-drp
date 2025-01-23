@@ -28,7 +28,7 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i],
-					drpType: DrpType.Drp,
+					drpType: DrpType.DRP,
 				},
 				frontier,
 				"",
@@ -39,7 +39,7 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i + 1],
-					drpType: DrpType.Drp,
+					drpType: DrpType.DRP,
 				},
 				frontier,
 				"",
@@ -61,17 +61,23 @@ describe("Linearize correctly", () => {
 		const hashgraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
+				return {
+					action: ActionType.Nop,
+				};
+			},
+			(_vertices: Vertex[]) => {
 				const value = _vertices[0].operation?.value;
 				if (value && value[0] % 2) {
 					return {
 						action: ActionType.DropLeft,
 					};
 				}
-				return {
-					action: ActionType.DropRight,
-				};
-			},
-			(_vertices: Vertex[]) => {
+				const value1 = _vertices[1].operation?.value;
+				if (value1 && value1[0] % 2) {
+					return {
+						action: ActionType.DropRight,
+					};
+				}
 				return {
 					action: ActionType.Nop,
 				};
@@ -84,9 +90,9 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i],
-					drpType: DrpType.Drp,
+					drpType: DrpType.DRP,
 				},
-				frontier,
+				[frontier[0]],
 				"",
 				Date.now(),
 				new Uint8Array(),
@@ -95,9 +101,9 @@ describe("Linearize correctly", () => {
 				{
 					opType: "test",
 					value: [i + 1],
-					drpType: DrpType.Drp,
+					drpType: DrpType.DRP,
 				},
-				frontier,
+				[frontier[0]],
 				"",
 				Date.now(),
 				new Uint8Array(),
@@ -108,6 +114,7 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash)),
 		);
+		console.log(order);
 		for (let i = 0; i < 5; i++) {
 			expect(order[i].value).toStrictEqual([i * 2]);
 		}

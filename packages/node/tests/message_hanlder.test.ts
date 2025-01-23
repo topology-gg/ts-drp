@@ -1,70 +1,83 @@
-import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { NetworkPb } from "@topology-foundation/network/src/index.js";
 import { DrpType } from "@topology-foundation/object/dist/src/index.js";
-import {
-	type DRP,
-	DRPObject,
-	type IACL,
-} from "@topology-foundation/object/src/index.js";
+import { DRPObject, ObjectACL } from "@topology-foundation/object/src/index.js";
 import { beforeAll, describe, expect, test } from "vitest";
 import {
 	attestationUpdateHandler,
+	signGeneratedVertices,
 	syncAcceptHandler,
 	syncHandler,
 	updateHandler,
 } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
+import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
 
 describe("Handle message correctly", () => {
 	let node: DRPNode;
+	let node2: DRPNode;
 	let drpObject: DRPObject;
 	const mockSender = "12D3KooWEtLcL6DZVTnDe5rkv7a9pg7FwQQAyJpJX1zWH1tgAAEs";
 
 	beforeAll(async () => {
 		node = new DRPNode();
+		node2 = new DRPNode();
 		await node.start();
+		await node2.start();
 
-		drpObject = new DRPObject(
-			"",
-			new AddWinsSet<number>(),
-			null as unknown as IACL & DRP,
-		);
-		await node.createObject(new AddWinsSet<number>(), drpObject.id);
+		const acl = new ObjectACL({
+			admins: new Map([
+				[node.networkNode.peerId, node.credentialStore.getPublicCredential()],
+				[node2.networkNode.peerId, node2.credentialStore.getPublicCredential()],
+			]),
+		});
 
-		(drpObject.drp as AddWinsSet<number>).add(5);
-		(drpObject.drp as AddWinsSet<number>).add(10);
+		drpObject = new DRPObject({
+			peerId: node2.networkNode.peerId,
+			drp: new SetDRP<number>(),
+			acl,
+		});
+		await node.createObject({
+			drp: new SetDRP<number>(),
+			id: drpObject.id,
+			acl: acl,
+		});
+
+		(drpObject.drp as SetDRP<number>).add(5);
+		(drpObject.drp as SetDRP<number>).add(10);
 	});
 
 	test("should handle update message correctly", async () => {
+		const vertices = drpObject.vertices;
+		await signGeneratedVertices(node2, vertices);
 		const message = NetworkPb.Message.create({
 			sender: mockSender,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
 			data: NetworkPb.Update.encode(
 				NetworkPb.Update.create({
 					objectId: drpObject.id,
-					vertices: drpObject.vertices,
+					vertices: vertices,
 				}),
 			).finish(),
 		});
-		const success = await updateHandler(node, message.data, message.sender);
+		const success = await updateHandler(node, message.sender, message.data);
 		expect(success).toBe(true);
 
-		const vertices = node
+		const expected_vertices = node
 			.getObject(drpObject.id)
 			?.hashGraph.getAllVertices()
 			.map((vertex) => {
 				return vertex.operation;
 			});
-		expect(vertices).toStrictEqual([
+		expect(expected_vertices).toStrictEqual([
 			{ drpType: "", opType: "-1", value: null },
-			{ opType: "add", value: [5], drpType: DrpType.Drp },
-			{ opType: "add", value: [10], drpType: DrpType.Drp },
+			{ opType: "add", value: [5], drpType: DrpType.DRP },
+			{ opType: "add", value: [10], drpType: DrpType.DRP },
 		]);
 	});
 
 	test("should handle sync message correctly", async () => {
-		(drpObject.drp as AddWinsSet<number>).add(1);
-		(drpObject.drp as AddWinsSet<number>).add(2);
+		(drpObject.drp as SetDRP<number>).add(1);
+		(drpObject.drp as SetDRP<number>).add(2);
 		const message = NetworkPb.Message.create({
 			sender: mockSender,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC,
@@ -82,13 +95,16 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle sync accept message correctly", async () => {
+		const vertices = drpObject.vertices.slice(3, 5);
+		await signGeneratedVertices(node2, vertices);
+
 		const message = NetworkPb.Message.create({
 			sender: mockSender,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
 			data: NetworkPb.SyncAccept.encode(
 				NetworkPb.SyncAccept.create({
 					objectId: drpObject.id,
-					requested: drpObject.vertices.slice(3, 5),
+					requested: vertices,
 					requesting: [],
 					attestations: [],
 				}),
@@ -101,8 +117,6 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle update attestation message correctly", async () => {
-		const node2 = new DRPNode();
-		await node2.start();
 		const attestations = node
 			.getObject(drpObject.id)
 			?.vertices.map((vertex) => {
@@ -123,8 +137,8 @@ describe("Handle message correctly", () => {
 		});
 		const success = await attestationUpdateHandler(
 			node,
-			message.data,
 			message.sender,
+			message.data,
 		);
 		expect(success).toBe(true);
 	});
