@@ -88,7 +88,7 @@ async function main() {
 		document.getElementById("createRoom")
 	);
 	button_create.addEventListener("click", async () => {
-		drpObject = await node.createObject(new Chat());
+		drpObject = await node.createObject({ drp: new Chat() });
 		chatDRP = drpObject.drp as Chat;
 		createConnectHandlers();
 		render();
@@ -105,7 +105,7 @@ async function main() {
 			return;
 		}
 
-		drpObject = await node.createObject(new Chat(), objectId, undefined, true);
+		drpObject = await node.createObject({ id: objectId, drp: new Chat() });
 		chatDRP = drpObject.drp as Chat;
 		createConnectHandlers();
 		render();

@@ -4,19 +4,33 @@ package drp.network.v1;
 import "drp/object/v1/object.proto";
 
 enum MessageType {
-  MESSAGE_TYPE_UNSPECIFIED	= 0;
-  MESSAGE_TYPE_UPDATE		= 1;
-  MESSAGE_TYPE_SYNC			= 2;
-  MESSAGE_TYPE_SYNC_ACCEPT	= 3;
-  MESSAGE_TYPE_SYNC_REJECT	= 4;
-  MESSAGE_TYPE_ATTESTATION_UPDATE   = 5;
-  MESSAGE_TYPE_CUSTOM		= 6;
+  MESSAGE_TYPE_UNSPECIFIED             = 0;
+  MESSAGE_TYPE_FETCH_STATE             = 1;
+  MESSAGE_TYPE_FETCH_STATE_RESPONSE    = 2;
+  MESSAGE_TYPE_UPDATE                  = 3;
+  MESSAGE_TYPE_SYNC                    = 4;
+  MESSAGE_TYPE_SYNC_ACCEPT             = 5;
+  MESSAGE_TYPE_SYNC_REJECT             = 6;
+  MESSAGE_TYPE_ATTESTATION_UPDATE      = 7;
+  MESSAGE_TYPE_CUSTOM                  = 8;
 }
 
 message Message {
   string sender = 1;
   MessageType type = 2;
   bytes data = 3;
+}
+
+message FetchState {
+  string object_id = 1;
+  string vertex_hash = 2;
+}
+
+message FetchStateResponse {
+  string object_id = 1;
+  string vertex_hash = 2;
+  drp.object.v1.DRPState acl_state = 3;
+  drp.object.v1.DRPState drp_state = 4;
 }
 
 message Update {

@@ -44,9 +44,9 @@ export type VertexDistance = {
 
 export class HashGraph {
 	peerId: string;
-	resolveConflictsDRP: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType;
 	resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType;
-	semanticsType: SemanticsType;
+	semanticsTypeDRP?: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
 	frontier: Hash[] = [];
@@ -70,14 +70,14 @@ export class HashGraph {
 
 	constructor(
 		peerId: string,
-		resolveConflictsDRP: (vertices: Vertex[]) => ResolveConflictsType,
 		resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType,
-		semanticsType: SemanticsType,
+		resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType,
+		semanticsTypeDRP?: SemanticsType,
 	) {
 		this.peerId = peerId;
-		this.resolveConflictsDRP = resolveConflictsDRP;
 		this.resolveConflictsACL = resolveConflictsACL;
-		this.semanticsType = semanticsType;
+		this.resolveConflictsDRP = resolveConflictsDRP;
+		this.semanticsTypeDRP = semanticsTypeDRP;
 
 		const rootVertex: Vertex = {
 			hash: HashGraph.rootHash,
@@ -103,7 +103,9 @@ export class HashGraph {
 		if (vertices[0].operation?.drpType === "ACL") {
 			return this.resolveConflictsACL(vertices);
 		}
-		return this.resolveConflictsDRP(vertices);
+		return this.resolveConflictsDRP
+			? this.resolveConflictsDRP(vertices)
+			: { action: ActionType.Nop };
 	}
 
 	addToFrontier(operation: Operation): Vertex {
@@ -309,7 +311,7 @@ export class HashGraph {
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys()),
 	): Operation[] {
-		switch (this.semanticsType) {
+		switch (this.semanticsTypeDRP) {
 			case SemanticsType.pair:
 				return linearizePairSemantics(this, origin, subgraph);
 			case SemanticsType.multiple:

@@ -37,10 +37,17 @@ export interface AggregatedAttestation {
   aggregationBits: Uint8Array;
 }
 
+export interface DRPStateEntry {
+  key: string;
+  value: any | undefined;
+}
+
+export interface DRPState {
+  state: DRPStateEntry[];
+}
+
 export interface DRPObjectBase {
   id: string;
-  abi?: string | undefined;
-  bytecode?: Uint8Array | undefined;
   vertices: Vertex[];
 }
 
@@ -448,8 +455,144 @@ export const AggregatedAttestation: MessageFns<AggregatedAttestation> = {
   },
 };
 
+function createBaseDRPStateEntry(): DRPStateEntry {
+  return { key: "", value: undefined };
+}
+
+export const DRPStateEntry: MessageFns<DRPStateEntry> = {
+  encode(message: DRPStateEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPStateEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPStateEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = Value.unwrap(Value.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPStateEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object?.value) ? object.value : undefined,
+    };
+  },
+
+  toJSON(message: DRPStateEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPStateEntry>, I>>(base?: I): DRPStateEntry {
+    return DRPStateEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPStateEntry>, I>>(object: I): DRPStateEntry {
+    const message = createBaseDRPStateEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? undefined;
+    return message;
+  },
+};
+
+function createBaseDRPState(): DRPState {
+  return { state: [] };
+}
+
+export const DRPState: MessageFns<DRPState> = {
+  encode(message: DRPState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.state) {
+      DRPStateEntry.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPState {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPState();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.state.push(DRPStateEntry.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPState {
+    return {
+      state: globalThis.Array.isArray(object?.state) ? object.state.map((e: any) => DRPStateEntry.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: DRPState): unknown {
+    const obj: any = {};
+    if (message.state?.length) {
+      obj.state = message.state.map((e) => DRPStateEntry.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPState>, I>>(base?: I): DRPState {
+    return DRPState.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPState>, I>>(object: I): DRPState {
+    const message = createBaseDRPState();
+    message.state = object.state?.map((e) => DRPStateEntry.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 function createBaseDRPObjectBase(): DRPObjectBase {
-  return { id: "", abi: undefined, bytecode: undefined, vertices: [] };
+  return { id: "", vertices: [] };
 }
 
 export const DRPObjectBase: MessageFns<DRPObjectBase> = {
@@ -457,14 +600,8 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.abi !== undefined) {
-      writer.uint32(18).string(message.abi);
-    }
-    if (message.bytecode !== undefined) {
-      writer.uint32(26).bytes(message.bytecode);
-    }
     for (const v of message.vertices) {
-      Vertex.encode(v!, writer.uint32(34).fork()).join();
+      Vertex.encode(v!, writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -489,22 +626,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
             break;
           }
 
-          message.abi = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.bytecode = reader.bytes();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
           message.vertices.push(Vertex.decode(reader, reader.uint32()));
           continue;
         }
@@ -520,8 +641,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
   fromJSON(object: any): DRPObjectBase {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      abi: isSet(object.abi) ? globalThis.String(object.abi) : undefined,
-      bytecode: isSet(object.bytecode) ? bytesFromBase64(object.bytecode) : undefined,
       vertices: globalThis.Array.isArray(object?.vertices) ? object.vertices.map((e: any) => Vertex.fromJSON(e)) : [],
     };
   },
@@ -530,12 +649,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
     const obj: any = {};
     if (message.id !== "") {
       obj.id = message.id;
-    }
-    if (message.abi !== undefined) {
-      obj.abi = message.abi;
-    }
-    if (message.bytecode !== undefined) {
-      obj.bytecode = base64FromBytes(message.bytecode);
     }
     if (message.vertices?.length) {
       obj.vertices = message.vertices.map((e) => Vertex.toJSON(e));
@@ -549,8 +662,6 @@ export const DRPObjectBase: MessageFns<DRPObjectBase> = {
   fromPartial<I extends Exact<DeepPartial<DRPObjectBase>, I>>(object: I): DRPObjectBase {
     const message = createBaseDRPObjectBase();
     message.id = object.id ?? "";
-    message.abi = object.abi ?? undefined;
-    message.bytecode = object.bytecode ?? undefined;
     message.vertices = object.vertices?.map((e) => Vertex.fromPartial(e)) || [];
     return message;
   },

@@ -1,8 +1,15 @@
 import type { Stream } from "@libp2p/interface";
 import { NetworkPb, streamToUint8Array } from "@ts-drp/network";
-import type { DRPObject, IACL, ObjectPb, Vertex } from "@ts-drp/object";
+import {
+	type ACL,
+	type DRPObject,
+	HashGraph,
+	type ObjectPb,
+	type Vertex,
+} from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
+import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -25,8 +32,14 @@ export async function drpMessagesHandler(
 	}
 
 	switch (message.type) {
+		case NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE:
+			fetchStateHandler(node, message.sender, message.data);
+			break;
+		case NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE:
+			fetchStateResponseHandler(node, message.data);
+			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_UPDATE:
-			updateHandler(node, message.data, message.sender);
+			updateHandler(node, message.sender, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC:
 			if (!stream) {
@@ -46,7 +59,7 @@ export async function drpMessagesHandler(
 			syncRejectHandler(node, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
-			attestationUpdateHandler(node, message.data, message.sender);
+			attestationUpdateHandler(node, message.sender, message.data);
 			break;
 		default:
 			log.error("::messageHandler: Invalid operation");
@@ -54,10 +67,79 @@ export async function drpMessagesHandler(
 	}
 }
 
+function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
+	const fetchState = NetworkPb.FetchState.decode(data);
+	const drpObject = node.objectStore.get(fetchState.objectId);
+	if (!drpObject) {
+		log.error("::fetchStateHandler: Object not found");
+		return;
+	}
+
+	const aclState = drpObject.aclStates.get(fetchState.vertexHash);
+	const drpState = drpObject.drpStates.get(fetchState.vertexHash);
+	const response = NetworkPb.FetchStateResponse.create({
+		objectId: fetchState.objectId,
+		vertexHash: fetchState.vertexHash,
+		aclState: serializeStateMessage(aclState),
+		drpState: serializeStateMessage(drpState),
+	});
+
+	const message = NetworkPb.Message.create({
+		sender: node.networkNode.peerId,
+		type: NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE,
+		data: NetworkPb.FetchStateResponse.encode(response).finish(),
+	});
+	node.networkNode.sendMessage(sender, message).catch((e) => {
+		log.error("::fetchStateHandler: Error sending message", e);
+	});
+}
+
+function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
+	const fetchStateResponse = NetworkPb.FetchStateResponse.decode(data);
+	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
+		log.error("::fetchStateResponseHandler: No state found");
+	}
+	const object = node.objectStore.get(fetchStateResponse.objectId);
+	if (!object) {
+		log.error("::fetchStateResponseHandler: Object not found");
+		return;
+	}
+	if (!object.acl) {
+		log.error("::fetchStateResponseHandler: ACL not found");
+		return;
+	}
+
+	const aclState = deserializeStateMessage(fetchStateResponse.aclState);
+	const drpState = deserializeStateMessage(fetchStateResponse.drpState);
+	if (fetchStateResponse.vertexHash === HashGraph.rootHash) {
+		const state = aclState;
+		object.aclStates.set(fetchStateResponse.vertexHash, state);
+		for (const e of state.state) {
+			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
+			(object.acl as ACL)[e.key] = e.value;
+		}
+		node.objectStore.put(object.id, object);
+		return;
+	}
+
+	if (fetchStateResponse.aclState) {
+		object.aclStates.set(
+			fetchStateResponse.vertexHash,
+			aclState as ObjectPb.DRPState,
+		);
+	}
+	if (fetchStateResponse.drpState) {
+		object.drpStates.set(
+			fetchStateResponse.vertexHash,
+			drpState as ObjectPb.DRPState,
+		);
+	}
+}
+
 async function attestationUpdateHandler(
 	node: DRPNode,
-	data: Uint8Array,
 	sender: string,
+	data: Uint8Array,
 ) {
 	const attestationUpdate = NetworkPb.AttestationUpdate.decode(data);
 	const object = node.objectStore.get(attestationUpdate.objectId);
@@ -65,15 +147,16 @@ async function attestationUpdateHandler(
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
-
-	object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
+		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
+	}
 }
 
 /*
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array doesn't contain the full remote operations array
 */
-async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
+async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const updateMessage = NetworkPb.Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
@@ -81,10 +164,15 @@ async function updateHandler(node: DRPNode, data: Uint8Array, sender: string) {
 		return false;
 	}
 
-	const verifiedVertices = await verifyIncomingVertices(
-		object,
-		updateMessage.vertices,
-	);
+	let verifiedVertices: Vertex[] = [];
+	if ((object.acl as ACL).permissionless) {
+		verifiedVertices = updateMessage.vertices;
+	} else {
+		verifiedVertices = await verifyIncomingVertices(
+			object,
+			updateMessage.vertices,
+		);
+	}
 
 	const [merged, _] = object.merge(verifiedVertices);
 
@@ -181,10 +269,15 @@ async function syncAcceptHandler(
 		return;
 	}
 
-	const verifiedVertices = await verifyIncomingVertices(
-		object,
-		syncAcceptMessage.requested,
-	);
+	let verifiedVertices: Vertex[] = [];
+	if ((object.acl as ACL).permissionless) {
+		verifiedVertices = syncAcceptMessage.requested;
+	} else {
+		verifiedVertices = await verifyIncomingVertices(
+			object,
+			syncAcceptMessage.requested,
+		);
+	}
 
 	if (verifiedVertices.length !== 0) {
 		object.merge(verifiedVertices);
@@ -243,7 +336,6 @@ export function drpObjectChangesHandler(
 			break;
 		case "callFn": {
 			const attestations = signFinalityVertices(node, obj, vertices);
-
 			node.objectStore.put(obj.id, obj);
 
 			signGeneratedVertices(node, vertices).then(() => {
@@ -299,6 +391,9 @@ export function signFinalityVertices(
 	obj: DRPObject,
 	vertices: Vertex[],
 ) {
+	if (!(obj.acl as ACL).query_isFinalitySigner(node.networkNode.peerId)) {
+		return [];
+	}
 	const attestations = generateAttestations(node, obj, vertices);
 	obj.finalityStore.addSignatures(node.networkNode.peerId, attestations, false);
 	return attestations;
@@ -351,7 +446,7 @@ export async function verifyIncomingVertices(
 		};
 	});
 
-	const acl: IACL = object.acl as IACL;
+	const acl: ACL = object.acl as ACL;
 	if (!acl) {
 		return vertices;
 	}
