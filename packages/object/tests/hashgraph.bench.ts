@@ -9,7 +9,7 @@ const acl = new ObjectACL({
 	]),
 });
 
-const NUMBER_OF_DRPS = Number.parseInt(process.argv[2], 10) || 1000;
+const NUMBER_OF_OPERATIONS = Number.parseInt(process.argv[2], 10) || 1000;
 
 function benchmarkForAddWinSet(
 	name: string,
