@@ -1,47 +1,43 @@
-import type { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
 import { bench, describe } from "vitest";
-import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
 import { DRPObject, type Hash } from "../src/index.js";
+import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
 
 describe("AreCausallyDependent benchmark", async () => {
 	const samples = 100000;
 	const tests: Hash[][] = [];
 
-	const obj1 = new DRPObject(
-		"peer1",
-		new AddWinsSet<number>(),
-		null as unknown as ACL,
-	);
-	const obj2 = new DRPObject(
-		"peer2",
-		new AddWinsSet<number>(),
-		null as unknown as ACL,
-	);
-	const obj3 = new DRPObject(
-		"peer3",
-		new AddWinsSet<number>(),
-		null as unknown as ACL,
-	);
+	const obj1 = new DRPObject({
+		peerId: "peer1",
+		drp: new SetDRP<number>(),
+	});
+	const obj2 = new DRPObject({
+		peerId: "peer2",
+		drp: new SetDRP<number>(),
+	});
+	const obj3 = new DRPObject({
+		peerId: "peer3",
+		drp: new SetDRP<number>(),
+	});
 
-	const drp1 = obj1.drp as AddWinsSet<number>;
-	const drp2 = obj2.drp as AddWinsSet<number>;
-	const drp3 = obj3.drp as AddWinsSet<number>;
+	const drp1 = obj1.drp as SetDRP<number>;
+	const drp2 = obj2.drp as SetDRP<number>;
+	const drp3 = obj3.drp as SetDRP<number>;
 
 	drp1.add(1);
 	obj2.merge(obj1.hashGraph.getAllVertices());
 
 	drp1.add(1);
-	drp1.remove(2);
-	drp2.remove(2);
+	drp1.delete(2);
+	drp2.delete(2);
 	drp2.add(2);
 
 	obj3.merge(obj1.hashGraph.getAllVertices());
 	drp3.add(3);
-	drp1.remove(1);
+	drp1.delete(1);
 
 	obj1.merge(obj2.hashGraph.getAllVertices());
-	drp1.remove(3);
-	drp2.remove(1);
+	drp1.delete(3);
+	drp2.delete(1);
 
 	obj1.merge(obj2.hashGraph.getAllVertices());
 	obj1.merge(obj3.hashGraph.getAllVertices());
