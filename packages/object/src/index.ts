@@ -190,14 +190,14 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	private callFn(
 		fn: string,
-		// biome-ignore lint: value can't be unknown because of protobuf
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType,
 	) {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let preOperationDRP: any;
 		if (drpType === DrpType.ACL) {
 			preOperationDRP = this._computeObjectACL(this.hashGraph.getFrontier());
@@ -355,7 +355,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
-		// biome-ignore lint: target can be anything
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let target: any = drp;
 		for (let i = 0; i < typeParts.length - 1; i++) {
 			target = target[typeParts[i]];
