@@ -114,7 +114,6 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash)),
 		);
-		console.log(order);
 		for (let i = 0; i < 5; i++) {
 			expect(order[i].value).toStrictEqual([i * 2]);
 		}
