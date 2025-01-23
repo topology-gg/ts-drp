@@ -1,0 +1,145 @@
+general:
+  heartbeat_interval: 1m
+  stop_time: 5min
+  progress: true
+  model_unblocked_syscall_latency: true
+network:
+  graph:
+    type: 1_gbit_switch
+hosts:
+  bootstrap1:
+    ip_addr: 11.0.0.1
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/bootstrap.js --ip 11.0.0.1 --seed bootstrap1
+      environment:
+        DEBUG: "libp2p:*error"
+      expected_final_state: running
+  bootstrap2:
+    ip_addr: 11.0.0.2
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/bootstrap.js --ip 11.0.0.2 --seed bootstrap2
+      environment:
+        DEBUG: "libp2p:*error"
+      expected_final_state: running
+  bootstrap3:
+    ip_addr: 11.0.0.3
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/bootstrap.js --ip 11.0.0.3 --seed bootstrap3
+      environment:
+        DEBUG: "libp2p:*error"
+      expected_final_state: running
+  bootstrap4:
+    ip_addr: 11.0.0.4
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/bootstrap.js --ip 11.0.0.4 --seed bootstrap4
+      environment:
+        DEBUG: "libp2p:*error"
+      expected_final_state: running
+  node01:
+    ip_addr: 11.1.0.1
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node1
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node02:
+    ip_addr: 11.1.0.2
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node2
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node03:
+    ip_addr: 11.1.0.3
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node3
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node04:
+    ip_addr: 11.1.0.4
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node4
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node05:
+    ip_addr: 11.1.0.5
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node5
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node06:
+    ip_addr: 11.1.0.6
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node6
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node07:
+    ip_addr: 11.1.0.7
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node7
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node08:
+    ip_addr: 11.1.0.8
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node8
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node09:
+    ip_addr: 11.1.0.9
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node9
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running
+  node10:
+    ip_addr: 11.1.0.10
+    network_node_id: 0
+    processes:
+    - path: /usr/bin/node
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node10
+      environment:
+        DEBUG: "libp2p:*error"
+      start_time: 5s
+      expected_final_state: running

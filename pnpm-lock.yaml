@@ -387,6 +387,15 @@ importers:
         specifier: ^8.20.0
         version: 8.20.0(eslint@9.18.0)(typescript@5.7.3)
 
+  simulation:
+    dependencies:
+      '@ts-drp/node':
+        specifier: workspace:0.6.1
+        version: link:../packages/node
+      commander:
+        specifier: ^13.0.0
+        version: 13.0.0
+
 packages:
 
   '@ampproject/remapping@2.3.0':
