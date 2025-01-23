@@ -67,3 +67,13 @@ package.json
 tsconfig.json
 tsconfig.node.json
 vite.config.ts
+**/dist/*
+**/docs/*
+**/doc/*
+**/*_pb.js
+**/*clear.ts
+**/serializer.ts
+**/bundle/*
+**/*_pd.d.ts
+**/coverage/*
+**/coverage.ts
