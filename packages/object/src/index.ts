@@ -1,4 +1,3 @@
-import * as crypto from "node:crypto";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
@@ -20,6 +19,7 @@ import {
 	type LcaAndOperations,
 } from "./interface.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
+import { computeDRPObjectId } from "./utils/object.js";
 import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
@@ -69,13 +69,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		this.peerId = options.peerId;
 		log = new Logger("drp::object", options.config?.log_config);
-		this.id =
-			options.id ??
-			crypto
-				.createHash("sha256")
-				.update(options.peerId)
-				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
-				.digest("hex");
+		this.id = options.id ?? computeDRPObjectId(options.peerId);
 
 		const objAcl =
 			options.acl ??
@@ -248,24 +242,20 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	 * missing vertices and an array with the missing vertices
 	 */
 	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		const missing = [];
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
-		const missing = [];
-		for (const vertex of vertices) {
-			// Check to avoid manually crafted `undefined` operations
-			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
-				continue;
-			}
-
-			try {
-				if (!this._checkWriterPermission(vertex.peerId)) {
-					throw new Error(`${vertex.peerId} does not have write permission.`);
+		if (!this.drp) {
+			for (const vertex of vertices) {
+				if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+					continue;
 				}
-				const preComputeLca = this.computeLCA(vertex.dependencies);
 
-				if (vertex.operation.drpType === DrpType.DRP) {
-					const drp = this._computeDRP(vertex.dependencies, preComputeLca);
+				try {
+					if (!this._checkWriterPermission(vertex.peerId)) {
+						return [false, [vertex.hash]];
+					}
 					this.hashGraph.addVertex(
 						vertex.operation,
 						vertex.dependencies,
@@ -273,43 +263,70 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 						vertex.timestamp,
 						vertex.signature,
 					);
-					this._applyOperation(drp, vertex.operation);
-
-					this._setObjectACLState(vertex, preComputeLca);
-					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
-				} else {
-					const acl = this._computeObjectACL(
-						vertex.dependencies,
-						preComputeLca,
-					);
-
-					this.hashGraph.addVertex(
-						vertex.operation,
-						vertex.dependencies,
-						vertex.peerId,
-						vertex.timestamp,
-						vertex.signature,
-					);
-					this._applyOperation(acl, vertex.operation);
-
-					this._setObjectACLState(
-						vertex,
-						preComputeLca,
-						this._getDRPState(acl),
-					);
-					this._setDRPState(vertex, preComputeLca);
+				} catch (_) {
+					missing.push(vertex.hash);
 				}
-				this._initializeFinalityState(vertex.hash);
-			} catch (_) {
-				missing.push(vertex.hash);
 			}
+		} else {
+			const missing = [];
+			for (const vertex of vertices) {
+				// Check to avoid manually crafted `undefined` operations
+				if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+					continue;
+				}
+
+				try {
+					if (!this._checkWriterPermission(vertex.peerId)) {
+						throw new Error(`${vertex.peerId} does not have write permission.`);
+					}
+					const preComputeLca = this.computeLCA(vertex.dependencies);
+
+					if (vertex.operation.drpType === DrpType.DRP) {
+						const drp = this._computeDRP(vertex.dependencies, preComputeLca);
+						this.hashGraph.addVertex(
+							vertex.operation,
+							vertex.dependencies,
+							vertex.peerId,
+							vertex.timestamp,
+							vertex.signature,
+						);
+						this._applyOperation(drp, vertex.operation);
+
+						this._setObjectACLState(vertex, preComputeLca);
+						this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
+					} else {
+						const acl = this._computeObjectACL(
+							vertex.dependencies,
+							preComputeLca,
+						);
+
+						this.hashGraph.addVertex(
+							vertex.operation,
+							vertex.dependencies,
+							vertex.peerId,
+							vertex.timestamp,
+							vertex.signature,
+						);
+						this._applyOperation(acl, vertex.operation);
+
+						this._setObjectACLState(
+							vertex,
+							preComputeLca,
+							this._getDRPState(acl),
+						);
+						this._setDRPState(vertex, preComputeLca);
+					}
+					this._initializeFinalityState(vertex.hash);
+				} catch (_) {
+					missing.push(vertex.hash);
+				}
+			}
+
+			this.vertices = this.hashGraph.getAllVertices();
+			this._updateObjectACLState();
+			this._updateDRPState();
+			this._notify("merge", this.vertices);
 		}
-
-		this.vertices = this.hashGraph.getAllVertices();
-		this._updateObjectACLState();
-		this._updateDRPState();
-		this._notify("merge", this.vertices);
-
 		return [missing.length === 0, missing];
 	}
 

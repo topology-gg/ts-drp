@@ -6,7 +6,7 @@ import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import {
 	signFinalityVertices,
 	signGeneratedVertices,
-	verifyIncomingVertices,
+	verifyACLIncomingVertices,
 } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
@@ -86,7 +86,10 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
-		const verifiedVertices = await verifyIncomingVertices(drpObject, vertices);
+		const verifiedVertices = await verifyACLIncomingVertices(
+			drpObject,
+			vertices,
+		);
 		expect(verifiedVertices.length).toBe(1);
 	});
 
@@ -105,7 +108,10 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: new Uint8Array(),
 			},
 		];
-		const verifiedVertices = await verifyIncomingVertices(drpObject, vertices);
+		const verifiedVertices = await verifyACLIncomingVertices(
+			drpObject,
+			vertices,
+		);
 		expect(verifiedVertices.length).toBe(0);
 	});
 });

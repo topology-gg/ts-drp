@@ -19,13 +19,15 @@ import type {
 } from "../proto/drp/node/v1/rpc_pb.js";
 
 export function init(node: DRPNode) {
-	function subscribeDRP(
+	async function subscribeDRP(
 		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
 		callback: sendUnaryData<GenericRespone>,
 	) {
 		let returnCode = 0;
 		try {
-			node.subscribeObject(call.request.drpId);
+			await node.connectObject({
+				id: call.request.drpId,
+			});
 		} catch (e) {
 			log.error("::rpc::subscribeDRP: Error", e);
 			returnCode = 1;

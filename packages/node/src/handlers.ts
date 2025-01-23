@@ -9,7 +9,11 @@ import {
 } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { type DRPNode, log } from "./index.js";
-import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
+import {
+	deserializeStateMessage,
+	serializeStateMessage,
+	verifyACLSignature,
+} from "./utils.js";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -168,7 +172,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
-		verifiedVertices = await verifyIncomingVertices(
+		verifiedVertices = await verifyACLIncomingVertices(
 			object,
 			updateMessage.vertices,
 		);
@@ -273,7 +277,7 @@ async function syncAcceptHandler(
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
-		verifiedVertices = await verifyIncomingVertices(
+		verifiedVertices = await verifyACLIncomingVertices(
 			object,
 			syncAcceptMessage.requested,
 		);
@@ -427,7 +431,7 @@ function getAttestations(
 		.filter((a) => a !== undefined);
 }
 
-export async function verifyIncomingVertices(
+export async function verifyACLIncomingVertices(
 	object: DRPObject,
 	incomingVertices: ObjectPb.Vertex[],
 ): Promise<Vertex[]> {
@@ -467,17 +471,8 @@ export async function verifyIncomingVertices(
 		const data = uint8ArrayFromString(vertex.hash);
 
 		try {
-			const cryptoKey = await crypto.subtle.importKey(
-				"raw",
+			const isValid = await verifyACLSignature(
 				publicKeyBytes,
-				{ name: "Ed25519" },
-				true,
-				["verify"],
-			);
-
-			const isValid = await crypto.subtle.verify(
-				{ name: "Ed25519" },
-				cryptoKey,
 				vertex.signature,
 				data,
 			);
