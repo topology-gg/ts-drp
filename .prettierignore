@@ -63,7 +63,6 @@ pnpm-lock.yaml
 .gitignore
 .prettierignore
 .prettierrc.json
-package.json
 tsconfig.json
 tsconfig.node.json
 vite.config.ts
