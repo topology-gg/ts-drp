@@ -507,13 +507,7 @@ export class HashGraph {
 	}
 
 	getAllVertices(): Vertex[] {
-		const topologicalOrder = this.topologicalSort();
-		const vertices: Vertex[] = [];
-		for (const hash of topologicalOrder) {
-			const vertex = this.vertices.get(hash);
-			if (vertex) vertices.push(vertex);
-		}
-		return vertices;
+		return Array.from(this.vertices.values());
 	}
 
 	getReachablePredecessors(hash: Hash): BitSet | undefined {
