@@ -32,7 +32,8 @@
 		"release": "release-it",
 		"test": "vitest",
 		"watch": "pnpm --parallel --filter '@ts-drp/*' watch",
-		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+		"format": "prettier --write './**/*.{ts,tsx,js,jsx,json,md,html,css}'"
 	},
 	"devDependencies": {
 		"@release-it-plugins/workspaces": "^4.2.0",
