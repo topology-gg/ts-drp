@@ -16,7 +16,7 @@ export function loadConfig(
 	if (!result.error) {
 		config = {};
 		config.network_config = {
-			addresses: process.env.ADDRESSES
+			listen_addresses: process.env.ADDRESSES
 				? process.env.ADDRESSES.split(",")
 				: undefined,
 			bootstrap: process.env.BOOTSTRAP

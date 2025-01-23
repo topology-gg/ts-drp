@@ -46,7 +46,8 @@ let log: Logger;
 
 // snake_casing to match the JSON config
 export interface DRPNetworkNodeConfig {
-	addresses?: string[];
+	listen_addresses?: string[];
+	announce_addresses?: string[];
 	bootstrap?: boolean;
 	bootstrap_peers?: string[];
 	browser_metrics?: boolean;
@@ -120,9 +121,12 @@ export class DRPNetworkNode {
 		this._node = await createLibp2p({
 			privateKey,
 			addresses: {
-				listen: this._config?.addresses
-					? this._config.addresses
+				listen: this._config?.listen_addresses
+					? this._config.listen_addresses
 					: ["/p2p-circuit", "/webrtc"],
+				...(this._config?.announce_addresses
+					? { announce: this._config?.announce_addresses }
+					: {}),
 			},
 			connectionEncrypters: [noise()],
 			connectionGater: {
