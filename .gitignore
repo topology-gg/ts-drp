@@ -16,6 +16,6 @@ coverage/*
 **/object_grpc_pb.js
 
 packages/object/benchmark-output.txt
-packages/object/isolate-*.log
+*.log
 
 packages/object/flamegraph.*

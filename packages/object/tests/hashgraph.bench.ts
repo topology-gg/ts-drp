@@ -54,21 +54,21 @@ function benchmarkForAddWinSet(
 const suite = new Benchmark.Suite();
 
 benchmarkForAddWinSet(
-	`Create HashGraph with ${NUMBER_OF_DRPS} vertices1`,
+	`Create HashGraph with ${NUMBER_OF_OPERATIONS} vertices1`,
 	1,
-	NUMBER_OF_DRPS,
+	NUMBER_OF_OPERATIONS,
 	false,
 );
 
 benchmarkForAddWinSet(
-	`Create 2 DRP Objects (${NUMBER_OF_DRPS} vertices each) and Merge`,
+	`Create 2 DRP Objects (${NUMBER_OF_OPERATIONS} vertices each) and Merge`,
 	2,
-	NUMBER_OF_DRPS,
+	NUMBER_OF_OPERATIONS,
 	true,
 );
 
 suite.add(
-	"Create a HashGraph with NUMBER_OF_DRPS operations for set wins map",
+	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map`,
 	() => {
 		const object: DRPObject = new DRPObject({
 			peerId: "peer1",
@@ -76,14 +76,14 @@ suite.add(
 			drp: new MapDRP<number, number>(),
 		});
 		const drp = object.drp as MapDRP<number, number>;
-		for (let i = 0; i < NUMBER_OF_DRPS; ++i) {
+		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i);
 		}
 	},
 );
 
 suite.add(
-	`Create a HashGraph with ${NUMBER_OF_DRPS} operations for set wins map`,
+	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map`,
 	() => {
 		const object: DRPObject = new DRPObject({
 			peerId: "peer1",
@@ -91,17 +91,17 @@ suite.add(
 			drp: new MapDRP<number, number>(),
 		});
 		const drp = object.drp as MapDRP<number, number>;
-		for (let i = 0; i < NUMBER_OF_DRPS; ++i) {
+		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i);
 		}
 
-		for (let i = 0; i < NUMBER_OF_DRPS; ++i) {
+		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.query_get(i);
 		}
 	},
 );
 suite.add(
-	"Create a HashGraph with NUMBER_OF_DRPS operations for set wins map and set",
+	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and set`,
 	() => {
 		const object: DRPObject = new DRPObject({
 			peerId: "peer1",
@@ -109,18 +109,18 @@ suite.add(
 			drp: new MapDRP<number, number>(),
 		});
 		const drp = object.drp as MapDRP<number, number>;
-		for (let i = 0; i < NUMBER_OF_DRPS; ++i) {
+		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i);
 		}
 
-		for (let i = 0; i < NUMBER_OF_DRPS; ++i) {
+		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i + 1);
 		}
 	},
 );
 
 suite.add(
-	`Create a HashGraph with ${NUMBER_OF_DRPS} operations for set wins map with random operations`,
+	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map with random operations`,
 	() => {
 		const object: DRPObject = new DRPObject({
 			peerId: "peer1",
@@ -147,7 +147,7 @@ suite.add(
 );
 
 suite.add(
-	`Create 2 HashGraphs with ${NUMBER_OF_DRPS} operations each for set wins map and merge with random operations`,
+	`Create 2 HashGraphs with ${NUMBER_OF_OPERATIONS} operations each for set wins map and merge with random operations`,
 	() => {
 		function initialize(drp: MapDRP<number, number>) {
 			for (let i = 0; i < 250; i += 4) {

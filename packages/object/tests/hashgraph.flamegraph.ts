@@ -1,24 +1,26 @@
-import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
-import { DRPObject } from "../src/index.js";
+import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
 
-type DRPManipulationStrategy = (
-	drp: AddWinsSet<number>,
-	vertex: number,
-) => void;
+const acl = new ObjectACL({
+	admins: new Map([
+		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+	]),
+});
+
+type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
 
 const createWithStrategy = (
 	peerId: number,
 	verticesPerDRP: number,
 	strategy: DRPManipulationStrategy,
 ): DRPObject => {
-	const obj = new DRPObject(
-		`peer${peerId + 1}`,
-		new AddWinsSet<number>(),
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		null as any,
-	);
+	const obj = new DRPObject({
+		peerId: `peer1_${peerId}`,
+		acl,
+		drp: new SetDRP<number>(),
+	});
 
-	const drp = obj.drp as AddWinsSet<number>;
+	const drp = obj.drp as SetDRP<number>;
 
 	Array.from({ length: verticesPerDRP }).forEach((_, vertex) => {
 		strategy(drp, vertex);
@@ -27,14 +29,14 @@ const createWithStrategy = (
 	return obj;
 };
 const manipulationStrategies: DRPManipulationStrategy[] = [
-	(drp, vertex) => drp.add(vertex),
-	(drp, vertex) => {
-		drp.remove(vertex);
-		drp.add(vertex);
+	(drp, value) => drp.add(value),
+	(drp, value) => {
+		drp.delete(value);
+		drp.add(value);
 	},
-	(drp, vertex) => {
-		drp.add(vertex);
-		drp.remove(vertex);
+	(drp, value) => {
+		drp.add(value);
+		drp.delete(value);
 	},
 ];
 
