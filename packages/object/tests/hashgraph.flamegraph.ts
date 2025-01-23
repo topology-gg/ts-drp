@@ -63,7 +63,7 @@ function mergeObjects(objects: DRPObject[]): void {
 	});
 }
 
-function flamegraphForAddWinSet(
+function flamegraphForSetDRP(
 	numDRPs: number,
 	verticesPerDRP: number,
 	mergeFn: boolean,
@@ -75,4 +75,4 @@ function flamegraphForAddWinSet(
 	}
 }
 
-flamegraphForAddWinSet(1, 1000, false);
+flamegraphForSetDRP(1, 1000, false);
