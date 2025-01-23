@@ -16,4 +16,4 @@ jobs:
         with:
           version: latest
       - name: Run ESLint
-        run: pnpm run lint
+        run: eslint . --ext .js,.jsx,.ts,.tsx
