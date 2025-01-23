@@ -9,11 +9,9 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Setup ESLint
-        uses: sibiraj-s/action-eslint@v3
-        with:
-          version: latest
       - name: Run ESLint
-        run: eslint . --ext .js,.jsx,.ts,.tsx
+        uses: stefanoeb/eslint-action@1.0.2
+        with:
+          files: .
