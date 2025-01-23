@@ -183,8 +183,6 @@ export class DRPNetworkNode {
 					: {}),
 			},
 			connectionManager: {
-				// we would need something to know when we are in a browser context to add a maxConnections
-				// maxConnections: 20,
 				addressSorter: this._sortAddresses,
 			},
 			connectionEncrypters: [noise()],
