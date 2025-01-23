@@ -93,9 +93,8 @@ describe("HashGraph construction tests", () => {
 				new Uint8Array(),
 			);
 		}).toThrowError("Vertex dependencies are empty.");
-		expect(
-			() => {
-				obj1.hashGraph.addVertex(
+		expect(() => {
+			obj1.hashGraph.addVertex(
 				{
 					opType: "add",
 					value: [1],
@@ -105,9 +104,8 @@ describe("HashGraph construction tests", () => {
 				"",
 				Date.now(),
 				new Uint8Array(),
-			)
-			}
-		).toThrowError("Invalid dependency detected.");
+			);
+		}).toThrowError("Invalid dependency detected.");
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(true);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
