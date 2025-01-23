@@ -61,7 +61,7 @@ benchmarkForAddWinSet(
 );
 
 benchmarkForAddWinSet(
-	`Create 2 DRP Objects (${NUMBER_OF_OPERATIONS} vertices each) and Merge`,
+	`Create 2 DRP Objects ${NUMBER_OF_OPERATIONS} vertices each) and Merge`,
 	2,
 	NUMBER_OF_OPERATIONS,
 	true,
