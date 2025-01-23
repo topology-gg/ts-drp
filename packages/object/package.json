@@ -20,7 +20,7 @@
 		"benchmark": "tsx tests/hashgraph.bench.ts | tee benchmark-output.txt",
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
-		"flamegraph": "perf record -F 99 -a -g -o flamegraph.data -- pnpm exec tsx --perf-basic-prof tests/hashgraph.flamegraph.ts && ./scripts/export_svg.sh ",
+		"flamegraph": "perf record -F 99 -a -g -o flamegraph.data -- pnpm tsx tests/hashgraph.flamegraph.ts && ./scripts/export_svg.sh ",
 		"prepack": "tsc -b",
 		"test": "vitest",
 		"watch": "tsc -b -w"
