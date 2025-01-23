@@ -7,7 +7,7 @@ on:
 
 jobs:
   quality:
-    name: Run benchmark
+    name: Run linter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
