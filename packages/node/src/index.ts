@@ -106,9 +106,9 @@ export class DRPNode {
 			id: options.id,
 		});
 		operations.createObject(this, object);
-		operations.subscribeObject(this, object.id);
+		await operations.subscribeObject(this, object.id);
 		if (options.sync?.enabled) {
-			operations.syncObject(this, object.id, options.sync.peerId);
+			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
 		return object;
 	}

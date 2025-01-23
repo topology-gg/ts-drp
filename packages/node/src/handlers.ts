@@ -89,7 +89,9 @@ function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		type: NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE_RESPONSE,
 		data: NetworkPb.FetchStateResponse.encode(response).finish(),
 	});
-	node.networkNode.sendMessage(sender, message);
+	node.networkNode.sendMessage(sender, message).catch((e) => {
+		log.error("::fetchStateHandler: Error sending message", e);
+	});
 }
 
 function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
