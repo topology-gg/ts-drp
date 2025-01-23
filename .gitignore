@@ -13,3 +13,5 @@ coverage/*
 
 packages/object/benchmark-output.txt
 packages/object/isolate-*.log
+
+packages/object/flamegraph.*
