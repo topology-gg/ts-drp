@@ -17,4 +17,7 @@ export default defineConfig({
 			"@ts-drp": path.resolve(__dirname, "../../packages"),
 		},
 	},
+	server: {
+		allowedHosts: true
+	}
 });
