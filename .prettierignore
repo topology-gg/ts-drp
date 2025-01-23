@@ -71,6 +71,7 @@ vite.config.ts
 **/docs/*
 **/doc/*
 **/*_pb.js
+**/*_pb.ts
 **/*clear.ts
 **/serializer.ts
 **/bundle/*
