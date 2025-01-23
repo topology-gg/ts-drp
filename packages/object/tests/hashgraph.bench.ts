@@ -67,17 +67,20 @@ benchmarkForAddWinSet(
 	true,
 );
 
-suite.add("Create a HashGraph with NUMBER_OF_DRPS operations for set wins map", () => {
-	const object: DRPObject = new DRPObject({
-		peerId: "peer1",
-		acl,
-		drp: new MapDRP<number, number>(),
-	});
-	const drp = object.drp as MapDRP<number, number>;
-	for (let i = 0; i < NUMBER_OF_DRPS; ++i) {
-		drp.set(i, i);
-	}
-});
+suite.add(
+	"Create a HashGraph with NUMBER_OF_DRPS operations for set wins map",
+	() => {
+		const object: DRPObject = new DRPObject({
+			peerId: "peer1",
+			acl,
+			drp: new MapDRP<number, number>(),
+		});
+		const drp = object.drp as MapDRP<number, number>;
+		for (let i = 0; i < NUMBER_OF_DRPS; ++i) {
+			drp.set(i, i);
+		}
+	},
+);
 
 suite.add(
 	`Create a HashGraph with ${NUMBER_OF_DRPS} operations for set wins map`,
