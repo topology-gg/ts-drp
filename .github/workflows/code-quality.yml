@@ -19,6 +19,4 @@ jobs:
           pnpm install --no-frozen-lockfile
 
       - shell: bash
-        run: |
-          cd packages/object
-          pnpm run lint
+        run: pnpm run lint
