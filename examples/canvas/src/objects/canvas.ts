@@ -1,9 +1,5 @@
-import {
-	ActionType,
-	type DRP,
-	type ResolveConflictsType,
-	SemanticsType,
-} from "@ts-drp/object";
+import { ActionType, type DRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/object";
+
 import { Pixel } from "./pixel";
 
 export class Canvas implements DRP {
@@ -17,15 +13,11 @@ export class Canvas implements DRP {
 		this.width = width;
 		this.height = height;
 		this.canvas = Array.from(new Array(width), () =>
-			Array.from(new Array(height), () => new Pixel()),
+			Array.from(new Array(height), () => new Pixel())
 		);
 	}
 
-	splash(
-		offset: [number, number],
-		size: [number, number],
-		rgb: [number, number, number],
-	): void {
+	splash(offset: [number, number], size: [number, number], rgb: [number, number, number]): void {
 		if (offset[0] < 0 || this.width < offset[0]) return;
 		if (offset[1] < 0 || this.height < offset[1]) return;
 

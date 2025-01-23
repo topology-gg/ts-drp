@@ -1,13 +1,18 @@
-.env
-.DS_Store
+**/.env
+**/.DS_Store
+**/messages_grpc_pb.js
+**/object_grpc_pb.js
 
 dist/
 docs/
 node_modules/
 
 **/tsconfig.tsbuildinfo
-coverage/*
+**/coverage/*
 .vscode/*
 
-**/messages_grpc_pb.js
-**/object_grpc_pb.js
+**/benchmark-output.txt
+*.log
+
+**/flamegraph.*
+!**/flamegraph.sh

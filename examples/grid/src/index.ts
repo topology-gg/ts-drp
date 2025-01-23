@@ -1,5 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
+
 import { Grid } from "./objects/grid";
 import { hslToRgb, rgbToHex, rgbToHsl } from "./util/color";
 
@@ -33,6 +34,7 @@ const getColorForPeerId = (id: string): string => {
 		let b = hash & 0x0000ff;
 
 		// Convert to HSL and adjust lightness to be below 50%
+		// eslint-disable-next-line prefer-const
 		let [h, s, l] = rgbToHsl(r, g, b);
 		l = l * 0.5; // Set lightness to below 50%
 
@@ -46,9 +48,7 @@ const getColorForPeerId = (id: string): string => {
 
 const render = () => {
 	if (drpObject) {
-		const gridIdTextElement = <HTMLSpanElement>(
-			document.getElementById("gridIdText")
-		);
+		const gridIdTextElement = <HTMLSpanElement>document.getElementById("gridIdText");
 		gridIdTextElement.innerText = `You're in GRID ID:`;
 		const gridIdElement = <HTMLSpanElement>document.getElementById("gridId");
 		gridIdElement.innerText = drpObject.id;
@@ -69,14 +69,10 @@ const render = () => {
 	const element_peers = <HTMLDivElement>document.getElementById("peers");
 	element_peers.innerHTML = `[${peers.map((peer) => `<strong style="color: ${getColorForPeerId(peer)};">${formatPeerId(peer)}</strong>`).join(", ")}]`;
 
-	const element_discoveryPeers = <HTMLDivElement>(
-		document.getElementById("discoveryPeers")
-	);
+	const element_discoveryPeers = <HTMLDivElement>document.getElementById("discoveryPeers");
 	element_discoveryPeers.innerHTML = `[${discoveryPeers.map((peer) => `<strong style="color: ${getColorForPeerId(peer)};">${formatPeerId(peer)}</strong>`).join(", ")}]`;
 
-	const element_objectPeers = <HTMLDivElement>(
-		document.getElementById("objectPeers")
-	);
+	const element_objectPeers = <HTMLDivElement>document.getElementById("objectPeers");
 	element_objectPeers.innerHTML = !gridDRP
 		? ""
 		: `Your frens in GRID: [${objectPeers.map((peer) => `<strong style="color: ${getColorForPeerId(peer)};">${formatPeerId(peer)}</strong>`).join(", ")}]`;
@@ -177,14 +173,11 @@ async function addUser() {
 		return;
 	}
 
-	gridDRP.addUser(
-		node.networkNode.peerId,
-		getColorForPeerId(node.networkNode.peerId),
-	);
+	gridDRP.addUser(node.networkNode.peerId, getColorForPeerId(node.networkNode.peerId));
 	render();
 }
 
-async function moveUser(direction: string) {
+function moveUser(direction: string) {
 	if (!gridDRP) {
 		console.error("Grid DRP not initialized");
 		alert("Please create or join a grid first");
@@ -216,28 +209,25 @@ async function main() {
 		render();
 	});
 
-	const button_create = <HTMLButtonElement>(
-		document.getElementById("createGrid")
-	);
+	const button_create = <HTMLButtonElement>document.getElementById("createGrid");
 	button_create.addEventListener("click", async () => {
 		drpObject = await node.createObject({ drp: new Grid() });
 		gridDRP = drpObject.drp as Grid;
-		createConnectHandlers();
+		await createConnectHandlers();
 		await addUser();
 		render();
 	});
 
 	const button_connect = <HTMLButtonElement>document.getElementById("joinGrid");
 	button_connect.addEventListener("click", async () => {
-		const drpId = (<HTMLInputElement>document.getElementById("gridInput"))
-			.value;
+		const drpId = (<HTMLInputElement>document.getElementById("gridInput")).value;
 		try {
 			drpObject = await node.connectObject({
 				id: drpId,
 				drp: new Grid(),
 			});
 			gridDRP = drpObject.drp as Grid;
-			createConnectHandlers();
+			await createConnectHandlers();
 			await addUser();
 			render();
 			console.log("Succeeded in connecting with DRP", drpId);
@@ -246,7 +236,7 @@ async function main() {
 		}
 	});
 
-	document.addEventListener("keydown", (event) => {
+	document.addEventListener("keydown", async (event) => {
 		if (event.key === "w") moveUser("U");
 		if (event.key === "a") moveUser("L");
 		if (event.key === "s") moveUser("D");
@@ -255,8 +245,7 @@ async function main() {
 
 	const copyButton = <HTMLButtonElement>document.getElementById("copyGridId");
 	copyButton.addEventListener("click", () => {
-		const gridIdText = (<HTMLSpanElement>document.getElementById("gridId"))
-			.innerText;
+		const gridIdText = (<HTMLSpanElement>document.getElementById("gridId")).innerText;
 		navigator.clipboard
 			.writeText(gridIdText)
 			.then(() => {
@@ -268,4 +257,4 @@ async function main() {
 	});
 }
 
-main();
+void main();

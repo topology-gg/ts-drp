@@ -1,27 +1,16 @@
-import type { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
+import type { ACL } from "@ts-drp/blueprints/src/ACL/index.js";
+import { AddWinsSet } from "@ts-drp/blueprints/src/AddWinsSet/index.js";
 import { bench, describe } from "vitest";
-import { AddWinsSet } from "../../blueprints/src/AddWinsSet/index.js";
+
 import { DRPObject, type Hash } from "../src/index.js";
 
 describe("AreCausallyDependent benchmark", async () => {
 	const samples = 100000;
 	const tests: Hash[][] = [];
 
-	const obj1 = new DRPObject(
-		"peer1",
-		new AddWinsSet<number>(),
-		null as unknown as ACL,
-	);
-	const obj2 = new DRPObject(
-		"peer2",
-		new AddWinsSet<number>(),
-		null as unknown as ACL,
-	);
-	const obj3 = new DRPObject(
-		"peer3",
-		new AddWinsSet<number>(),
-		null as unknown as ACL,
-	);
+	const obj1 = new DRPObject("peer1", new AddWinsSet<number>(), null as unknown as ACL);
+	const obj2 = new DRPObject("peer2", new AddWinsSet<number>(), null as unknown as ACL);
+	const obj3 = new DRPObject("peer3", new AddWinsSet<number>(), null as unknown as ACL);
 
 	const drp1 = obj1.drp as AddWinsSet<number>;
 	const drp2 = obj2.drp as AddWinsSet<number>;

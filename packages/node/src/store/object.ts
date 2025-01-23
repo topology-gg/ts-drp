@@ -1,9 +1,6 @@
 import type { DRPObject } from "@ts-drp/object";
 
-export type DRPObjectStoreCallback = (
-	objectId: string,
-	object: DRPObject,
-) => void;
+export type DRPObjectStoreCallback = (objectId: string, object: DRPObject) => void;
 
 export class DRPObjectStore {
 	private _store: Map<string, DRPObject>;
@@ -35,7 +32,7 @@ export class DRPObjectStore {
 		if (callbacks) {
 			this._subscriptions.set(
 				objectId,
-				callbacks.filter((c) => c !== callback),
+				callbacks.filter((c) => c !== callback)
 			);
 		}
 	}

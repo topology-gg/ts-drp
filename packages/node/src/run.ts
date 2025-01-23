@@ -4,7 +4,7 @@ import { DRPNode } from "./index.js";
 import type { DRPNodeConfig } from "./index.js";
 import { init as rpc_init } from "./rpc/index.js";
 
-const run = async () => {
+export const run = async () => {
 	program.parse(process.argv);
 	const opts = program.opts();
 	const config: DRPNodeConfig | undefined = loadConfig(opts.config);
@@ -14,4 +14,4 @@ const run = async () => {
 	rpc_init(node);
 };
 
-run();
+run().catch((e) => console.error("Failed to start node: ", e));

@@ -1,44 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DRP - Local env</title>
-  </head>
-  <body>
-    <div>
-      <h1>DRP - Local bootstrap connect</h1>
-      <p>Test the connection to a boostrap node and connect your local peers.</p>
-      <p>
-        <fieldset id="fieldset_connect_bootstrap_node">
-          <legend>Connect to a bootstrap node</legend>
-          <form id="form_connect_to_bootstrap_node" type="post">
-            <table>
-              <tr><td>Host address type</td><td>
-                <select id="bootstrap_node_host_address_type">
-                  <option value="ip4">IPv4 address</option>
-                  <option value="dns4">DNS address</option>
-                </select>
-              </td></tr>
-              <tr><td><span id="bootstrap_addr_type"></span></td><td><input type="text" value="127.0.0.1" placeholder="0.0.0.0" id="bootstrap_node_addr"/></td></tr>
-              <tr><td>Port</td><td><input type="text" value="50000" placeholder="00000" id="bootstrap_node_port"/></td></tr>
-              <tr><td>Peer ID</td><td><input type="text" placeholder="12D3..." id="bootstrap_node_peer_id"/></td></tr>
-              <tr><td>Web socket protocol</td><td>
-                <input type="radio" id="ws" name="websocket_protocol" checked>
-                <label for="ws">ws</label>
-                <input type="radio" id="wss" name="websocket_protocol">
-                <label for="wss">wss</label>
-              </td></tr>
-              <tr><td></td><td><button type="submit">Connect</button></td></tr>
-            </table>
-          </form>
-        </fieldset>
-      </p>
-      <p>Connecting to bootstrap node: <span id="bootstrapNode"></span></p>
-      <p>Current peer ID: <span id="peerId"></span></p>
-      <p>peers: <span id="peers"></span></p>
-    </div>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>DRP - Local env</title>
+	</head>
+	<body>
+		<div>
+			<h1>DRP - Local bootstrap connect</h1>
+			<p>Test the connection to a boostrap node and connect your local peers.</p>
+			<fieldset id="fieldset_connect_bootstrap_node">
+				<legend>Connect to a bootstrap node</legend>
+				<form id="form_connect_to_bootstrap_node" type="post">
+					<table>
+						<tr>
+							<td>Host address type</td>
+							<td>
+								<select id="bootstrap_node_host_address_type">
+									<option value="ip4">IPv4 address</option>
+									<option value="dns4">DNS address</option>
+								</select>
+							</td>
+						</tr>
+						<tr>
+							<td><span id="bootstrap_addr_type"></span></td>
+							<td>
+								<input
+									type="text"
+									value="127.0.0.1"
+									placeholder="0.0.0.0"
+									id="bootstrap_node_addr"
+								/>
+							</td>
+						</tr>
+						<tr>
+							<td>Port</td>
+							<td>
+								<input type="text" value="50000" placeholder="00000" id="bootstrap_node_port" />
+							</td>
+						</tr>
+						<tr>
+							<td>Peer ID</td>
+							<td><input type="text" placeholder="12D3..." id="bootstrap_node_peer_id" /></td>
+						</tr>
+						<tr>
+							<td>Web socket protocol</td>
+							<td>
+								<input type="radio" id="ws" name="websocket_protocol" checked />
+								<label for="ws">ws</label>
+								<input type="radio" id="wss" name="websocket_protocol" />
+								<label for="wss">wss</label>
+							</td>
+						</tr>
+						<tr>
+							<td></td>
+							<td><button type="submit">Connect</button></td>
+						</tr>
+					</table>
+				</form>
+			</fieldset>
+			<p>Connecting to bootstrap node: <span id="bootstrapNode"></span></p>
+			<p>Current peer ID: <span id="peerId"></span></p>
+			<p>peers: <span id="peers"></span></p>
+		</div>
 
-    <script type="module" src="/src/index.ts"></script>
-  </body>
+		<script type="module" src="/src/index.ts"></script>
+	</body>
 </html>

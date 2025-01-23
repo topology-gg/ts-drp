@@ -1,9 +1,4 @@
-import type {
-	Operation,
-	ResolveConflictsType,
-	SemanticsType,
-	Vertex,
-} from "./hashgraph/index.js";
+import type { Operation, ResolveConflictsType, SemanticsType, Vertex } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";
 import type * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 
@@ -15,7 +10,7 @@ export enum DrpType {
 export type DRPObjectCallback = (
 	object: DRPObject,
 	origin: string,
-	vertices: ObjectPb.Vertex[],
+	vertices: ObjectPb.Vertex[]
 ) => void;
 
 export interface DRPPublicCredential {
@@ -26,7 +21,7 @@ export interface DRPPublicCredential {
 export interface DRP {
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	// biome-ignore lint: attributes can be anything
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 }
 

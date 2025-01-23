@@ -6,7 +6,7 @@ export function serializeValue(obj: any): Uint8Array {
 }
 
 export function deserializeValue(value: any): any {
-	const bytes = new Uint8Array(_objectValues(value))
+	const bytes = new Uint8Array(_objectValues(value));
 	const v = Value.decode(bytes);
 	const unwrapped = Value.unwrap(v);
 	return _deserializeFromJSON(unwrapped);
@@ -99,10 +99,7 @@ function _deserializeFromJSON(obj: any): any {
 
 			case "Map":
 				return new Map(
-					obj.value.map(([k, v]: [any, any]) => [
-						_deserializeFromJSON(k),
-						_deserializeFromJSON(v),
-					]),
+					obj.value.map(([k, v]: [any, any]) => [_deserializeFromJSON(k), _deserializeFromJSON(v)])
 				);
 
 			case "Set":
@@ -123,7 +120,7 @@ function _deserializeFromJSON(obj: any): any {
 					if (typeof CustomClass === "function") {
 						return Object.assign(
 							new CustomClass(),
-							_deserializeFromJSON({ ...obj, __type: undefined }),
+							_deserializeFromJSON({ ...obj, __type: undefined })
 						);
 					}
 				} catch (e) {

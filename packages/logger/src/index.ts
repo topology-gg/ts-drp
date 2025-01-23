@@ -7,7 +7,7 @@ export interface LoggerOptions {
 
 export class Logger {
 	private log: loglevel.Logger;
-	// biome-ignore lint/suspicious/noExplicitAny: Do this to allow any method to be called on the logger
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 
 	constructor(context: string, config?: LoggerOptions) {

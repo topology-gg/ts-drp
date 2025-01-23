@@ -1,12 +1,13 @@
 import { NetworkPb } from "@ts-drp/network";
 import { type DRP, DRPObject, HashGraph } from "@ts-drp/object";
+
 import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
 export function createObject(node: DRPNode, object: DRPObject) {
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) =>
-		drpObjectChangesHandler(node, obj, originFn, vertices),
+		drpObjectChangesHandler(node, obj, originFn, vertices)
 	);
 }
 
@@ -14,7 +15,7 @@ export async function connectObject(
 	node: DRPNode,
 	id: string,
 	drp?: DRP,
-	peerId?: string,
+	peerId?: string
 ): Promise<DRPObject> {
 	const object = DRPObject.createObject({
 		peerId: node.networkNode.peerId,
@@ -28,9 +29,9 @@ export async function connectObject(
 	const retry = setInterval(async () => {
 		if (object.acl) {
 			await syncObject(node, id, peerId);
-			subscribeObject(node, id);
+			await subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) =>
-				drpObjectChangesHandler(node, obj, originFn, vertices),
+				drpObjectChangesHandler(node, obj, originFn, vertices)
 			);
 			clearInterval(retry);
 		}
@@ -43,24 +44,16 @@ export async function subscribeObject(node: DRPNode, objectId: string) {
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(
 		objectId,
-		async (e) => await drpMessagesHandler(node, undefined, e.detail.msg.data),
+		async (e) => await drpMessagesHandler(node, undefined, e.detail.msg.data)
 	);
 }
 
-export function unsubscribeObject(
-	node: DRPNode,
-	objectId: string,
-	purge?: boolean,
-) {
+export function unsubscribeObject(node: DRPNode, objectId: string, purge?: boolean) {
 	node.networkNode.unsubscribe(objectId);
 	if (purge) node.objectStore.remove(objectId);
 }
 
-export async function fetchState(
-	node: DRPNode,
-	objectId: string,
-	peerId?: string,
-) {
+export async function fetchState(node: DRPNode, objectId: string, peerId?: string) {
 	const data = NetworkPb.FetchState.create({
 		objectId,
 		vertexHash: HashGraph.rootHash,
@@ -81,11 +74,7 @@ export async function fetchState(
 /*
   data: { vertex_hashes: string[] }
 */
-export async function syncObject(
-	node: DRPNode,
-	objectId: string,
-	peerId?: string,
-) {
+export async function syncObject(node: DRPNode, objectId: string, peerId?: string) {
 	const object: DRPObject | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");

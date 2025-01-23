@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
+
 import { DRPObject } from "../src/index.js";
 
 describe("AccessControl tests with RevokeWins resolution", () => {
@@ -6,7 +7,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 
 	test("Test creating DRPObject wo/ ACL and publicCred", () => {
 		expect(() => new DRPObject({ peerId: "" })).toThrow(
-			"Either publicCredential or acl must be provided to create a DRPObject",
+			"Either publicCredential or acl must be provided to create a DRPObject"
 		);
 	});
 

@@ -1,5 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
+
 import { Chat } from "./objects/chat";
 
 const node = new DRPNode();
@@ -10,23 +11,17 @@ let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 
 const render = () => {
-	if (drpObject)
-		(<HTMLButtonElement>document.getElementById("chatId")).innerText =
-			drpObject.id;
+	if (drpObject) (<HTMLButtonElement>document.getElementById("chatId")).innerText = drpObject.id;
 	const element_peerId = <HTMLDivElement>document.getElementById("peerId");
 	element_peerId.innerHTML = node.networkNode.peerId;
 
 	const element_peers = <HTMLDivElement>document.getElementById("peers");
 	element_peers.innerHTML = `[${peers.join(", ")}]`;
 
-	const element_discoveryPeers = <HTMLDivElement>(
-		document.getElementById("discoveryPeers")
-	);
+	const element_discoveryPeers = <HTMLDivElement>document.getElementById("discoveryPeers");
 	element_discoveryPeers.innerHTML = `[${discoveryPeers.join(", ")}]`;
 
-	const element_objectPeers = <HTMLDivElement>(
-		document.getElementById("objectPeers")
-	);
+	const element_objectPeers = <HTMLDivElement>document.getElementById("objectPeers");
 	element_objectPeers.innerHTML = `[${objectPeers.join(", ")}]`;
 
 	if (!chatDRP) return;
@@ -84,21 +79,17 @@ async function main() {
 		render();
 	});
 
-	const button_create = <HTMLButtonElement>(
-		document.getElementById("createRoom")
-	);
+	const button_create = <HTMLButtonElement>document.getElementById("createRoom");
 	button_create.addEventListener("click", async () => {
 		drpObject = await node.createObject({ drp: new Chat() });
 		chatDRP = drpObject.drp as Chat;
-		createConnectHandlers();
+		await createConnectHandlers();
 		render();
 	});
 
 	const button_connect = <HTMLButtonElement>document.getElementById("joinRoom");
 	button_connect.addEventListener("click", async () => {
-		const input: HTMLInputElement = <HTMLInputElement>(
-			document.getElementById("roomInput")
-		);
+		const input: HTMLInputElement = <HTMLInputElement>document.getElementById("roomInput");
 		const objectId = input.value;
 		if (!objectId) {
 			alert("Please enter a room id");
@@ -107,15 +98,13 @@ async function main() {
 
 		drpObject = await node.createObject({ id: objectId, drp: new Chat() });
 		chatDRP = drpObject.drp as Chat;
-		createConnectHandlers();
+		await createConnectHandlers();
 		render();
 	});
 
 	const button_send = <HTMLButtonElement>document.getElementById("sendMessage");
 	button_send.addEventListener("click", async () => {
-		const input: HTMLInputElement = <HTMLInputElement>(
-			document.getElementById("messageInput")
-		);
+		const input: HTMLInputElement = <HTMLInputElement>document.getElementById("messageInput");
 		const message: string = input.value;
 		input.value = "";
 		if (!message) {
@@ -129,4 +118,4 @@ async function main() {
 	});
 }
 
-main();
+void main();

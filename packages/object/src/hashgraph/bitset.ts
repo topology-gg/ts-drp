@@ -18,11 +18,7 @@ export class BitSet {
 	}
 
 	toBytes(): Uint8Array {
-		const data = new Uint8Array(
-			this.data.buffer,
-			this.data.byteOffset,
-			this.data.byteLength,
-		);
+		const data = new Uint8Array(this.data.buffer, this.data.byteOffset, this.data.byteLength);
 		return data.slice();
 	}
 

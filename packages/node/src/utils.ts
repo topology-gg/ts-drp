@@ -1,8 +1,6 @@
 import { ObjectPb, deserializeValue, serializeValue } from "@ts-drp/object";
 
-export function serializeStateMessage(
-	state?: ObjectPb.DRPState,
-): ObjectPb.DRPState {
+export function serializeStateMessage(state?: ObjectPb.DRPState): ObjectPb.DRPState {
 	const drpState = ObjectPb.DRPState.create();
 	for (const e of state?.state ?? []) {
 		const entry = ObjectPb.DRPStateEntry.create({
@@ -14,9 +12,7 @@ export function serializeStateMessage(
 	return drpState;
 }
 
-export function deserializeStateMessage(
-	state?: ObjectPb.DRPState,
-): ObjectPb.DRPState {
+export function deserializeStateMessage(state?: ObjectPb.DRPState): ObjectPb.DRPState {
 	const drpState = ObjectPb.DRPState.create();
 	for (const e of state?.state ?? []) {
 		const entry = ObjectPb.DRPStateEntry.create({

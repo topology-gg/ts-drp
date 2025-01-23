@@ -1,8 +1,4 @@
-export const rgbToHsl = (
-	rInt: number,
-	gInt: number,
-	bInt: number,
-): [number, number, number] => {
+export const rgbToHsl = (rInt: number, gInt: number, bInt: number): [number, number, number] => {
 	const r = rInt / 255;
 	const g = gInt / 255;
 	const b = bInt / 255;
@@ -33,11 +29,7 @@ export const rgbToHsl = (
 	return [h * 360, s, l];
 };
 
-export const hslToRgb = (
-	h: number,
-	s: number,
-	l: number,
-): [number, number, number] => {
+export const hslToRgb = (h: number, s: number, l: number): [number, number, number] => {
 	let r: number;
 	let g: number;
 	let b: number;

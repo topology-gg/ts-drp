@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
+
 import { BitSet } from "../src/hashgraph/bitset.js";
 
 describe("BitSet Test", () => {

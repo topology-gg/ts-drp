@@ -3,6 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+
 import {
 	signFinalityVertices,
 	signGeneratedVertices,
@@ -23,10 +24,7 @@ describe("DPRNode with verify and sign signature", () => {
 		drp = new SetDRP();
 		const acl = new ObjectACL({
 			admins: new Map([
-				[
-					drpNode.networkNode.peerId,
-					drpNode.credentialStore.getPublicCredential(),
-				],
+				[drpNode.networkNode.peerId, drpNode.credentialStore.getPublicCredential()],
 			]),
 		});
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
@@ -133,9 +131,7 @@ describe("DRPNode voting tests", () => {
 
 	beforeEach(async () => {
 		const acl = new ObjectACL({
-			admins: new Map([
-				[nodeA.networkNode.peerId, nodeA.credentialStore.getPublicCredential()],
-			]),
+			admins: new Map([[nodeA.networkNode.peerId, nodeA.credentialStore.getPublicCredential()]]),
 		});
 
 		obj1 = new DRPObject({
@@ -161,23 +157,21 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
-			ACLGroup.Finality,
+			ACLGroup.Finality
 		);
 		drp1.add(1);
 
 		obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
-			(v) => v.operation?.value !== null && v.operation?.value[0] === 1,
+			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
 		) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeB, obj2, [V1]);
 
-		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V1.hash)).toBe(
-			true,
-		);
+		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V1.hash)).toBe(true);
 		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
-			nodeB.credentialStore.signWithBls(V1.hash),
+			nodeB.credentialStore.signWithBls(V1.hash)
 		);
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 	});
@@ -191,31 +185,23 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
-			ACLGroup.Writer,
+			ACLGroup.Writer
 		);
 		drp1.add(1);
-		acl1.revoke(
-			nodeA.networkNode.peerId,
-			nodeB.networkNode.peerId,
-			ACLGroup.Writer,
-		);
+		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
 		drp1.add(2);
 
 		obj2.merge(obj1.vertices);
 		const V2 = obj2.vertices.find(
-			(v) => v.operation?.value !== null && v.operation?.value[0] === 2,
+			(v) => v.operation?.value !== null && v.operation?.value[0] === 2
 		) as Vertex;
 		expect(V2 !== undefined).toBe(true);
 
 		signFinalityVertices(nodeB, obj2, [V2]);
 
-		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V2.hash)).toBe(
-			false,
-		);
+		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V2.hash)).toBe(false);
 
-		expect(
-			obj2.finalityStore.getAttestation(V2.hash)?.signature,
-		).toBeUndefined();
+		expect(obj2.finalityStore.getAttestation(V2.hash)?.signature).toBeUndefined();
 		expect(obj2.finalityStore.getNumberOfSignatures(V2.hash)).toBe(0);
 	});
 
@@ -228,13 +214,13 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			nodeB.credentialStore.getPublicCredential(),
-			ACLGroup.Finality,
+			ACLGroup.Finality
 		);
 		drp1.add(1);
 
 		obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
-			(v) => v.operation?.value !== null && v.operation?.value[0] === 1,
+			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
 		) as Vertex;
 		expect(V1 !== undefined).toBe(true);
 
@@ -247,7 +233,7 @@ describe("DRPNode voting tests", () => {
 			bls.aggregateSignatures([
 				nodeA.credentialStore.signWithBls(V1.hash),
 				nodeB.credentialStore.signWithBls(V1.hash),
-			]),
+			])
 		);
 	});
 });

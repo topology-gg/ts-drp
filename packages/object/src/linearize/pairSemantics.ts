@@ -1,15 +1,10 @@
-import {
-	ActionType,
-	type Hash,
-	type HashGraph,
-	type Operation,
-} from "../hashgraph/index.js";
+import { ActionType, type Hash, type HashGraph, type Operation } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizePairSemantics(
 	hashGraph: HashGraph,
 	origin: Hash,
-	subgraph: ObjectSet<string>,
+	subgraph: ObjectSet<string>
 ): Operation[] {
 	const order: Hash[] = hashGraph.topologicalSort(true, origin, subgraph);
 	const dropped = new Array(order.length).fill(false);
@@ -22,14 +17,11 @@ export function linearizePairSemantics(
 			i++;
 			continue;
 		}
-		const anchor = order[i];
+		let anchor = order[i];
 		let j = i + 1;
 
 		while (j < order.length) {
-			if (
-				hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) ||
-				dropped[j]
-			) {
+			if (hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) || dropped[j]) {
 				j++;
 				continue;
 			}
@@ -54,8 +46,10 @@ export function linearizePairSemantics(
 					j++;
 					break;
 				case ActionType.Swap:
+					hashGraph.swapReachablePredecessors(order[i], order[j]);
 					[order[i], order[j]] = [order[j], order[i]];
 					j = i + 1;
+					anchor = order[i];
 					break;
 				case ActionType.Nop:
 					j++;

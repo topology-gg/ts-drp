@@ -1,13 +1,11 @@
 import * as crypto from "node:crypto";
+
 import { log } from "../index.js";
+import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
-import type {
-	Vertex_Operation as Operation,
-	Vertex,
-} from "../proto/drp/object/v1/object_pb.js";
+import type { Vertex_Operation as Operation, Vertex } from "../proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "../utils/objectSet.js";
-import { BitSet } from "./bitset.js";
 
 // Reexporting the Vertex and Operation types from the protobuf file
 export type { Vertex, Operation };
@@ -72,7 +70,7 @@ export class HashGraph {
 		peerId: string,
 		resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType,
 		resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType,
-		semanticsTypeDRP?: SemanticsType,
+		semanticsTypeDRP?: SemanticsType
 	) {
 		this.peerId = peerId;
 		this.resolveConflictsACL = resolveConflictsACL;
@@ -163,7 +161,7 @@ export class HashGraph {
 		deps: Hash[],
 		peerId: string,
 		timestamp: number,
-		signature: Uint8Array,
+		signature: Uint8Array
 	): Hash {
 		const hash = computeHash(peerId, operation, deps, timestamp);
 		if (this.vertices.has(hash)) {
@@ -277,7 +275,7 @@ export class HashGraph {
 	topologicalSort(
 		updateBitsets = false,
 		origin: Hash = HashGraph.rootHash,
-		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys()),
+		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys())
 	): Hash[] {
 		const result = this.kahnsAlgorithm(origin, subgraph);
 		if (!updateBitsets) return result;
@@ -289,19 +287,13 @@ export class HashGraph {
 
 		for (let i = 0; i < result.length; i++) {
 			this.topoSortedIndex.set(result[i], i);
-			this.reachablePredecessors.set(
-				result[i],
-				new BitSet(this.currentBitsetSize),
-			);
+			this.reachablePredecessors.set(result[i], new BitSet(this.currentBitsetSize));
 			for (const dep of this.vertices.get(result[i])?.dependencies || []) {
 				const depReachable = this.reachablePredecessors.get(dep);
 				depReachable?.set(this.topoSortedIndex.get(dep) || 0, true);
 				if (depReachable) {
 					const reachable = this.reachablePredecessors.get(result[i]);
-					this.reachablePredecessors.set(
-						result[i],
-						reachable?.or(depReachable) || depReachable,
-					);
+					this.reachablePredecessors.set(result[i], reachable?.or(depReachable) || depReachable);
 				}
 			}
 		}
@@ -312,7 +304,7 @@ export class HashGraph {
 
 	linearizeOperations(
 		origin: Hash = HashGraph.rootHash,
-		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys()),
+		subgraph: ObjectSet<string> = new ObjectSet(this.vertices.keys())
 	): Operation[] {
 		switch (this.semanticsTypeDRP) {
 			case SemanticsType.pair:
@@ -324,10 +316,7 @@ export class HashGraph {
 		}
 	}
 
-	lowestCommonAncestorMultipleVertices(
-		hashes: Hash[],
-		visited: ObjectSet<Hash>,
-	): Hash {
+	lowestCommonAncestorMultipleVertices(hashes: Hash[], visited: ObjectSet<Hash>): Hash {
 		if (hashes.length === 0) {
 			throw new Error("Vertex dependencies are empty");
 		}
@@ -346,7 +335,7 @@ export class HashGraph {
 					lca,
 					targetVertices[i],
 					visited,
-					targetVertices,
+					targetVertices
 				);
 			}
 		}
@@ -360,7 +349,7 @@ export class HashGraph {
 		hash1: Hash,
 		hash2: Hash,
 		visited: ObjectSet<Hash>,
-		targetVertices: Hash[],
+		targetVertices: Hash[]
 	): Hash | undefined {
 		let currentHash1 = hash1;
 		let currentHash2 = hash2;
@@ -419,14 +408,18 @@ export class HashGraph {
 			this.topologicalSort(true);
 		}
 		const test1 =
-			this.reachablePredecessors
-				.get(hash1)
-				?.get(this.topoSortedIndex.get(hash2) || 0) || false;
+			this.reachablePredecessors.get(hash1)?.get(this.topoSortedIndex.get(hash2) || 0) || false;
 		const test2 =
-			this.reachablePredecessors
-				.get(hash2)
-				?.get(this.topoSortedIndex.get(hash1) || 0) || false;
+			this.reachablePredecessors.get(hash2)?.get(this.topoSortedIndex.get(hash1) || 0) || false;
 		return test1 || test2;
+	}
+
+	swapReachablePredecessors(hash1: Hash, hash2: Hash): void {
+		const reachable1 = this.reachablePredecessors.get(hash1);
+		const reachable2 = this.reachablePredecessors.get(hash2);
+		if (!reachable1 || !reachable2) return;
+		this.reachablePredecessors.set(hash1, reachable2);
+		this.reachablePredecessors.set(hash2, reachable1);
 	}
 
 	private _areCausallyRelatedUsingBFS(start: Hash, target: Hash): boolean {
@@ -484,10 +477,7 @@ export class HashGraph {
 			}
 		}
 
-		const topoOrder = this.kahnsAlgorithm(
-			HashGraph.rootHash,
-			new ObjectSet(this.vertices.keys()),
-		);
+		const topoOrder = this.kahnsAlgorithm(HashGraph.rootHash, new ObjectSet(this.vertices.keys()));
 
 		for (const vertex of this.getAllVertices()) {
 			if (!topoOrder.includes(vertex.hash)) {
@@ -535,12 +525,7 @@ export class HashGraph {
 	}
 }
 
-function computeHash(
-	peerId: string,
-	operation: Operation,
-	deps: Hash[],
-	timestamp: number,
-): Hash {
+function computeHash(peerId: string, operation: Operation, deps: Hash[], timestamp: number): Hash {
 	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;

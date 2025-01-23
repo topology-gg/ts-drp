@@ -1,12 +1,10 @@
 import bls from "@chainsafe/bls/herumi";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+
 import { BitSet } from "../hashgraph/bitset.js";
 import type { Hash } from "../hashgraph/index.js";
 import { type DRPPublicCredential, log } from "../index.js";
-import type {
-	AggregatedAttestation,
-	Attestation,
-} from "../proto/drp/object/v1/object_pb.js";
+import type { AggregatedAttestation, Attestation } from "../proto/drp/object/v1/object_pb.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
@@ -27,9 +25,7 @@ export class FinalityState {
 
 		// deterministic order
 		const peerIds = Array.from(signers.keys()).sort();
-		this.signerCredentials = peerIds.map((peerId) =>
-			signers.get(peerId),
-		) as DRPPublicCredential[];
+		this.signerCredentials = peerIds.map((peerId) => signers.get(peerId)) as DRPPublicCredential[];
 
 		this.signerIndices = new Map();
 		for (let i = 0; i < peerIds.length; i++) {
@@ -53,10 +49,7 @@ export class FinalityState {
 
 		if (verify) {
 			// verify signature validity
-			const publicKey = uint8ArrayFromString(
-				this.signerCredentials[index].blsPublicKey,
-				"base64",
-			);
+			const publicKey = uint8ArrayFromString(this.signerCredentials[index].blsPublicKey, "base64");
 			const data = uint8ArrayFromString(this.data);
 			if (!bls.verify(publicKey, data, signature)) {
 				throw new Error("Invalid signature");
@@ -81,10 +74,7 @@ export class FinalityState {
 			return;
 		}
 
-		const aggregation_bits = new BitSet(
-			this.signerCredentials.length,
-			attestation.aggregationBits,
-		);
+		const aggregation_bits = new BitSet(this.signerCredentials.length, attestation.aggregationBits);
 
 		// public keys of signers who signed
 		const publicKeys = this.signerCredentials
@@ -109,8 +99,7 @@ export class FinalityStore {
 
 	constructor(config?: FinalityConfig) {
 		this.states = new Map();
-		this.finalityThreshold =
-			config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
+		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
 	}
 
 	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
@@ -162,9 +151,7 @@ export class FinalityStore {
 	addSignatures(peerId: string, attestations: Attestation[], verify = true) {
 		for (const attestation of attestations) {
 			try {
-				this.states
-					.get(attestation.data)
-					?.addSignature(peerId, attestation.signature, verify);
+				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
 			} catch (e) {
 				log.error("::finality::addSignatures", e);
 			}
