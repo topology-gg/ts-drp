@@ -63,6 +63,7 @@ export function init(node: DRPNode) {
 		try {
 			const object = node.objectStore.get(call.request.drpId);
 			if (!object) throw Error("drp not found");
+			if (!object.hashGraph) throw Error("hashgraph not found");
 			for (const v of object.hashGraph.getAllVertices()) {
 				hashes.push(v.hash);
 			}

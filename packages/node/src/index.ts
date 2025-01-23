@@ -6,7 +6,7 @@ import {
 	type DRPNetworkNodeConfig,
 	NetworkPb,
 } from "@ts-drp/network";
-import { type DRP, DRPObject, type IACL } from "@ts-drp/object";
+import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
 import {
@@ -87,30 +87,57 @@ export class DRPNode {
 		this.networkNode.sendMessage(peerId, message);
 	}
 
-	async createObject(
-		drp: DRP,
-		id?: string,
-		abi?: string,
-		sync?: boolean,
-		peerId?: string,
-	) {
-		const object = new DRPObject(
-			this.networkNode.peerId,
-			drp,
-			null as unknown as IACL & DRP,
-			id,
-			abi,
-		);
+	async createObject(options: {
+		drp?: DRP;
+		acl?: ACL;
+		id?: string;
+		sync?: {
+			enabled: boolean;
+			peerId?: string;
+		};
+	}) {
+		const object = new DRPObject({
+			peerId: this.networkNode.peerId,
+			publicCredential: options.acl
+				? undefined
+				: this.credentialStore.getPublicCredential(),
+			acl: options.acl,
+			drp: options.drp,
+			id: options.id,
+		});
 		operations.createObject(this, object);
-		operations.subscribeObject(this, object.id);
-		if (sync) {
-			operations.syncObject(this, object.id, peerId);
+		await operations.subscribeObject(this, object.id);
+		if (options.sync?.enabled) {
+			await operations.syncObject(this, object.id, options.sync.peerId);
 		}
 		return object;
 	}
 
 	getObject(id: string) {
 		return this.objectStore.get(id);
+	}
+
+	/*
+		Connect to an existing object
+		@param options.id - The object ID
+		@param options.drp - The DRP instance. It can be undefined
+			where we just want the HG state
+		@param options.sync.peerId - The peer ID to sync with
+	*/
+	async connectObject(options: {
+		id: string;
+		drp?: DRP;
+		sync?: {
+			peerId?: string;
+		};
+	}) {
+		const object = operations.connectObject(
+			this,
+			options.id,
+			options.drp,
+			options.sync?.peerId,
+		);
+		return object;
 	}
 
 	async subscribeObject(id: string) {

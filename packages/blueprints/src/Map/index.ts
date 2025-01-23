@@ -11,7 +11,7 @@ export enum MapConflictResolution {
 	DeleteWins = 1,
 }
 
-export class ConflictResolvingMap<K, V> implements DRP {
+export class MapDRP<K, V> implements DRP {
 	semanticsType = SemanticsType.pair;
 
 	private _conflictResolution: MapConflictResolution;

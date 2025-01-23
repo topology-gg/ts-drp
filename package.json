@@ -1,7 +1,7 @@
 {
 	"name": "ts-drp",
 	"description": "The official TypeScript implementation of DRP protocol",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"license": "MIT",
 	"homepage": "https://topology.gg/",
 	"repository": {
@@ -42,7 +42,7 @@
 		"tsx": "4.19.1",
 		"typedoc": "^0.26.6",
 		"typescript": "^5.5.4",
-		"vite": "^6.0.2",
+		"vite": "^6.0.9",
 		"vite-tsconfig-paths": "^5.0.1",
 		"vitest": "^2.1.1"
 	},

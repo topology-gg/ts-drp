@@ -1,4 +1,5 @@
 .env
+.DS_Store
 
 dist/
 docs/
@@ -7,4 +8,6 @@ node_modules/
 **/tsconfig.tsbuildinfo
 coverage/*
 .vscode/*
+
+**/messages_grpc_pb.js
 **/object_grpc_pb.js

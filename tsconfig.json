@@ -4,6 +4,7 @@
 		"allowJs": true,
 		"target": "ES2022",
 		"module": "NodeNext",
+		"lib": ["ES2023", "ES2023.Array", "DOM", "DOM.Iterable", "WebWorker"],
 
 		"esModuleInterop": true,
 		"moduleResolution": "NodeNext",

@@ -220,7 +220,7 @@ async function main() {
 		document.getElementById("createGrid")
 	);
 	button_create.addEventListener("click", async () => {
-		drpObject = await node.createObject(new Grid());
+		drpObject = await node.createObject({ drp: new Grid() });
 		gridDRP = drpObject.drp as Grid;
 		createConnectHandlers();
 		await addUser();
@@ -232,7 +232,10 @@ async function main() {
 		const drpId = (<HTMLInputElement>document.getElementById("gridInput"))
 			.value;
 		try {
-			drpObject = await node.createObject(new Grid(), drpId, undefined, true);
+			drpObject = await node.connectObject({
+				id: drpId,
+				drp: new Grid(),
+			});
 			gridDRP = drpObject.drp as Grid;
 			createConnectHandlers();
 			await addUser();
