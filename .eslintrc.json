@@ -31,13 +31,6 @@
 		// "@typescript-eslint/no-floating-promises": "error",
 		"no-unused-vars": "off",
 		"unused-imports/no-unused-imports": "error",
-		"unused-imports/no-unused-vars": [
-			"error",
-			{
-				"varsIgnorePattern": "_",
-				"argsIgnorePattern": "_"
-			}
-		],
 		"prefer-const": "error"
 		// "import/order": [
 		// 	"error",
