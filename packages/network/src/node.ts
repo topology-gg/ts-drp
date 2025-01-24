@@ -1,6 +1,7 @@
 import {
 	type GossipSub,
 	type GossipsubMessage,
+	type GossipsubOpts,
 	gossipsub,
 } from "@chainsafe/libp2p-gossipsub";
 import {
@@ -29,6 +30,7 @@ import type {
 	StreamHandler,
 	SubscriptionChangeData,
 } from "@libp2p/interface";
+import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
 import {
 	type PubSubPeerDiscoveryComponents,
@@ -65,6 +67,7 @@ export interface DRPNetworkNodeConfig {
 	private_key_seed?: string;
 	log_config?: LoggerOptions;
 	discovery_interval?: number;
+	gossip_sub_config?: Partial<GossipsubOpts>;
 }
 
 type PeerDiscoveryFunction =
@@ -75,6 +78,7 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
+	private _started = false;
 
 	peerId = "";
 
@@ -84,6 +88,9 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
+		if (this._started) throw new Error("Node already started");
+		this._started = true;
+
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
@@ -100,7 +107,7 @@ export class DRPNetworkNode {
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
 				topics: ["drp::discovery"],
-				interval: 10_000,
+				interval: this._config?.discovery_interval ?? 10_000,
 			}),
 		];
 
@@ -142,6 +149,7 @@ export class DRPNetworkNode {
 					},
 				}),
 				fallbackToFloodsub: false,
+				...this._config?.gossip_sub_config,
 			}),
 		};
 
@@ -162,6 +170,7 @@ export class DRPNetworkNode {
 						IPColocationFactorWeight: 0,
 					}),
 					fallbackToFloodsub: false,
+					...this._config?.gossip_sub_config,
 				}),
 			};
 		}
@@ -236,15 +245,39 @@ export class DRPNetworkNode {
 			log.info("::start::peer::discovery", e.detail),
 		);
 
-		this._node.addEventListener("peer:identify", (e) =>
-			log.info("::start::peer::identify", e.detail),
-		);
+		this._node.addEventListener("peer:identify", (e) => {
+			log.info("::start::peer::identify", e.detail);
+			//console.log(
+			//	"::identify",
+			//	this._node?.peerId.toString(),
+			//	e.detail.peerId.toString(),
+			//	e.detail.listenAddrs.map((e) => e.toString()),
+			//);
+
+			if (
+				this.peerId !== "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ"
+			) {
+				const pubsubPeers = this._pubsub?.getPeers();
+				const pubsubInDiscovery =
+					this._pubsub?.getSubscribers("drp::discovery");
+				const meshPeers = this._pubsub?.getMeshPeers("drp::discovery");
+				const subscriber = this._pubsub?.getSubscribers("drp::discovery");
+				console.log("::identify", {
+					pubsubPeers,
+					pubsubInDiscovery,
+					meshPeers,
+					subscriber,
+				});
+			}
+		});
 
 		// needded as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe("drp::discovery");
 	}
 
 	async stop() {
+		if (!this._started) throw new Error("Node not started");
+		this._started = false;
 		await this._node?.stop();
 	}
 
@@ -252,6 +285,31 @@ export class DRPNetworkNode {
 		await this.stop();
 		if (config) this._config = config;
 		await this.start();
+	}
+
+	async waitForPeer(peerId: string, timeout = 5000) {
+		return new Promise((resolve, reject) => {
+			if (!this._node)
+				return reject(new Error("Node not initialized, please run .start()"));
+
+			if (this._node.getPeers().some((p) => p.toString() === peerId))
+				return resolve(true);
+
+			const timeoutId = setTimeout(() => {
+				this._node?.removeEventListener("peer:connect", peerConnectListener);
+				resolve(false);
+			}, timeout);
+
+			const peerConnectListener = (e: CustomEvent<PeerId>) => {
+				if (e.detail.toString() === peerId) {
+					clearTimeout(timeoutId);
+					this._node?.removeEventListener("peer:connect", peerConnectListener);
+					resolve(true);
+				}
+			};
+
+			this._node.addEventListener("peer:connect", peerConnectListener);
+		});
 	}
 
 	libp2pPeerId() {

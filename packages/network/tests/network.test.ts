@@ -24,6 +24,9 @@ describe("DRPNetworkNode can connect & send messages", () => {
 				bootstrapConfig.network_config.log_config = {}; // Initialize if not present
 			}
 			bootstrapConfig.network_config.log_config.level = "silent";
+			bootstrapConfig.network_config.gossip_sub_config = {
+				pruneBackoff: 10,
+			};
 		}
 		bootstrapNode = new DRPNetworkNode(bootstrapConfig?.network_config);
 		await bootstrapNode.start();
@@ -37,6 +40,11 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			log_config: {
 				level: "silent",
 			},
+			private_key_seed: "node1",
+			gossip_sub_config: {
+				pruneBackoff: 10,
+				heartbeatInterval: 10,
+			},
 		});
 		node2 = new DRPNetworkNode({
 			bootstrap_peers: [
@@ -46,30 +54,37 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			log_config: {
 				level: "silent",
 			},
+			private_key_seed: "node2",
+			gossip_sub_config: {
+				pruneBackoff: 10,
+				heartbeatInterval: 10,
+			},
 		});
 
 		await Promise.all([node1.start(), node2.start()]);
-		await node2.start();
-		await node1.start();
 		node1PeerId = node1.peerId;
 		node2PeerId = node2.peerId;
 
-		await Promise.all([node1.isDiablable(), node2.isDiablable()]);
+		const result = await Promise.all([
+			node1.isDiablable(),
+			node2.isDiablable(),
+		]);
+		expect(result[0]).toBe(true);
+		expect(result[1]).toBe(true);
 	});
 
 	test("Node can discovery", async () => {
-		const node1peers = node1.getAllPeers();
-		expect(node1peers.includes(node2PeerId)).toBe(true);
-		expect(node1peers.includes(bootstrapNodePeerId)).toBe(true);
-
-		const node2peers = node2.getAllPeers();
-		expect(node2peers.includes(node1PeerId)).toBe(true);
-		expect(node2peers.includes(bootstrapNodePeerId)).toBe(true);
+		expect(await node1.waitForPeer(bootstrapNodePeerId)).toBe(true);
+		expect(await node2.waitForPeer(bootstrapNodePeerId)).toBe(true);
+		expect(await node1.waitForPeer(node2PeerId)).toBe(true);
+		expect(await node2.waitForPeer(node1PeerId)).toBe(true);
 	}, 10000);
 
 	test("Node can send message to peer", async () => {
 		const data = "Hello World!";
 		let boolean = false;
+
+		expect(await node1.waitForPeer(node2PeerId)).toBe(true);
 
 		const messageProcessed = new Promise((resolve) => {
 			node2.addMessageHandler(async ({ stream }) => {
