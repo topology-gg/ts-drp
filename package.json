@@ -11,6 +11,7 @@
 	"bugs": {
 		"url": "https://github.com/topology-foundation/ts-drp/issues"
 	},
+	"packageManager": ">=pnpm@9",
 	"workspaces": [
 		"packages/*",
 		"examples/*"
