@@ -403,11 +403,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		for (const op of linearizedOperations) {
-			op.drpType === DrpType.DRP && this._applyOperation(drp, op);
+			if (op.drpType === DrpType.DRP) {
+				this._applyOperation(drp, op);
+			}
 		}
-		if (vertexOperation) {
-			vertexOperation.drpType === DrpType.DRP &&
-				this._applyOperation(drp, vertexOperation);
+		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
+			this._applyOperation(drp, vertexOperation);
 		}
 
 		return drp;
@@ -438,11 +439,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			acl[entry.key] = entry.value;
 		}
 		for (const op of linearizedOperations) {
-			op.drpType === DrpType.ACL && this._applyOperation(acl, op);
+			if (op.drpType === DrpType.ACL) {
+				this._applyOperation(acl, op);
+			}
 		}
-		if (vertexOperation) {
-			vertexOperation.drpType === DrpType.ACL &&
-				this._applyOperation(acl, vertexOperation);
+		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
+			this._applyOperation(acl, vertexOperation);
 		}
 
 		return acl;

@@ -22,7 +22,9 @@
 			"error",
 			{
 				"varsIgnorePattern": "_",
-				"argsIgnorePattern": "_"
+				"argsIgnorePattern": "_",
+				"caughtErrors": "all",
+				"caughtErrorsIgnorePattern": "_"
 			}
 		],
 		"@typescript-eslint/no-explicit-any": "error",
