@@ -78,13 +78,13 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		expect(await node2.waitForPeer(bootstrapNodePeerId)).toBe(true);
 		expect(await node1.waitForPeer(node2PeerId)).toBe(true);
 		expect(await node2.waitForPeer(node1PeerId)).toBe(true);
-	}, 10000);
+	});
 
 	test("Node can send message to peer", async () => {
 		const data = "Hello World!";
 		let boolean = false;
 
-		expect(await node1.waitForPeer(node2PeerId)).toBe(true);
+		expect(await node1.waitForUpgradedConnection(node2PeerId)).toBe(true);
 
 		const messageProcessed = new Promise((resolve) => {
 			node2.addMessageHandler(async ({ stream }) => {
@@ -104,7 +104,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 
 		await messageProcessed;
 		expect(boolean).toBe(true);
-	}, 10000);
+	});
 
 	test("Node can send message to group", async () => {
 		const data = "Hello Group!";

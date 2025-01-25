@@ -23,6 +23,7 @@ import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
 import type {
 	Address,
+	Connection,
 	EventCallback,
 	PeerDiscovery,
 	PeerId,
@@ -30,7 +31,6 @@ import type {
 	StreamHandler,
 	SubscriptionChangeData,
 } from "@libp2p/interface";
-import { peerIdFromString } from "@libp2p/peer-id";
 import { ping } from "@libp2p/ping";
 import {
 	type PubSubPeerDiscoveryComponents,
@@ -309,6 +309,43 @@ export class DRPNetworkNode {
 			};
 
 			this._node.addEventListener("peer:connect", peerConnectListener);
+		});
+	}
+
+	async waitForUpgradedConnection(peerId: string, timeout = 5000) {
+		return new Promise((resolve, reject) => {
+			if (!this._node)
+				return reject(new Error("Node not initialized, please run .start()"));
+
+			if (
+				this._node
+					.getConnections()
+					.some(
+						(c) => c.remotePeer.toString() === peerId && c.limits === undefined,
+					)
+			) {
+				return resolve(true);
+			}
+
+			const timeoutId = setTimeout(() => {
+				resolve(false);
+			}, timeout);
+
+			const connectionListener = (e: CustomEvent<Connection>) => {
+				if (
+					e.detail.remotePeer.toString() === peerId &&
+					e.detail.limits === undefined
+				) {
+					clearTimeout(timeoutId);
+					this._node?.removeEventListener(
+						"connection:open",
+						connectionListener,
+					);
+					resolve(true);
+				}
+			};
+
+			this._node?.addEventListener("connection:open", connectionListener);
 		});
 	}
 
