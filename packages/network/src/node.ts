@@ -245,31 +245,9 @@ export class DRPNetworkNode {
 			log.info("::start::peer::discovery", e.detail),
 		);
 
-		this._node.addEventListener("peer:identify", (e) => {
-			log.info("::start::peer::identify", e.detail);
-			//console.log(
-			//	"::identify",
-			//	this._node?.peerId.toString(),
-			//	e.detail.peerId.toString(),
-			//	e.detail.listenAddrs.map((e) => e.toString()),
-			//);
-
-			if (
-				this.peerId !== "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ"
-			) {
-				const pubsubPeers = this._pubsub?.getPeers();
-				const pubsubInDiscovery =
-					this._pubsub?.getSubscribers("drp::discovery");
-				const meshPeers = this._pubsub?.getMeshPeers("drp::discovery");
-				const subscriber = this._pubsub?.getSubscribers("drp::discovery");
-				console.log("::identify", {
-					pubsubPeers,
-					pubsubInDiscovery,
-					meshPeers,
-					subscriber,
-				});
-			}
-		});
+		this._node.addEventListener("peer:identify", (e) =>
+			log.info("::start::peer::identify", e.detail),
+		);
 
 		// needded as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe("drp::discovery");
