@@ -22,7 +22,7 @@ export async function connectObject(
 		drp,
 	});
 	node.objectStore.put(id, object);
-
+	await sendRequestTopicDiscovery(node, id);
 	await fetchState(node, id, peerId);
 	// sync process needs to finish before subscribing
 	const retry = setInterval(async () => {
@@ -38,8 +38,21 @@ export async function connectObject(
 	return object;
 }
 
+async function sendRequestTopicDiscovery(node: DRPNode, topic: string) {
+	const data = NetworkPb.TopicDiscoveryRequest.create({
+		topic,
+	});
+	const message = NetworkPb.Message.create({
+		sender: node.networkNode.peerId.toString(),
+		type: NetworkPb.MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST,
+		data: NetworkPb.TopicDiscoveryRequest.encode(data).finish(),
+	});
+	await node.networkNode.broadcastMessage("drp::topic::discovery", message);
+}
+
 /* data: { id: string } */
 export async function subscribeObject(node: DRPNode, objectId: string) {
+	await sendRequestTopicDiscovery(node, objectId);
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(
 		objectId,
