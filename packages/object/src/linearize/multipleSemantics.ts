@@ -10,7 +10,7 @@ import type { ObjectSet } from "../utils/objectSet.js";
 export function linearizeMultipleSemantics(
 	hashGraph: HashGraph,
 	origin: Hash,
-	subgraph: ObjectSet<string>,
+	subgraph: ObjectSet<string>
 ): Operation[] {
 	const order = hashGraph.topologicalSort(true, origin, subgraph);
 	const dropped = new Array(order.length).fill(false);
@@ -28,10 +28,7 @@ export function linearizeMultipleSemantics(
 		let j = i + 1;
 
 		while (j < order.length) {
-			if (
-				hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) ||
-				dropped[j]
-			) {
+			if (hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) || dropped[j]) {
 				j++;
 				continue;
 			}
@@ -65,7 +62,7 @@ export function linearizeMultipleSemantics(
 			}
 
 			const resolved = hashGraph.resolveConflicts(
-				concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex),
+				concurrentOps.map((hash) => hashGraph.vertices.get(hash) as Vertex)
 			);
 
 			switch (resolved.action) {

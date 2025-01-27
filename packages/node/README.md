@@ -17,6 +17,7 @@ pnpm cli --help
 ```
 
 #### Running a bootstrap node
+
 You can run a bootstrap node using the following command:
 
 ```bash
@@ -34,7 +35,7 @@ pnpm install @ts-drp/node
 Then, you can import the DRP Node class and create a new instance:
 
 ```javascript
-import { DRPNode } from '@ts-drp/node';
+import { DRPNode } from "@ts-drp/node";
 
 const node = new DRPNode();
 

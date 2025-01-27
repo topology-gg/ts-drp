@@ -30,9 +30,16 @@ message AggregatedAttestation {
   bytes aggregation_bits = 3;
 }
 
+message DRPStateEntry {
+  string key = 1;
+  google.protobuf.Value value = 2;
+}
+
+message DRPState {
+  repeated DRPStateEntry state = 1;
+}
+
 message DRPObjectBase {
   string id = 1;
-  optional string abi = 2;
-  optional bytes bytecode = 3;
-  repeated Vertex vertices = 4;
+  repeated Vertex vertices = 2;
 }

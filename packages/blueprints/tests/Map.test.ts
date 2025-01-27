@@ -1,12 +1,13 @@
 import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
-import { ConflictResolvingMap } from "../src/index.js";
 
-describe("ConflictResolvingMap tests", () => {
-	let drp: ConflictResolvingMap<string, string>;
+import { MapDRP } from "../src/index.js";
+
+describe("MapDRP tests", () => {
+	let drp: MapDRP<string, string>;
 
 	beforeEach(() => {
-		drp = new ConflictResolvingMap<string, string>();
+		drp = new MapDRP<string, string>();
 	});
 
 	test("Should add new entry", () => {

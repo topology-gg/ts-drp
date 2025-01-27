@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { PseudoRandomWinsSet } from "../src/PseudoRandomWinsSet/index.js";
 
-describe("HashGraph for PseudoRandomWinsSet tests", () => {
-	let drp: PseudoRandomWinsSet<number>;
+import { SetDRP } from "../src/Set/index.js";
+
+describe("HashGraph for AddWinSet tests", () => {
+	let drp: SetDRP<number>;
 
 	beforeEach(() => {
-		drp = new PseudoRandomWinsSet();
+		drp = new SetDRP();
 	});
 
 	test("Test: Add", () => {
@@ -27,9 +28,9 @@ describe("HashGraph for PseudoRandomWinsSet tests", () => {
 		set = drp.query_getValues();
 		expect(set).toEqual([1, 2]);
 
-		drp.remove(1);
+		drp.delete(1);
 		set = drp.query_getValues();
-		expect(drp.query_contains(1)).toBe(false);
+		expect(drp.query_has(1)).toBe(false);
 		expect(set).toEqual([2]);
 	});
 });

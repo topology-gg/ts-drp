@@ -1,16 +1,21 @@
 import bls from "@chainsafe/bls/herumi";
-import { ACL } from "@topology-foundation/blueprints/src/ACL/index.js";
-import { AddWinsSet } from "@topology-foundation/blueprints/src/index.js";
 import { DRPCredentialStore } from "@topology-foundation/node/src/store/index.js";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
+
+import { SetDRP } from "../../blueprints/src/index.js";
 import type { AggregatedAttestation } from "../dist/src/proto/drp/object/v1/object_pb.js";
+import { ObjectACL } from "../src/acl/index.js";
 import { FinalityState, FinalityStore } from "../src/finality/index.js";
 import { BitSet } from "../src/hashgraph/bitset.js";
 import { DRPObject } from "../src/index.js";
 
 // initialize log
-const _ = new DRPObject("peer1", new AddWinsSet(), new ACL(new Map()));
+const _ = new DRPObject({
+	peerId: "peer1",
+	acl: new ObjectACL({ admins: new Map() }),
+	drp: new SetDRP(),
+});
 
 describe("Tests for FinalityState", () => {
 	const N = 128;
@@ -20,9 +25,7 @@ describe("Tests for FinalityState", () => {
 
 	beforeEach(async () => {
 		for (let i = 0; i < N; i++) {
-			peers.push(
-				uint8ArrayToString(crypto.getRandomValues(new Uint8Array(32)), "hex"),
-			);
+			peers.push(uint8ArrayToString(crypto.getRandomValues(new Uint8Array(32)), "hex"));
 		}
 		peers.sort();
 
@@ -45,7 +48,7 @@ describe("Tests for FinalityState", () => {
 		const signature = credentialStore.signWithBls(finalityState.data);
 
 		expect(() => finalityState.addSignature("badNode", signature)).toThrowError(
-			"Peer not found in signer list",
+			"Peer not found in signer list"
 		);
 	});
 
@@ -55,9 +58,7 @@ describe("Tests for FinalityState", () => {
 
 		const signature = credentialStore.signWithBls(finalityState.data);
 
-		expect(() => finalityState.addSignature(peers[0], signature)).toThrowError(
-			"Invalid signature",
-		);
+		expect(() => finalityState.addSignature(peers[0], signature)).toThrowError("Invalid signature");
 	});
 
 	test("addSignature: signatures are counted correctly", async () => {
@@ -74,14 +75,8 @@ describe("Tests for FinalityState", () => {
 	});
 
 	test("Duplicated signatures", async () => {
-		finalityState.addSignature(
-			peers[0],
-			stores[0].signWithBls(finalityState.data),
-		);
-		finalityState.addSignature(
-			peers[0],
-			stores[0].signWithBls(finalityState.data),
-		);
+		finalityState.addSignature(peers[0], stores[0].signWithBls(finalityState.data));
+		finalityState.addSignature(peers[0], stores[0].signWithBls(finalityState.data));
 		expect(finalityState.numberOfSignatures).toEqual(1);
 	});
 });
@@ -103,9 +98,7 @@ describe("Tests for FinalityStore", () => {
 		finalityStore = new FinalityStore({ finality_threshold: 0.51 });
 
 		for (let i = 0; i < N; i++) {
-			peers.push(
-				uint8ArrayToString(crypto.getRandomValues(new Uint8Array(32)), "hex"),
-			);
+			peers.push(uint8ArrayToString(crypto.getRandomValues(new Uint8Array(32)), "hex"));
 		}
 		peers.sort();
 
@@ -183,9 +176,7 @@ describe("Tests for FinalityStore", () => {
 		// the merge function only accepts the first merge
 		expect(finalityStore.getNumberOfSignatures("vertex1")).toEqual(1);
 		expect(finalityStore.getNumberOfSignatures("vertex2")).toEqual(50);
-		expect(finalityStore.getAttestation("vertex2")?.signature).toEqual(
-			aggregatedSignature,
-		);
+		expect(finalityStore.getAttestation("vertex2")?.signature).toEqual(aggregatedSignature);
 		expect(finalityStore.getNumberOfSignatures("vertex3")).toEqual(0);
 	});
 

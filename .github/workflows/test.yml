@@ -21,8 +21,11 @@ jobs:
       - shell: bash
         run: |
           pnpm install --no-frozen-lockfile
+
+      - shell: bash
+        run: |
           pnpm test
-      
+
       - shell: bash
         run: |
           pnpm run coverage

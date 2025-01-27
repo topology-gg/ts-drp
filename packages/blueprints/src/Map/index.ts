@@ -11,7 +11,7 @@ export enum MapConflictResolution {
 	DeleteWins = 1,
 }
 
-export class ConflictResolvingMap<K, V> implements DRP {
+export class MapDRP<K, V> implements DRP {
 	semanticsType = SemanticsType.pair;
 
 	private _conflictResolution: MapConflictResolution;
@@ -19,8 +19,7 @@ export class ConflictResolvingMap<K, V> implements DRP {
 
 	constructor(conflictResolution?: MapConflictResolution) {
 		this._map = new Map();
-		this._conflictResolution =
-			conflictResolution ?? MapConflictResolution.SetWins;
+		this._conflictResolution = conflictResolution ?? MapConflictResolution.SetWins;
 	}
 
 	set(key: K, value: V): void {
@@ -76,18 +75,12 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		}
 
 		// if both are delete operations, return no-op
-		if (
-			vertices[0].operation.opType === "delete" &&
-			vertices[1].operation.opType === "delete"
-		) {
+		if (vertices[0].operation.opType === "delete" && vertices[1].operation.opType === "delete") {
 			return { action: ActionType.Nop };
 		}
 
 		// if both are set operations, keep operation with higher hash value
-		if (
-			vertices[0].operation.opType === "set" &&
-			vertices[1].operation.opType === "set"
-		) {
+		if (vertices[0].operation.opType === "set" && vertices[1].operation.opType === "set") {
 			const hash0 = this._computeHash(JSON.stringify(values0[1]));
 			const hash1 = this._computeHash(JSON.stringify(values1[1]));
 			if (hash0 > hash1) {
@@ -103,15 +96,11 @@ export class ConflictResolvingMap<K, V> implements DRP {
 		return this._conflictResolution === MapConflictResolution.SetWins
 			? {
 					action:
-						vertices[0].operation.opType === "set"
-							? ActionType.DropRight
-							: ActionType.DropLeft,
+						vertices[0].operation.opType === "set" ? ActionType.DropRight : ActionType.DropLeft,
 				}
 			: {
 					action:
-						vertices[0].operation.opType === "set"
-							? ActionType.DropLeft
-							: ActionType.DropRight,
+						vertices[0].operation.opType === "set" ? ActionType.DropLeft : ActionType.DropRight,
 				};
 	}
 }

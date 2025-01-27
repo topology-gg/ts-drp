@@ -1,15 +1,10 @@
-import {
-	ActionType,
-	type Hash,
-	type HashGraph,
-	type Operation,
-} from "../hashgraph/index.js";
+import { ActionType, type Hash, type HashGraph, type Operation } from "../hashgraph/index.js";
 import type { ObjectSet } from "../utils/objectSet.js";
 
 export function linearizePairSemantics(
 	hashGraph: HashGraph,
 	origin: Hash,
-	subgraph: ObjectSet<string>,
+	subgraph: ObjectSet<string>
 ): Operation[] {
 	const order: Hash[] = hashGraph.topologicalSort(true, origin, subgraph);
 	const dropped = new Array(order.length).fill(false);
@@ -26,10 +21,7 @@ export function linearizePairSemantics(
 		let j = i + 1;
 
 		while (j < order.length) {
-			if (
-				hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) ||
-				dropped[j]
-			) {
+			if (hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) || dropped[j]) {
 				j++;
 				continue;
 			}

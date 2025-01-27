@@ -7,13 +7,16 @@ on:
 
 jobs:
   quality:
+    name: Run linter
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Biome
-        uses: biomejs/setup-biome@v2
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
         with:
-          version: latest
-      - name: Run Biome
-        run: biome ci .
+          version: 9
+      - shell: bash
+        run: |
+          pnpm install --no-frozen-lockfile
+
+      - shell: bash
+        run: pnpm run lint

@@ -1,5 +1,6 @@
 import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
+
 import { Canvas } from "./objects/canvas";
 
 const node = new DRPNode();
@@ -13,17 +14,12 @@ const render = () => {
 	const peers_element = <HTMLDivElement>document.getElementById("peers");
 	peers_element.innerHTML = `[${peers.join(", ")}]`;
 
-	const discovery_element = <HTMLDivElement>(
-		document.getElementById("discovery_peers")
-	);
+	const discovery_element = <HTMLDivElement>document.getElementById("discovery_peers");
 	discovery_element.innerHTML = `[${discoveryPeers.join(", ")}]`;
 
-	const object_element = <HTMLDivElement>(
-		document.getElementById("object_peers")
-	);
+	const object_element = <HTMLDivElement>document.getElementById("object_peers");
 	object_element.innerHTML = `[${objectPeers.join(", ")}]`;
-	(<HTMLSpanElement>document.getElementById("canvasId")).innerText =
-		drpObject?.id;
+	(<HTMLSpanElement>document.getElementById("canvasId")).innerText = drpObject?.id;
 
 	if (!canvasDRP) return;
 	const canvas = canvasDRP.canvas;
@@ -40,11 +36,7 @@ const random_int = (max: number) => Math.floor(Math.random() * max);
 
 function paint_pixel(pixel: HTMLDivElement) {
 	const [x, y] = pixel.id.split("-").map((v) => Number.parseInt(v, 10));
-	const painting: [number, number, number] = [
-		random_int(256),
-		random_int(256),
-		random_int(256),
-	];
+	const painting: [number, number, number] = [random_int(256), random_int(256), random_int(256)];
 	canvasDRP.paint([x, y], painting);
 	const [r, g, b] = canvasDRP.query_pixel(x, y).color();
 	pixel.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
@@ -91,27 +83,24 @@ async function init() {
 
 	const create_button = <HTMLButtonElement>document.getElementById("create");
 	create_button.addEventListener("click", async () => {
-		drpObject = await node.createObject(new Canvas(5, 10));
+		drpObject = await node.createObject({ drp: new Canvas(5, 10) });
 		canvasDRP = drpObject.drp as Canvas;
 
-		createConnectHandlers();
+		await createConnectHandlers();
 		render();
 	});
 
 	const connect_button = <HTMLButtonElement>document.getElementById("connect");
 	connect_button.addEventListener("click", async () => {
-		const drpId = (<HTMLInputElement>document.getElementById("canvasIdInput"))
-			.value;
+		const drpId = (<HTMLInputElement>document.getElementById("canvasIdInput")).value;
 		try {
-			drpObject = await node.createObject(
-				new Canvas(5, 10),
-				drpId,
-				undefined,
-				true,
-			);
+			drpObject = await node.createObject({
+				id: drpId,
+				drp: new Canvas(5, 10),
+			});
 			canvasDRP = drpObject.drp as Canvas;
 
-			createConnectHandlers();
+			await createConnectHandlers();
 			render();
 		} catch (e) {
 			console.error("Error while connecting with DRP", drpId, e);
@@ -119,4 +108,4 @@ async function init() {
 	});
 }
 
-init();
+void init();
