@@ -39,11 +39,10 @@
 	"devDependencies": {
 		"@release-it-plugins/workspaces": "^4.2.0",
 		"@types/node": "^22.5.4",
-		"@typescript-eslint/eslint-plugin": "^8.21.0",
 		"@typescript-eslint/parser": "^8.21.0",
 		"@vitest/coverage-v8": "2.1.8",
 		"assemblyscript": "^0.27.29",
-		"eslint": "^8.57.0",
+		"eslint": "^9.19.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-import": "^2.31.0",
 		"eslint-plugin-prettier": "^5.2.3",
@@ -56,6 +55,7 @@
 		"tsx": "4.19.1",
 		"typedoc": "^0.26.6",
 		"typescript": "^5.5.4",
+		"typescript-eslint": "^8.21.0",
 		"vite": "^6.0.9",
 		"vite-tsconfig-paths": "^5.0.1",
 		"vitest": "^2.1.1"
