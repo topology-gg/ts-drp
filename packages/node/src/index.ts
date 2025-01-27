@@ -34,7 +34,9 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.credentialStore.start();
 		await this.networkNode.start();
-		this.networkNode.addMessageHandler(async ({ stream }) => drpMessagesHandler(this, stream));
+		await this.networkNode.addMessageHandler(async ({ stream }) =>
+			drpMessagesHandler(this, stream)
+		);
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {
@@ -65,8 +67,8 @@ export class DRPNode {
 		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
-		this.networkNode.addCustomMessageHandler(protocol, handler);
+	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
+		await this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
 	async sendCustomMessage(peerId: string, data: Uint8Array) {
