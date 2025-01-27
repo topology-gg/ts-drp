@@ -37,6 +37,11 @@ export class DRPNode {
 		await this.networkNode.addMessageHandler(async ({ stream }) =>
 			drpMessagesHandler(this, stream)
 		);
+		this.networkNode.addGroupMessageHandler("drp::topic::discovery", (e) =>
+			drpMessagesHandler(this, undefined, e.detail.msg.data).catch((e) =>
+				log.error("::DrpNode::Error while handling topic discovery message", e)
+			)
+		);
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {

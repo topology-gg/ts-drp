@@ -20,6 +20,8 @@ export enum MessageType {
   MESSAGE_TYPE_SYNC_REJECT = 6,
   MESSAGE_TYPE_ATTESTATION_UPDATE = 7,
   MESSAGE_TYPE_CUSTOM = 8,
+  MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST = 9,
+  MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE = 10,
   UNRECOGNIZED = -1,
 }
 
@@ -52,6 +54,12 @@ export function messageTypeFromJSON(object: any): MessageType {
     case 8:
     case "MESSAGE_TYPE_CUSTOM":
       return MessageType.MESSAGE_TYPE_CUSTOM;
+    case 9:
+    case "MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST":
+      return MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST;
+    case 10:
+    case "MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE":
+      return MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -79,6 +87,10 @@ export function messageTypeToJSON(object: MessageType): string {
       return "MESSAGE_TYPE_ATTESTATION_UPDATE";
     case MessageType.MESSAGE_TYPE_CUSTOM:
       return "MESSAGE_TYPE_CUSTOM";
+    case MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST:
+      return "MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST";
+    case MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE:
+      return "MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE";
     case MessageType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -127,6 +139,23 @@ export interface SyncAccept {
 }
 
 export interface SyncReject {
+}
+
+export interface TopicDiscoveryRequest {
+  topic: string;
+}
+
+export interface TopicDiscoveryResponse {
+  subscribers: { [key: string]: TopicDiscoveryResponse_Subscribers };
+}
+
+export interface TopicDiscoveryResponse_Subscribers {
+  multiaddrs: string[];
+}
+
+export interface TopicDiscoveryResponse_SubscribersEntry {
+  key: string;
+  value: TopicDiscoveryResponse_Subscribers | undefined;
 }
 
 function createBaseMessage(): Message {
@@ -816,6 +845,296 @@ export const SyncReject: MessageFns<SyncReject> = {
   },
 };
 
+function createBaseTopicDiscoveryRequest(): TopicDiscoveryRequest {
+  return { topic: "" };
+}
+
+export const TopicDiscoveryRequest: MessageFns<TopicDiscoveryRequest> = {
+  encode(message: TopicDiscoveryRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.topic !== "") {
+      writer.uint32(10).string(message.topic);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TopicDiscoveryRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTopicDiscoveryRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.topic = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TopicDiscoveryRequest {
+    return { topic: isSet(object.topic) ? globalThis.String(object.topic) : "" };
+  },
+
+  toJSON(message: TopicDiscoveryRequest): unknown {
+    const obj: any = {};
+    if (message.topic !== "") {
+      obj.topic = message.topic;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TopicDiscoveryRequest>, I>>(base?: I): TopicDiscoveryRequest {
+    return TopicDiscoveryRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TopicDiscoveryRequest>, I>>(object: I): TopicDiscoveryRequest {
+    const message = createBaseTopicDiscoveryRequest();
+    message.topic = object.topic ?? "";
+    return message;
+  },
+};
+
+function createBaseTopicDiscoveryResponse(): TopicDiscoveryResponse {
+  return { subscribers: {} };
+}
+
+export const TopicDiscoveryResponse: MessageFns<TopicDiscoveryResponse> = {
+  encode(message: TopicDiscoveryResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    Object.entries(message.subscribers).forEach(([key, value]) => {
+      TopicDiscoveryResponse_SubscribersEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).join();
+    });
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TopicDiscoveryResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTopicDiscoveryResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = TopicDiscoveryResponse_SubscribersEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.subscribers[entry1.key] = entry1.value;
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TopicDiscoveryResponse {
+    return {
+      subscribers: isObject(object.subscribers)
+        ? Object.entries(object.subscribers).reduce<{ [key: string]: TopicDiscoveryResponse_Subscribers }>(
+          (acc, [key, value]) => {
+            acc[key] = TopicDiscoveryResponse_Subscribers.fromJSON(value);
+            return acc;
+          },
+          {},
+        )
+        : {},
+    };
+  },
+
+  toJSON(message: TopicDiscoveryResponse): unknown {
+    const obj: any = {};
+    if (message.subscribers) {
+      const entries = Object.entries(message.subscribers);
+      if (entries.length > 0) {
+        obj.subscribers = {};
+        entries.forEach(([k, v]) => {
+          obj.subscribers[k] = TopicDiscoveryResponse_Subscribers.toJSON(v);
+        });
+      }
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TopicDiscoveryResponse>, I>>(base?: I): TopicDiscoveryResponse {
+    return TopicDiscoveryResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TopicDiscoveryResponse>, I>>(object: I): TopicDiscoveryResponse {
+    const message = createBaseTopicDiscoveryResponse();
+    message.subscribers = Object.entries(object.subscribers ?? {}).reduce<
+      { [key: string]: TopicDiscoveryResponse_Subscribers }
+    >((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = TopicDiscoveryResponse_Subscribers.fromPartial(value);
+      }
+      return acc;
+    }, {});
+    return message;
+  },
+};
+
+function createBaseTopicDiscoveryResponse_Subscribers(): TopicDiscoveryResponse_Subscribers {
+  return { multiaddrs: [] };
+}
+
+export const TopicDiscoveryResponse_Subscribers: MessageFns<TopicDiscoveryResponse_Subscribers> = {
+  encode(message: TopicDiscoveryResponse_Subscribers, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.multiaddrs) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TopicDiscoveryResponse_Subscribers {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTopicDiscoveryResponse_Subscribers();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.multiaddrs.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TopicDiscoveryResponse_Subscribers {
+    return {
+      multiaddrs: globalThis.Array.isArray(object?.multiaddrs)
+        ? object.multiaddrs.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: TopicDiscoveryResponse_Subscribers): unknown {
+    const obj: any = {};
+    if (message.multiaddrs?.length) {
+      obj.multiaddrs = message.multiaddrs;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TopicDiscoveryResponse_Subscribers>, I>>(
+    base?: I,
+  ): TopicDiscoveryResponse_Subscribers {
+    return TopicDiscoveryResponse_Subscribers.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TopicDiscoveryResponse_Subscribers>, I>>(
+    object: I,
+  ): TopicDiscoveryResponse_Subscribers {
+    const message = createBaseTopicDiscoveryResponse_Subscribers();
+    message.multiaddrs = object.multiaddrs?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseTopicDiscoveryResponse_SubscribersEntry(): TopicDiscoveryResponse_SubscribersEntry {
+  return { key: "", value: undefined };
+}
+
+export const TopicDiscoveryResponse_SubscribersEntry: MessageFns<TopicDiscoveryResponse_SubscribersEntry> = {
+  encode(message: TopicDiscoveryResponse_SubscribersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      TopicDiscoveryResponse_Subscribers.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TopicDiscoveryResponse_SubscribersEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTopicDiscoveryResponse_SubscribersEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = TopicDiscoveryResponse_Subscribers.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): TopicDiscoveryResponse_SubscribersEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? TopicDiscoveryResponse_Subscribers.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: TopicDiscoveryResponse_SubscribersEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = TopicDiscoveryResponse_Subscribers.toJSON(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TopicDiscoveryResponse_SubscribersEntry>, I>>(
+    base?: I,
+  ): TopicDiscoveryResponse_SubscribersEntry {
+    return TopicDiscoveryResponse_SubscribersEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TopicDiscoveryResponse_SubscribersEntry>, I>>(
+    object: I,
+  ): TopicDiscoveryResponse_SubscribersEntry {
+    const message = createBaseTopicDiscoveryResponse_SubscribersEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? TopicDiscoveryResponse_Subscribers.fromPartial(object.value)
+      : undefined;
+    return message;
+  },
+};
+
 function bytesFromBase64(b64: string): Uint8Array {
   if ((globalThis as any).Buffer) {
     return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
@@ -852,6 +1171,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

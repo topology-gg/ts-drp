@@ -52,9 +52,53 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 		case NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
 			await attestationUpdateHandler(node, message.sender, message.data);
 			break;
+		case NetworkPb.MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST:
+			await topicDiscoveryRequestHandler(node, message.sender, message.data);
+			break;
+		case NetworkPb.MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE:
+			await topicDiscoveryResponseHandler(node, message.data);
+			break;
 		default:
 			log.error("::messageHandler: Invalid operation");
 			break;
+	}
+}
+
+async function topicDiscoveryRequestHandler(node: DRPNode, sender: string, data: Uint8Array) {
+	const topicDiscoveryRequest = NetworkPb.TopicDiscoveryRequest.decode(data);
+	const peers = node.networkNode.getGroupPeers(topicDiscoveryRequest.topic);
+	const subscribers: { [key: string]: { multiaddrs: string[] } } = {};
+	for (const peer of peers) {
+		subscribers[peer] = {
+			multiaddrs: (await node.networkNode.getPeerMultiaddrs(peer)).map(
+				(addr) => `${addr.multiaddr.toString()}/p2p/${peer}`
+			),
+		};
+	}
+	console.log("subscribers", subscribers);
+
+	const response = NetworkPb.TopicDiscoveryResponse.create({
+		subscribers,
+	});
+
+	const message = NetworkPb.Message.create({
+		sender: node.networkNode.peerId.toString(),
+		type: NetworkPb.MessageType.MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE,
+		data: NetworkPb.TopicDiscoveryResponse.encode(response).finish(),
+	});
+
+	log.info("::topicDiscoveryRequestHandler: Sending message to", sender);
+
+	await node.networkNode.sendMessage(sender, message);
+}
+
+async function topicDiscoveryResponseHandler(node: DRPNode, data: Uint8Array) {
+	const topicDiscoveryResponse = NetworkPb.TopicDiscoveryResponse.decode(data);
+	for (const [, subscribers] of Object.entries(topicDiscoveryResponse.subscribers)) {
+		for (const multiaddr of subscribers.multiaddrs) {
+			console.log("multiaddr", multiaddr);
+			await node.networkNode.connect(multiaddr);
+		}
 	}
 }
 

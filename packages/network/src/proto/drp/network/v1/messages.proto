@@ -4,15 +4,17 @@ package drp.network.v1;
 import "drp/object/v1/object.proto";
 
 enum MessageType {
-  MESSAGE_TYPE_UNSPECIFIED             = 0;
-  MESSAGE_TYPE_FETCH_STATE             = 1;
-  MESSAGE_TYPE_FETCH_STATE_RESPONSE    = 2;
-  MESSAGE_TYPE_UPDATE                  = 3;
-  MESSAGE_TYPE_SYNC                    = 4;
-  MESSAGE_TYPE_SYNC_ACCEPT             = 5;
-  MESSAGE_TYPE_SYNC_REJECT             = 6;
-  MESSAGE_TYPE_ATTESTATION_UPDATE      = 7;
-  MESSAGE_TYPE_CUSTOM                  = 8;
+  MESSAGE_TYPE_UNSPECIFIED = 0;
+  MESSAGE_TYPE_FETCH_STATE = 1;
+  MESSAGE_TYPE_FETCH_STATE_RESPONSE = 2;
+  MESSAGE_TYPE_UPDATE = 3;
+  MESSAGE_TYPE_SYNC = 4;
+  MESSAGE_TYPE_SYNC_ACCEPT = 5;
+  MESSAGE_TYPE_SYNC_REJECT = 6;
+  MESSAGE_TYPE_ATTESTATION_UPDATE = 7;
+  MESSAGE_TYPE_CUSTOM = 8;
+  MESSAGE_TYPE_TOPIC_DISCOVERY_REQUEST = 9;
+  MESSAGE_TYPE_TOPIC_DISCOVERY_RESPONSE = 10;
 }
 
 message Message {
@@ -57,3 +59,14 @@ message SyncAccept {
 }
 
 message SyncReject {}
+
+message TopicDiscoveryRequest {
+  string topic = 1;
+}
+
+message TopicDiscoveryResponse {
+  message Subscribers {
+    repeated string multiaddrs = 1;
+  }
+  map<string, Subscribers> subscribers = 1;
+}
