@@ -1,5 +1,7 @@
-.env
-.DS_Store
+**/.env
+**/.DS_Store
+**/messages_grpc_pb.js
+**/object_grpc_pb.js
 
 dist/
 docs/
@@ -9,13 +11,8 @@ node_modules/
 coverage/*
 .vscode/*
 
-.DS_Store
-
-
-**/messages_grpc_pb.js
-**/object_grpc_pb.js
-
-packages/object/benchmark-output.txt
+**/benchmark-output.txt
 *.log
 
-packages/object/flamegraph.*
+**/flamegraph.*
+!**/flamegraph.sh
