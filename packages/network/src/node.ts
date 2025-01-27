@@ -87,7 +87,8 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
-		if (this._node?.status === "started") throw new Error("Node already started");
+		if (this._node?.status === "started")
+			throw new Error("Node already started");
 
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
