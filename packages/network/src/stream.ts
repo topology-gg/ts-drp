@@ -38,6 +38,6 @@ export async function streamToUint8Array(stream: Stream) {
 				output.push(msg);
 			}
 			return output[0];
-		},
+		}
 	);
 }

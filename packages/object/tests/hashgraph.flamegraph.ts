@@ -1,10 +1,9 @@
 import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
+
 import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
-	admins: new Map([
-		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-	]),
+	admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 });
 
 type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
@@ -12,7 +11,7 @@ type DRPManipulationStrategy = (drp: SetDRP<number>, value: number) => void;
 const createWithStrategy = (
 	peerId: number,
 	verticesPerDRP: number,
-	strategy: DRPManipulationStrategy,
+	strategy: DRPManipulationStrategy
 ): DRPObject => {
 	const obj = new DRPObject({
 		peerId: `peer1_${peerId}`,
@@ -40,16 +39,9 @@ const manipulationStrategies: DRPManipulationStrategy[] = [
 	},
 ];
 
-function createDRPObjects(
-	numDRPs: number,
-	verticesPerDRP: number,
-): DRPObject[] {
+function createDRPObjects(numDRPs: number, verticesPerDRP: number): DRPObject[] {
 	return Array.from({ length: numDRPs }, (_, peerId) =>
-		createWithStrategy(
-			peerId,
-			verticesPerDRP,
-			manipulationStrategies[peerId % 3],
-		),
+		createWithStrategy(peerId, verticesPerDRP, manipulationStrategies[peerId % 3])
 	);
 }
 
@@ -63,11 +55,7 @@ function mergeObjects(objects: DRPObject[]): void {
 	});
 }
 
-function flamegraphForSetDRP(
-	numDRPs: number,
-	verticesPerDRP: number,
-	mergeFn: boolean,
-): void {
+function flamegraphForSetDRP(numDRPs: number, verticesPerDRP: number, mergeFn: boolean): void {
 	const objects = createDRPObjects(numDRPs, verticesPerDRP);
 
 	if (mergeFn) {

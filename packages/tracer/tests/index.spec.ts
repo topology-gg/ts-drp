@@ -2,6 +2,7 @@ import type { Span } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+
 import {
 	disableTracing,
 	enableTracing,
@@ -139,12 +140,12 @@ describe("isPromise", () => {
 		expect(
 			isPromise(function* () {
 				yield 1;
-			}),
+			})
 		).toBe(false);
 		expect(
 			isPromise(async function* () {
 				yield 1;
-			}),
+			})
 		).toBe(false);
 		expect(isPromise({ then: 1 })).toBe(false);
 	});
@@ -176,12 +177,12 @@ describe("isGenerator", () => {
 		expect(
 			isGenerator(function* () {
 				yield 1;
-			}),
+			})
 		).toBe(false); // generator function, not generator
 		expect(
 			isGenerator(async function* () {
 				yield 1;
-			}),
+			})
 		).toBe(false);
 		expect(isGenerator(Promise.resolve())).toBe(false);
 		expect(isGenerator({ next: () => {} })).toBe(false);
@@ -215,12 +216,12 @@ describe("isAsyncGenerator", () => {
 		expect(
 			isAsyncGenerator(function* () {
 				yield 1;
-			}),
+			})
 		).toBe(false);
 		expect(
 			isAsyncGenerator(async function* () {
 				yield 1;
-			}),
+			})
 		).toBe(false); // async generator function, not generator
 		expect(isAsyncGenerator(Promise.resolve())).toBe(false);
 		expect(isAsyncGenerator({ next: async () => {} })).toBe(false);
@@ -327,15 +328,13 @@ describe("tracing lifecycle", () => {
 				(a: number) => a + 1,
 				(span: Span, a: number) => {
 					span.setAttribute("input", a);
-				},
+				}
 			);
 			expect(fn(1)).toBe(2);
 		});
 
 		test("should trace functions that return promises", async () => {
-			const tracedPromise = traceFunc("promise-test", () =>
-				Promise.resolve(42),
-			);
+			const tracedPromise = traceFunc("promise-test", () => Promise.resolve(42));
 			const result = await tracedPromise();
 			expect(result).toBe(42);
 		});
@@ -355,14 +354,11 @@ describe("tracing lifecycle", () => {
 		});
 
 		test("should trace functions that return async generators", async () => {
-			const tracedAsyncGenerator = traceFunc(
-				"async-generator-test",
-				async function* () {
-					yield 1;
-					yield 2;
-					return 3;
-				},
-			);
+			const tracedAsyncGenerator = traceFunc("async-generator-test", async function* () {
+				yield 1;
+				yield 2;
+				return 3;
+			});
 			const gen = tracedAsyncGenerator();
 			expect((await gen.next()).value).toBe(1);
 			expect((await gen.next()).value).toBe(2);
@@ -373,7 +369,7 @@ describe("tracing lifecycle", () => {
 
 		test("should handle errors in returned promises", async () => {
 			const tracedPromise = traceFunc("error-promise-test", () =>
-				Promise.reject(new Error("promise error")),
+				Promise.reject(new Error("promise error"))
 			);
 			await expect(tracedPromise()).rejects.toThrow("promise error");
 		});
@@ -389,13 +385,10 @@ describe("tracing lifecycle", () => {
 		});
 
 		test("should handle errors in returned async generators", async () => {
-			const tracedAsyncGenerator = traceFunc(
-				"error-async-generator-test",
-				async function* () {
-					yield 1;
-					throw new Error("async generator error");
-				},
-			);
+			const tracedAsyncGenerator = traceFunc("error-async-generator-test", async function* () {
+				yield 1;
+				throw new Error("async generator error");
+			});
 			const gen = tracedAsyncGenerator();
 			expect((await gen.next()).value).toBe(1);
 			await expect(gen.next()).rejects.toThrow("async generator error");

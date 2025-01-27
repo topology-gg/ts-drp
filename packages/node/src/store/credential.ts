@@ -1,6 +1,6 @@
-import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import bls from "@chainsafe/bls/herumi";
 import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
+import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
 import type { DRPPublicCredential } from "@ts-drp/object";
@@ -37,14 +37,8 @@ export class DRPCredentialStore {
 			throw new Error("Private key not found");
 		}
 		return {
-			ed25519PublicKey: uint8ArrayToString(
-				this._ed25519PrivateKey?.publicKey.raw,
-				"base64",
-			),
-			blsPublicKey: uint8ArrayToString(
-				this._blsPrivateKey?.toPublicKey().toBytes(),
-				"base64",
-			),
+			ed25519PublicKey: uint8ArrayToString(this._ed25519PrivateKey?.publicKey.raw, "base64"),
+			blsPublicKey: uint8ArrayToString(this._blsPrivateKey?.toPublicKey().toBytes(), "base64"),
 		};
 	}
 
@@ -53,9 +47,7 @@ export class DRPCredentialStore {
 			throw new Error("Private key not found");
 		}
 
-		const signature = await this._ed25519PrivateKey.sign(
-			uint8ArrayFromString(data),
-		);
+		const signature = await this._ed25519PrivateKey.sign(uint8ArrayFromString(data));
 		return new Uint8Array(signature);
 	}
 

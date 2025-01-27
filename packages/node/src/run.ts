@@ -14,4 +14,4 @@ const run = async () => {
 	rpc_init(node);
 };
 
-run();
+run().catch(() => console.error("Failed to start node"));

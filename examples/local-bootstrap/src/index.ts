@@ -4,7 +4,7 @@ const local_peer_id = "12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ";
 
 if (!local_peer_id) {
 	console.error(
-		"Set local_peer_id in `/examples/local-bootstrap/src/index.ts` file with the peer id of the local bootstrap node",
+		"Set local_peer_id in `/examples/local-bootstrap/src/index.ts` file with the peer id of the local bootstrap node"
 	);
 	process.exit(1);
 }
@@ -33,12 +33,8 @@ async function main() {
 	const select_address_type = <HTMLSelectElement>(
 		document.getElementById("bootstrap_node_host_address_type")
 	);
-	const address_type_label = <HTMLSpanElement>(
-		document.getElementById("bootstrap_addr_type")
-	);
-	const bootstrap_node_addr = <HTMLInputElement>(
-		document.getElementById("bootstrap_node_addr")
-	);
+	const address_type_label = <HTMLSpanElement>document.getElementById("bootstrap_addr_type");
+	const bootstrap_node_addr = <HTMLInputElement>document.getElementById("bootstrap_node_addr");
 
 	// Default to IP4
 	select_address_type.value = "ip4";
@@ -57,9 +53,7 @@ async function main() {
 		}
 	});
 
-	const connect_form = <HTMLFormElement>(
-		document.getElementById("form_connect_to_bootstrap_node")
-	);
+	const connect_form = <HTMLFormElement>document.getElementById("form_connect_to_bootstrap_node");
 	connect_form?.addEventListener("submit", async (e) => {
 		e.preventDefault();
 		const bootstrap_node_port: HTMLInputElement = <HTMLInputElement>(
@@ -69,18 +63,12 @@ async function main() {
 			document.getElementById("bootstrap_node_peer_id")
 		);
 
-		if (
-			!bootstrap_node_addr.value ||
-			!bootstrap_node_port.value ||
-			!bootstrap_node_peer_id.value
-		) {
+		if (!bootstrap_node_addr.value || !bootstrap_node_port.value || !bootstrap_node_peer_id.value) {
 			alert("Please fill in all the fields");
 			return;
 		}
 
-		const is_ws: HTMLInputElement = <HTMLInputElement>(
-			document.getElementById("ws")
-		);
+		const is_ws: HTMLInputElement = <HTMLInputElement>document.getElementById("ws");
 
 		const ws_protocl = is_ws.checked ? "ws" : "wss";
 		const field_set = <HTMLFieldSetElement>(
@@ -98,7 +86,7 @@ async function main() {
 
 			await node.start();
 			field_set.style.backgroundColor = "rgba(0, 255, 0, 0.2)";
-			initDRPNode();
+			await initDRPNode();
 			render();
 		} catch (_) {
 			field_set.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
@@ -112,4 +100,4 @@ async function main() {
 	// generic message handler
 }
 
-main();
+void main();

@@ -31,10 +31,7 @@ export type EnableTracingOptions = {
 	};
 };
 
-export const enableTracing = (
-	tracerName: string,
-	opts: EnableTracingOptions = {},
-): void => {
+export const enableTracing = (tracerName: string, opts: EnableTracingOptions = {}): void => {
 	enabled = true;
 	initContextManager();
 	initProvider(opts.provider);
@@ -136,19 +133,14 @@ function wrapGenerator<T>(gen: Generator<T>, span: Span): Generator<T> {
 
 export function isAsyncGenerator(obj: unknown): obj is AsyncGenerator {
 	if (!obj) return false;
-	const asyncIterator = (obj as { [Symbol.asyncIterator]?: unknown })?.[
-		Symbol.asyncIterator
-	];
+	const asyncIterator = (obj as { [Symbol.asyncIterator]?: unknown })?.[Symbol.asyncIterator];
 	if (typeof asyncIterator !== "function") return false;
 
 	const instance = obj as { next?: unknown };
 	return typeof instance.next === "function";
 }
 
-function wrapAsyncGenerator<T>(
-	gen: AsyncGenerator<T>,
-	span: Span,
-): AsyncGenerator<T> {
+function wrapAsyncGenerator<T>(gen: AsyncGenerator<T>, span: Span): AsyncGenerator<T> {
 	const iter = gen[Symbol.asyncIterator]();
 
 	const wrapped: AsyncGenerator<T> = {
@@ -190,7 +182,7 @@ function wrapAsyncGenerator<T>(
 export function traceFunc<Args extends unknown[], Return>(
 	name: string,
 	fn: (...args: Args) => Return,
-	setAttributes?: (span: Span, ...args: Args) => void,
+	setAttributes?: (span: Span, ...args: Args) => void
 ): (...args: Args) => Return {
 	return (...args: Args): Return => {
 		if (!tracer || !enabled) return fn(...args);
@@ -232,16 +224,12 @@ export function traceFunc<Args extends unknown[], Return>(
 	};
 }
 
-const initExporter = (
-	opts: EnableTracingOptions["provider"],
-): OTLPTraceExporter => {
+const initExporter = (opts: EnableTracingOptions["provider"]): OTLPTraceExporter => {
 	if (exporter) return exporter;
 
 	exporter = new OTLPTraceExporter({
 		url: opts?.exporterUrl ?? DEFAULT_EXPORTER_URL,
-		headers: opts?.exporterHeaders
-			? opts.exporterHeaders
-			: DEFAULT_EXPORTER_HEADERS,
+		headers: opts?.exporterHeaders ? opts.exporterHeaders : DEFAULT_EXPORTER_HEADERS,
 	});
 
 	return exporter;

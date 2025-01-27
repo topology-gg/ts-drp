@@ -7,7 +7,7 @@ export interface ACL extends DRP {
 		senderId: string,
 		peerId: string,
 		publicKey: DRPPublicCredential,
-		group: ACLGroup,
+		group: ACLGroup
 	) => void;
 	revoke: (senderId: string, peerId: string, group: ACLGroup) => void;
 	query_getFinalitySigners: () => Map<string, DRPPublicCredential>;

@@ -1,17 +1,9 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import {
-	MapConflictResolution,
-	MapDRP,
-} from "../../blueprints/src/Map/index.js";
+
+import { MapConflictResolution, MapDRP } from "../../blueprints/src/Map/index.js";
 import { SetDRP } from "../../blueprints/src/Set/index.js";
 import { ObjectACL } from "../src/acl/index.js";
-import {
-	ACLGroup,
-	DRPObject,
-	DrpType,
-	type Operation,
-	OperationType,
-} from "../src/index.js";
+import { ACLGroup, DRPObject, DrpType, type Operation, OperationType } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
@@ -89,7 +81,7 @@ describe("HashGraph construction tests", () => {
 			[],
 			"",
 			Date.now(),
-			new Uint8Array(),
+			new Uint8Array()
 		);
 		obj1.hashGraph.addVertex(
 			{
@@ -100,14 +92,12 @@ describe("HashGraph construction tests", () => {
 			[hash],
 			"",
 			Date.now(),
-			new Uint8Array(),
+			new Uint8Array()
 		);
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
-		const expectedOps: Operation[] = [
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
-		];
+		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
 		expect(linearOps).toEqual(expectedOps);
 	});
 });
@@ -333,16 +323,12 @@ describe("HashGraph for undefined operations tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		// Should only have one, since we skipped the undefined operations
-		expect(linearOps).toEqual([
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
-		]);
+		expect(linearOps).toEqual([{ opType: "add", value: [2], drpType: DrpType.DRP }]);
 	});
 
 	test("Test: addToFrontier with undefined operation return Vertex with NoOp operation", () => {
 		// Forcefully pass an undefined value
-		const createdVertex = obj1.hashGraph.addToFrontier(
-			undefined as unknown as Operation,
-		);
+		const createdVertex = obj1.hashGraph.addToFrontier(undefined as unknown as Operation);
 
 		expect(createdVertex.operation).toEqual({
 			opType: OperationType.NOP,
@@ -374,37 +360,19 @@ describe("Vertex state tests", () => {
 		const vertices = obj1.hashGraph.topologicalSort();
 
 		const drpState1 = obj1.drpStates.get(vertices[1]);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1),
-		).toBe(true);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2),
-		).toBe(false);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3),
-		).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
 		const drpState2 = obj1.drpStates.get(vertices[2]);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1),
-		).toBe(true);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2),
-		).toBe(true);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3),
-		).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
 		const drpState3 = obj1.drpStates.get(vertices[3]);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1),
-		).toBe(true);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2),
-		).toBe(true);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3),
-		).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
 	});
 
 	test("Test: Tricky merging", () => {
@@ -440,58 +408,26 @@ describe("Vertex state tests", () => {
 		const hashA6 = obj1.hashGraph.getFrontier()[0];
 
 		const drpState1 = obj1.drpStates.get(hashA4);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1),
-		).toBe(true);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2),
-		).toBe(true);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3),
-		).toBe(false);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(4),
-		).toBe(true);
-		expect(
-			drpState1?.state.filter((e) => e.key === "_set")[0].value.has(5),
-		).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(false);
 
 		const drpState2 = obj1.drpStates.get(hashC5);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1),
-		).toBe(false);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2),
-		).toBe(true);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3),
-		).toBe(true);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(4),
-		).toBe(false);
-		expect(
-			drpState2?.state.filter((e) => e.key === "_set")[0].value.has(5),
-		).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
 
 		const drpState3 = obj1.drpStates.get(hashA6);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1),
-		).toBe(true);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2),
-		).toBe(true);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3),
-		).toBe(true);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(4),
-		).toBe(true);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(5),
-		).toBe(true);
-		expect(
-			drpState3?.state.filter((e) => e.key === "_set")[0].value.has(6),
-		).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(6)).toBe(true);
 	});
 });
 
@@ -521,8 +457,8 @@ describe("Vertex timestamp tests", () => {
 				obj1.hashGraph.getFrontier(),
 				"",
 				Number.POSITIVE_INFINITY,
-				new Uint8Array(),
-			),
+				new Uint8Array()
+			)
 		).toThrowError("Invalid timestamp detected.");
 	});
 
@@ -556,8 +492,8 @@ describe("Vertex timestamp tests", () => {
 				obj1.hashGraph.getFrontier(),
 				"",
 				1,
-				new Uint8Array(),
-			),
+				new Uint8Array()
+			)
 		).toThrowError("Invalid timestamp detected.");
 	});
 });
@@ -614,7 +550,7 @@ describe("Writer permission tests", () => {
 				ed25519PublicKey: "pubKey2",
 				blsPublicKey: "pubKey2",
 			},
-			ACLGroup.Writer,
+			ACLGroup.Writer
 		);
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
 
@@ -647,7 +583,7 @@ describe("Writer permission tests", () => {
 				ed25519PublicKey: "pubKey2",
 				blsPublicKey: "pubKey2",
 			},
-			ACLGroup.Writer,
+			ACLGroup.Writer
 		);
 		acl1.grant(
 			"peer1",
@@ -656,7 +592,7 @@ describe("Writer permission tests", () => {
 				ed25519PublicKey: "pubKey3",
 				blsPublicKey: "pubKey3",
 			},
-			ACLGroup.Writer,
+			ACLGroup.Writer
 		);
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());

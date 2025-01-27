@@ -33,16 +33,12 @@ try {
 
 	if (coveragePercentage < threshold) {
 		console.error(
-			`Coverage (${coveragePercentage.toFixed(
-				2,
-			)}%) is below the threshold (${threshold}%).`,
+			`Coverage (${coveragePercentage.toFixed(2)}%) is below the threshold (${threshold}%).`
 		);
 		process.exit(1); // Exit with an error code if threshold is not met
 	} else {
 		console.log(
-			`Coverage (${coveragePercentage.toFixed(
-				2,
-			)}%) meets the threshold (${threshold}%).`,
+			`Coverage (${coveragePercentage.toFixed(2)}%) meets the threshold (${threshold}%).`
 		);
 	}
 } catch (error) {

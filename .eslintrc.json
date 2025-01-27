@@ -17,7 +17,7 @@
 	},
 	"plugins": ["@typescript-eslint", "import", "prettier", "unused-imports", "vitest"],
 	"rules": {
-		// "prettier/prettier": "error",
+		"prettier/prettier": "error",
 		"@typescript-eslint/no-unused-vars": [
 			"error",
 			{
@@ -30,32 +30,30 @@
 		"@typescript-eslint/no-explicit-any": "error",
 		"@typescript-eslint/explicit-module-boundary-types": "off",
 		"@typescript-eslint/no-inferrable-types": "off",
-		// "@typescript-eslint/no-floating-promises": "error",
+		"@typescript-eslint/no-floating-promises": "error",
 		"no-unused-vars": "off",
 		"unused-imports/no-unused-imports": "error",
-		"prefer-const": "error"
-		// "import/order": [
-		// 	"error",
-		// 	{
-		// 		"groups": [["builtin", "external", "internal"]],
-		// 		"newlines-between": "always",
-		// 		"alphabetize": {
-		// 			"order": "asc",
-		// 			"caseInsensitive": true
-		// 		}
-		// 	}
-		// ]
+		"prefer-const": "error",
+		"import/order": [
+			"error",
+			{
+				"groups": [["builtin", "external", "internal"]],
+				"newlines-between": "always",
+				"alphabetize": {
+					"order": "asc",
+					"caseInsensitive": true
+				}
+			}
+		]
 	},
 	"ignorePatterns": [
 		"**/dist/*",
 		"**/docs/*",
 		"**/doc/*",
+		"**/node_modules/*",
 		"**/*_pb.js",
-		"**/*clear.ts",
 		"**/serializer.ts",
 		"**/bundle/*",
-		"**/*_pd.d.ts",
-		"**/coverage/*",
-		"**/coverage.ts"
+		"**/coverage/*"
 	]
 }

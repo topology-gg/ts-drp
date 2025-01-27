@@ -1,8 +1,4 @@
-import {
-	type GossipSub,
-	type GossipsubMessage,
-	gossipsub,
-} from "@chainsafe/libp2p-gossipsub";
+import { type GossipSub, type GossipsubMessage, gossipsub } from "@chainsafe/libp2p-gossipsub";
 import {
 	type TopicScoreParams,
 	createPeerScoreParams,
@@ -12,10 +8,7 @@ import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
 import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
-import {
-	circuitRelayServer,
-	circuitRelayTransport,
-} from "@libp2p/circuit-relay-v2";
+import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
 import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
@@ -41,6 +34,7 @@ import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
 
@@ -84,10 +78,7 @@ export class DRPNetworkNode {
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			privateKey = await generateKeyPairFromSeed(
-				"Ed25519",
-				uint8ArrayFromString(tmp),
-			);
+			privateKey = await generateKeyPairFromSeed("Ed25519", uint8ArrayFromString(tmp));
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
@@ -106,7 +97,7 @@ export class DRPNetworkNode {
 			_peerDiscovery.push(
 				bootstrap({
 					list: _bootstrapNodesList,
-				}),
+				})
 			);
 			for (const addr of _bootstrapNodesList) {
 				const peerId = multiaddr(addr).getPeerId();
@@ -178,9 +169,7 @@ export class DRPNetworkNode {
 				listen: this._config?.listen_addresses
 					? this._config.listen_addresses
 					: ["/p2p-circuit", "/webrtc"],
-				...(this._config?.announce_addresses
-					? { announce: this._config.announce_addresses }
-					: {}),
+				...(this._config?.announce_addresses ? { announce: this._config.announce_addresses } : {}),
 			},
 			connectionManager: {
 				addressSorter: this._sortAddresses,
@@ -220,21 +209,18 @@ export class DRPNetworkNode {
 		this._pubsub = this._node.services.pubsub as GossipSub;
 		this.peerId = this._node.peerId.toString();
 
-		log.info(
-			"::start: Successfuly started DRP network w/ peer_id",
-			this.peerId,
-		);
+		log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
 
 		this._node.addEventListener("peer:connect", (e) =>
-			log.info("::start::peer::connect", e.detail),
+			log.info("::start::peer::connect", e.detail)
 		);
 
 		this._node.addEventListener("peer:discovery", (e) =>
-			log.info("::start::peer::discovery", e.detail),
+			log.info("::start::peer::discovery", e.detail)
 		);
 
 		this._node.addEventListener("peer:identify", (e) =>
-			log.info("::start::peer::identify", e.detail),
+			log.info("::start::peer::identify", e.detail)
 		);
 
 		// needded as I've disabled the pubsubPeerDiscovery
@@ -347,10 +333,7 @@ export class DRPNetworkNode {
 			const messageBuffer = Message.encode(message).finish();
 			await this._pubsub?.publish(topic, messageBuffer);
 
-			log.info(
-				"::broadcastMessage: Successfuly broadcasted message to topic",
-				topic,
-			);
+			log.info("::broadcastMessage: Successfuly broadcasted message to topic", topic);
 		} catch (e) {
 			log.error("::broadcastMessage:", e);
 		}
@@ -361,7 +344,7 @@ export class DRPNetworkNode {
 			const connection = await this._node?.dial([multiaddr(`/p2p/${peerId}`)]);
 			const stream = <Stream>await connection?.newStream(DRP_MESSAGE_PROTOCOL);
 			const messageBuffer = Message.encode(message).finish();
-			uint8ArrayToStream(stream, messageBuffer);
+			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
 			log.error("::sendMessage:", e);
 		}
@@ -374,31 +357,26 @@ export class DRPNetworkNode {
 			const peerId = peers[Math.floor(Math.random() * peers.length)];
 
 			const connection = await this._node?.dial(peerId);
-			const stream: Stream = (await connection?.newStream(
-				DRP_MESSAGE_PROTOCOL,
-			)) as Stream;
+			const stream: Stream = (await connection?.newStream(DRP_MESSAGE_PROTOCOL)) as Stream;
 			const messageBuffer = Message.encode(message).finish();
-			uint8ArrayToStream(stream, messageBuffer);
+			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
 			log.error("::sendMessageRandomTopicPeer:", e);
 		}
 	}
 
-	addGroupMessageHandler(
-		group: string,
-		handler: EventCallback<CustomEvent<GossipsubMessage>>,
-	) {
+	addGroupMessageHandler(group: string, handler: EventCallback<CustomEvent<GossipsubMessage>>) {
 		this._pubsub?.addEventListener("gossipsub:message", (e) => {
 			if (group && e.detail.msg.topic !== group) return;
 			handler(e);
 		});
 	}
 
-	addMessageHandler(handler: StreamHandler) {
-		this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
+	async addMessageHandler(handler: StreamHandler) {
+		await this._node?.handle(DRP_MESSAGE_PROTOCOL, handler);
 	}
 
-	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
-		this._node?.handle(protocol, handler);
+	async addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
+		await this._node?.handle(protocol, handler);
 	}
 }
