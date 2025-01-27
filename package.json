@@ -11,10 +11,13 @@
 	"bugs": {
 		"url": "https://github.com/topology-foundation/ts-drp/issues"
 	},
-	"workspaces": ["packages/*", "examples/*"],
+	"workspaces": [
+		"packages/*",
+		"examples/*"
+	],
+	"type": "module",
 	"scripts": {
 		"bench": "vitest bench",
-		"biome-check": "biome check",
 		"build": "pnpm build:packages && pnpm build:examples",
 		"build:examples": "pnpm --filter 'ts-drp-example*' build",
 		"build:packages": "pnpm --filter '@ts-drp/*' build",
@@ -23,6 +26,8 @@
 		"coverage": "pnpm tsx scripts/coverage.ts",
 		"docs": "typedoc",
 		"flamegraph": "./scripts/flamegraph.sh",
+		"format": "prettier --write './**/*.{ts,tsx,js,jsx,json,md,html,css}'",
+		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
 		"postinstall": "pnpm build:packages",
 		"proto-gen": "pnpm proto-gen:object && pnpm proto-gen:network",
 		"proto-gen:network": "buf generate packages/network/src/proto -o packages/network/src/proto",
@@ -32,11 +37,18 @@
 		"watch": "pnpm --parallel --filter '@ts-drp/*' watch"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^1.8.3",
 		"@release-it-plugins/workspaces": "^4.2.0",
 		"@types/node": "^22.5.4",
+		"@typescript-eslint/eslint-plugin": "^8.21.0",
+		"@typescript-eslint/parser": "^8.21.0",
 		"@vitest/coverage-v8": "2.1.8",
 		"assemblyscript": "^0.27.29",
+		"eslint": "^8.57.0",
+		"eslint-config-prettier": "^10.0.1",
+		"eslint-plugin-import": "^2.31.0",
+		"eslint-plugin-prettier": "^5.2.3",
+		"eslint-plugin-unused-imports": "^4.1.4",
+		"eslint-plugin-vitest": "^0.5.4",
 		"release-it": "^17.6.0",
 		"ts-node": "^10.9.2",
 		"ts-proto": "^2.2.4",
@@ -50,7 +62,7 @@
 	"private": true,
 	"release-it": {
 		"hooks": {
-			"after:bump": "pnpm biome check --fix"
+			"after:bump": "pnpm lint --fix"
 		},
 		"plugins": {
 			"@release-it-plugins/workspaces": {

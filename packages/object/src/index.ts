@@ -43,7 +43,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	vertices: ObjectPb.Vertex[] = [];
 	acl?: ProxyHandler<ACL>;
 	drp?: ProxyHandler<DRP>;
-	// @ts-ignore: initialized in constructor
+	// @ts-expect-error: initialized in constructor
 	hashGraph: HashGraph;
 	// mapping from vertex hash to the DRP state
 	drpStates: Map<string, ObjectPb.DRPState>;
@@ -156,6 +156,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
 	proxyDRPHandler(vertexType: DrpType): ProxyHandler<object> {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const obj = this;
 		return {
 			get(target, propKey, receiver) {
@@ -189,14 +190,14 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	private callFn(
 		fn: string,
-		// biome-ignore lint: value can't be unknown because of protobuf
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType,
 	) {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let preOperationDRP: any;
 		if (drpType === DrpType.ACL) {
 			preOperationDRP = this._computeObjectACL(this.hashGraph.getFrontier());
@@ -354,7 +355,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const { opType, value } = operation;
 
 		const typeParts = opType.split(".");
-		// biome-ignore lint: target can be anything
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let target: any = drp;
 		for (let i = 0; i < typeParts.length - 1; i++) {
 			target = target[typeParts[i]];
@@ -402,11 +403,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		for (const op of linearizedOperations) {
-			op.drpType === DrpType.DRP && this._applyOperation(drp, op);
+			if (op.drpType === DrpType.DRP) {
+				this._applyOperation(drp, op);
+			}
 		}
-		if (vertexOperation) {
-			vertexOperation.drpType === DrpType.DRP &&
-				this._applyOperation(drp, vertexOperation);
+		if (vertexOperation && vertexOperation.drpType === DrpType.DRP) {
+			this._applyOperation(drp, vertexOperation);
 		}
 
 		return drp;
@@ -437,11 +439,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			acl[entry.key] = entry.value;
 		}
 		for (const op of linearizedOperations) {
-			op.drpType === DrpType.ACL && this._applyOperation(acl, op);
+			if (op.drpType === DrpType.ACL) {
+				this._applyOperation(acl, op);
+			}
 		}
-		if (vertexOperation) {
-			vertexOperation.drpType === DrpType.ACL &&
-				this._applyOperation(acl, vertexOperation);
+		if (vertexOperation && vertexOperation.drpType === DrpType.ACL) {
+			this._applyOperation(acl, vertexOperation);
 		}
 
 		return acl;

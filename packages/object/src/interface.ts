@@ -26,7 +26,7 @@ export interface DRPPublicCredential {
 export interface DRP {
 	semanticsType: SemanticsType;
 	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
-	// biome-ignore lint: attributes can be anything
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 }
 

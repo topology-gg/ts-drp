@@ -33,6 +33,7 @@ const getColorForPeerId = (id: string): string => {
 		let b = hash & 0x0000ff;
 
 		// Convert to HSL and adjust lightness to be below 50%
+		// eslint-disable-next-line prefer-const
 		let [h, s, l] = rgbToHsl(r, g, b);
 		l = l * 0.5; // Set lightness to below 50%
 

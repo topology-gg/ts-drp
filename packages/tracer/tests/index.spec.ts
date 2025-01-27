@@ -146,7 +146,6 @@ describe("isPromise", () => {
 				yield 1;
 			}),
 		).toBe(false);
-		// biome-ignore lint/suspicious/noThenProperty: for testing purposes
 		expect(isPromise({ then: 1 })).toBe(false);
 	});
 });
