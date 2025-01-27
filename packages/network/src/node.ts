@@ -78,7 +78,6 @@ export class DRPNetworkNode {
 	private _config?: DRPNetworkNodeConfig;
 	private _node?: Libp2p;
 	private _pubsub?: GossipSub;
-	private _started = false;
 
 	peerId = "";
 
@@ -88,8 +87,7 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
-		if (this._started) throw new Error("Node already started");
-		this._started = true;
+		if (this._node?.status === "started") throw new Error("Node already started");
 
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
@@ -254,8 +252,7 @@ export class DRPNetworkNode {
 	}
 
 	async stop() {
-		if (!this._started) throw new Error("Node not started");
-		this._started = false;
+		if (this._node?.status === "stopped") throw new Error("Node not started");
 		await this._node?.stop();
 	}
 
