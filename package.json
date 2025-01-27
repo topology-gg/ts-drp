@@ -26,15 +26,15 @@
 		"coverage": "pnpm tsx scripts/coverage.ts",
 		"docs": "typedoc",
 		"flamegraph": "./scripts/flamegraph.sh",
+		"format": "prettier --write './**/*.{ts,tsx,js,jsx,json,md,html,css}'",
+		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
 		"postinstall": "pnpm build:packages",
 		"proto-gen": "pnpm proto-gen:object && pnpm proto-gen:network",
 		"proto-gen:network": "buf generate packages/network/src/proto -o packages/network/src/proto",
 		"proto-gen:object": "buf generate packages/object/src/proto -o packages/object/src/proto",
 		"release": "release-it",
 		"test": "vitest",
-		"watch": "pnpm --parallel --filter '@ts-drp/*' watch",
-		"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-		"format": "prettier --write './**/*.{ts,tsx,js,jsx,json,md,html,css}'"
+		"watch": "pnpm --parallel --filter '@ts-drp/*' watch"
 	},
 	"devDependencies": {
 		"@release-it-plugins/workspaces": "^4.2.0",
