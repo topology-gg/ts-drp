@@ -1,6 +1,6 @@
 general:
   heartbeat_interval: 1m
-  stop_time: 5min
+  stop_time: 1min
   progress: true
   model_unblocked_syscall_latency: true
 network:
@@ -48,7 +48,7 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node1
+      args: /home/sofia/projects/ts-drp/simulation/node.js --ip 11.1.0.1 --seed node1_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
@@ -58,7 +58,7 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node2
+      args: /home/sofia/projects/ts-drp/simulation/node.js --ip 11.1.0.2 --seed node2_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
@@ -68,7 +68,7 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node3
+      args: /home/sofia/projects/ts-drp/simulation/node.js --ip 11.1.0.3 --seed node3_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
@@ -78,7 +78,7 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node4
+      args: /home/sofia/projects/ts-drp/simulation/node.js --ip 11.1.0.4 --seed node4_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
@@ -88,7 +88,7 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node5
+      args: /home/sofia/projects/ts-drp/simulation/node.js --ip 11.1.0.5 --seed node5_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
@@ -98,7 +98,7 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node6
+      args: /home/sofia/projects/ts-drp/simulation/node.js --ip 11.1.0.6 --seed node6_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
@@ -108,7 +108,7 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node7
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node7_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
@@ -118,28 +118,28 @@ hosts:
     network_node_id: 0
     processes:
     - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node8
+      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node8_
       environment:
         DEBUG: "libp2p:*error"
       start_time: 5s
       expected_final_state: running
-  node09:
-    ip_addr: 11.1.0.9
-    network_node_id: 0
-    processes:
-    - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node9
-      environment:
-        DEBUG: "libp2p:*error"
-      start_time: 5s
-      expected_final_state: running
-  node10:
-    ip_addr: 11.1.0.10
-    network_node_id: 0
-    processes:
-    - path: /usr/bin/node
-      args: /home/sofia/projects/ts-drp/simulation/node.js --seed node10
-      environment:
-        DEBUG: "libp2p:*error"
-      start_time: 5s
-      expected_final_state: running
+  # node09:
+  #   ip_addr: 11.1.0.9
+  #   network_node_id: 0
+  #   processes:
+  #   - path: /usr/bin/node
+  #     args: /home/sofia/projects/ts-drp/simulation/node.js --seed node9_
+  #     environment:
+  #       DEBUG: "libp2p:*error"
+  #     start_time: 5s
+  #     expected_final_state: running
+  # node10:
+  #   ip_addr: 11.1.0.10
+  #   network_node_id: 0
+  #   processes:
+  #   - path: /usr/bin/node
+  #     args: /home/sofia/projects/ts-drp/simulation/node.js --seed node10_
+  #     environment:
+  #       DEBUG: "libp2p:*error"
+  #     start_time: 5s
+  #     expected_final_state: running
