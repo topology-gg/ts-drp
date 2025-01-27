@@ -94,11 +94,9 @@ async function topicDiscoveryRequestHandler(node: DRPNode, sender: string, data:
 
 async function topicDiscoveryResponseHandler(node: DRPNode, data: Uint8Array) {
 	const topicDiscoveryResponse = NetworkPb.TopicDiscoveryResponse.decode(data);
-	for (const [, subscribers] of Object.entries(topicDiscoveryResponse.subscribers)) {
-		for (const multiaddr of subscribers.multiaddrs) {
-			console.log("multiaddr", multiaddr);
-			await node.networkNode.connect(multiaddr);
-		}
+	for (const [peer, subscribers] of Object.entries(topicDiscoveryResponse.subscribers)) {
+		if (peer === node.networkNode.peerId.toString()) continue;
+		await node.networkNode.connect(subscribers.multiaddrs);
 	}
 }
 
