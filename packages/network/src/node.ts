@@ -35,7 +35,7 @@ import { webTransport } from "@libp2p/webtransport";
 import { Multiaddr, type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { type Libp2p, createLibp2p } from "libp2p";
+import { type Libp2p, ServiceFactoryMap, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
@@ -116,9 +116,9 @@ export class DRPNetworkNode {
 			}
 		}
 
-		let _node_services = {
+		let _node_services: ServiceFactoryMap = {
 			ping: ping(),
-			autonat: autoNAT(),
+
 			dcutr: dcutr(),
 			identify: identify(),
 			identifyPush: identifyPush(),
@@ -146,6 +146,7 @@ export class DRPNetworkNode {
 		if (this._config?.bootstrap) {
 			_node_services = {
 				..._node_services,
+				autonat: autoNAT(),
 				pubsub: gossipsub({
 					// cf: https://github.com/libp2p/specs/blob/master/pubsub/gossipsub/gossipsub-v1.1.md#recommendations-for-network-operators
 					D: 0,
