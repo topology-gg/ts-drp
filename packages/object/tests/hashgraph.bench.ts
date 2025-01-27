@@ -67,6 +67,18 @@ benchmarkForAddWinSet(
 	true,
 );
 
+suite.add("Create a HashGraph with 1000 operations for set wins map", () => {
+	const object: DRPObject = new DRPObject({
+		peerId: "peer1",
+		acl,
+		drp: new MapDRP<number, number>(),
+	});
+	const drp = object.drp as MapDRP<number, number>;
+	for (let i = 0; i < 1000; ++i) {
+		drp.set(i, i);
+	}
+});
+
 suite.add(
 	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map`,
 	() => {
@@ -83,7 +95,7 @@ suite.add(
 );
 
 suite.add(
-	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map`,
+	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and read them`,
 	() => {
 		const object: DRPObject = new DRPObject({
 			peerId: "peer1",
@@ -101,7 +113,7 @@ suite.add(
 	},
 );
 suite.add(
-	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and set`,
+	`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wins map and delete them`,
 	() => {
 		const object: DRPObject = new DRPObject({
 			peerId: "peer1",
@@ -114,7 +126,7 @@ suite.add(
 		}
 
 		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
-			drp.set(i, i + 1);
+			drp.delete(i);
 		}
 	},
 );
