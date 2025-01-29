@@ -1,4 +1,4 @@
-import { ObjectACL, Vertex } from "@ts-drp/object";
+import { ObjectACL } from "@ts-drp/object";
 import { describe, expect, test } from "vitest";
 
 import { AddMulDRP } from "../../blueprints/src/AddMul/index.js";
@@ -42,8 +42,6 @@ describe("AddMulDRP", () => {
 		await node1.start();
 		await node2.start();
 		await Promise.all([node1.networkNode.isDialable(), node2.networkNode.isDialable()]);
-		console.log("__P1__", node1.networkNode.peerId);
-		console.log("__P2__", node2.networkNode.peerId);
         
 		const acl = new ObjectACL({
 			admins: new Map([
@@ -91,7 +89,7 @@ describe("AddMulDRP", () => {
 		const addMul2 = drp2.drp as AddMulDRP;
 
 		addMul1.add(1);
-        await delay(1000);
+        await delay(100);
 
         expect(addMul2.query_value()).toBe(1);
         expect(addMul1.query_value()).toBe(1);
@@ -100,7 +98,7 @@ describe("AddMulDRP", () => {
         addMul2.mul(2);
         addMul1.mul(3);
         addMul2.add(2);
-		await delay(1000);
+		await delay(100);
 		expect(addMul2.query_value()).toBe(addMul2.query_value());
 	}, 5000);
 });

@@ -1,9 +1,13 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { MapConflictResolution, MapDRP } from "../../blueprints/src/Map/index.js";
 import { SetDRP } from "../../blueprints/src/Set/index.js";
 import { ObjectACL } from "../src/acl/index.js";
 import { ACLGroup, DRPObject, DrpType, type Operation, OperationType } from "../src/index.js";
+
+vi.useFakeTimers({
+	now: new Date(1738164958),
+});
 
 const acl = new ObjectACL({
 	admins: new Map([
@@ -59,8 +63,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
 		] as Operation[]);
 	});
 
