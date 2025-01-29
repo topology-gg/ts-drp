@@ -33,16 +33,15 @@ describe("AddMulDRP", () => {
 				log_config: {
 					level: "silent",
 				},
-                pubsub_peer_discovery_interval: 10,
+				pubsub_peer_discovery_interval: 10,
 			},
 		});
-
 
 		// Start both nodes
 		await node1.start();
 		await node2.start();
 		await Promise.all([node1.networkNode.isDialable(), node2.networkNode.isDialable()]);
-        
+
 		const acl = new ObjectACL({
 			admins: new Map([
 				[node1.networkNode.peerId, node1.credentialStore.getPublicCredential()],
@@ -60,7 +59,7 @@ describe("AddMulDRP", () => {
 			throw new Error("Node 1 has no multiaddrs");
 		}
 		await node1.networkNode.connect(addrs);
-		await node2.networkNode.connect(addrs2);     
+		await node2.networkNode.connect(addrs2);
 
 		await delay(100);
 
@@ -89,15 +88,15 @@ describe("AddMulDRP", () => {
 		const addMul2 = drp2.drp as AddMulDRP;
 
 		addMul1.add(1);
-        await delay(100);
+		await delay(100);
 
-        expect(addMul2.query_value()).toBe(1);
-        expect(addMul1.query_value()).toBe(1);
+		expect(addMul2.query_value()).toBe(1);
+		expect(addMul1.query_value()).toBe(1);
 
-        addMul1.add(1);
-        addMul2.mul(2);
-        addMul1.mul(3);
-        addMul2.add(2);
+		addMul1.add(1);
+		addMul2.mul(2);
+		addMul1.mul(3);
+		addMul2.add(2);
 		await delay(100);
 		expect(addMul2.query_value()).toBe(addMul2.query_value());
 	}, 5000);
