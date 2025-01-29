@@ -46,7 +46,6 @@ const config = tseslint.config(
 				ecmaVersion: 2021,
 				sourceType: "module",
 				project: "./tsconfig.json",
-				// tsconfigRootDir: __dirname,
 			},
 			globals: {
 				...globals.node,
@@ -54,7 +53,6 @@ const config = tseslint.config(
 			},
 		},
 		rules: {
-			// "no-console": [0],
 			"prettier/prettier": "error",
 			"@typescript-eslint/no-unused-vars": [
 				"error",
