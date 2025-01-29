@@ -59,8 +59,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
 		] as Operation[]);
 	});
 
@@ -190,8 +190,8 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
 			{ opType: "delete", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});

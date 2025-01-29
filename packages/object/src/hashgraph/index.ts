@@ -270,7 +270,7 @@ export class HashGraph {
 			processing.add(node);
 			visited.add(node);
 
-			const neighbors = this.forwardEdges.get(node)?.reverse();
+			const neighbors = this.forwardEdges.get(node);
 			if (neighbors) {
 				for (const neighbor of neighbors) {
 					if (subgraph.has(neighbor) && !visited.has(neighbor)) {
