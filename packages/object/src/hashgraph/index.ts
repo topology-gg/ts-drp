@@ -251,6 +251,37 @@ export class HashGraph {
 		return result.reverse();
 	}
 
+	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+		const visited = new Set<Hash>();
+		const result: Hash[] = [];
+		const stack: Hash[] = [origin];
+		const tmpStack = new Set<Hash>();
+
+		while (stack.length > 0) {
+			const node = stack[stack.length - 1];
+
+			if (tmpStack.has(node)) throw new Error("Graph contains a cycle!");
+			if (visited.has(node)) {
+				stack.pop();
+				result.push(node);
+				continue;
+			}
+
+			tmpStack.add(node);
+			visited.add(node);
+
+			for (const neighbor of [...(this.forwardEdges.get(node) || [])].reverse()) {
+				if (subgraph.has(neighbor) && !visited.has(neighbor)) {
+					stack.push(neighbor);
+				}
+			}
+
+			tmpStack.delete(node);
+		}
+
+		return result.reverse();
+	}
+
 	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const result: Hash[] = [];
 		const inDegree = new Map<Hash, number>();
@@ -302,7 +333,7 @@ export class HashGraph {
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys())
 	): Hash[] {
-		const result = this.dfsTopologicalSort(origin, subgraph);
+		const result = this.dfsTopologicalSortIterative(origin, subgraph);
 		if (!updateBitsets) return result;
 		this.reachablePredecessors.clear();
 		this.topoSortedIndex.clear();
