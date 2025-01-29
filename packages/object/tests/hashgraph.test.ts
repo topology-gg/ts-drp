@@ -102,6 +102,48 @@ describe("HashGraph construction tests", () => {
 	});
 });
 
+describe("Topological Sort tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	const acl = new ObjectACL({
+		admins: new Map([
+			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		]),
+	});
+
+	beforeEach(async () => {
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+	});
+
+	test("Topological sort is deterministic", () => {
+		/*
+                             __ V2:ADD(2) ----\
+          ROOT -- V1:ADD(1) /                  \ V5:ADD(4)
+                            \__ V3:ADD(3) -----/
+        */
+
+		const drp1 = obj1.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRP<number>;
+
+		drp1.add(1);
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		drp1.add(2);
+		drp2.add(3);
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		drp1.add(4);
+
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		const order1 = obj1.hashGraph.topologicalSort();
+		const order2 = obj2.hashGraph.topologicalSort();
+
+		expect(order1).toStrictEqual(order2);
+	});
+});
+
 describe("HashGraph for AddWinSet tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
