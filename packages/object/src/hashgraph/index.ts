@@ -224,6 +224,33 @@ export class HashGraph {
 		return hash;
 	}
 
+	dfsTopologicalSort(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+		const visited = new Set<Hash>();
+		const result: Hash[] = [];
+		const tempStack = new Set<Hash>();
+
+		const dfs = (node: Hash) => {
+			if (tempStack.has(node)) throw new Error("Graph contains a cycle!");
+			if (visited.has(node)) return;
+
+			tempStack.add(node);
+			visited.add(node);
+
+			for (const neighbor of this.forwardEdges.get(node) || []) {
+				if (subgraph.has(neighbor)) {
+					dfs(neighbor);
+				}
+			}
+
+			tempStack.delete(node);
+			result.push(node);
+		};
+
+		dfs(origin);
+
+		return result.reverse();
+	}
+
 	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const result: Hash[] = [];
 		const inDegree = new Map<Hash, number>();
@@ -252,9 +279,10 @@ export class HashGraph {
 
 			for (const child of this.forwardEdges.get(current) || []) {
 				if (!inDegree.has(child)) continue;
-				const inDegreeValue = inDegree.get(child) || 0;
-				inDegree.set(child, inDegreeValue - 1);
-				if (inDegreeValue - 1 === 0) {
+				const oldDeg = inDegree.get(child) || 0;
+				const newDeg = oldDeg - 1;
+				inDegree.set(child, newDeg);
+				if (newDeg === 0) {
 					queue.push(child);
 				}
 			}
@@ -274,7 +302,7 @@ export class HashGraph {
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys())
 	): Hash[] {
-		const result = this.kahnsAlgorithm(origin, subgraph);
+		const result = this.dfsTopologicalSort(origin, subgraph);
 		if (!updateBitsets) return result;
 		this.reachablePredecessors.clear();
 		this.topoSortedIndex.clear();
@@ -409,6 +437,14 @@ export class HashGraph {
 		const test2 =
 			this.reachablePredecessors.get(hash2)?.get(this.topoSortedIndex.get(hash1) || 0) || false;
 		return test1 || test2;
+	}
+
+	swapReachablePredecessors(hash1: Hash, hash2: Hash): void {
+		const reachable1 = this.reachablePredecessors.get(hash1);
+		const reachable2 = this.reachablePredecessors.get(hash2);
+		if (!reachable1 || !reachable2) return;
+		this.reachablePredecessors.set(hash1, reachable2);
+		this.reachablePredecessors.set(hash2, reachable1);
 	}
 
 	private _areCausallyRelatedUsingBFS(start: Hash, target: Hash): boolean {

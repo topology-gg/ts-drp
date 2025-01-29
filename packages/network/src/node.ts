@@ -37,6 +37,7 @@ import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
+import { waitForEvent } from "./utils/helper.js";
 
 export * from "./stream.js";
 
@@ -291,9 +292,10 @@ export class DRPNetworkNode {
 		}
 	}
 
-	async connect(addr: MultiaddrInput) {
+	async connect(addr: MultiaddrInput | MultiaddrInput[]) {
 		try {
-			await this._node?.dial([multiaddr(addr)]);
+			const addrs = (Array.isArray(addr) ? addr : [addr]).map(multiaddr);
+			await this._node?.dial(addrs);
 			log.info("::connect: Successfuly dialed", addr);
 		} catch (e) {
 			log.error("::connect:", e);
@@ -307,6 +309,34 @@ export class DRPNetworkNode {
 		} catch (e) {
 			log.error("::disconnect:", e);
 		}
+	}
+
+	async isDialable(timeout = 5000) {
+		return waitForEvent(async (resolve, reject) => {
+			if (!this._node) {
+				resolve(false);
+				return;
+			}
+
+			if (await this._node?.isDialable(this._node.getMultiaddrs())) {
+				resolve(true);
+				return;
+			}
+
+			const checkDialable = async () => {
+				try {
+					if (await this._node?.isDialable(this._node.getMultiaddrs())) {
+						resolve(true);
+					}
+				} catch (error) {
+					reject(error);
+				} finally {
+					this._node?.removeEventListener("transport:listening", checkDialable);
+				}
+			};
+
+			this._node.addEventListener("transport:listening", checkDialable);
+		}, timeout);
 	}
 
 	getBootstrapNodes() {

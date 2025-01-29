@@ -46,6 +46,7 @@ export function linearizePairSemantics(
 					j++;
 					break;
 				case ActionType.Swap:
+					hashGraph.swapReachablePredecessors(order[i], order[j]);
 					[order[i], order[j]] = [order[j], order[i]];
 					j = i + 1;
 					break;
