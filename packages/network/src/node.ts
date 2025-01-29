@@ -32,7 +32,7 @@ import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { type Libp2p, createLibp2p } from "libp2p";
+import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
@@ -49,13 +49,14 @@ let log: Logger;
 
 // snake_casing to match the JSON config
 export interface DRPNetworkNodeConfig {
-	listen_addresses?: string[];
 	announce_addresses?: string[];
 	bootstrap?: boolean;
 	bootstrap_peers?: string[];
 	browser_metrics?: boolean;
-	private_key_seed?: string;
+	listen_addresses?: string[];
 	log_config?: LoggerOptions;
+	private_key_seed?: string;
+	pubsub_peer_discovery_interval?: number;
 }
 
 type PeerDiscoveryFunction =
@@ -88,7 +89,7 @@ export class DRPNetworkNode {
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
 				topics: ["drp::discovery"],
-				interval: 10_000,
+				interval: this._config?.pubsub_peer_discovery_interval || 5000,
 			}),
 		];
 
@@ -106,9 +107,8 @@ export class DRPNetworkNode {
 			}
 		}
 
-		let _node_services = {
+		let _node_services: ServiceFactoryMap = {
 			ping: ping(),
-			autonat: autoNAT(),
 			dcutr: dcutr(),
 			identify: identify(),
 			identifyPush: identifyPush(),
@@ -136,6 +136,7 @@ export class DRPNetworkNode {
 		if (this._config?.bootstrap) {
 			_node_services = {
 				..._node_services,
+				autonat: autoNAT(),
 				pubsub: gossipsub({
 					// cf: https://github.com/libp2p/specs/blob/master/pubsub/gossipsub/gossipsub-v1.1.md#recommendations-for-network-operators
 					D: 0,
