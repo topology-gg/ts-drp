@@ -59,8 +59,8 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		] as Operation[]);
 	});
 

@@ -358,7 +358,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		const { lca, linearizedOperations } = preCompute ?? this.computeLCA(vertexDependencies);
-
 		const drp = cloneDeep(this.originalDRP);
 
 		const fetchedState = this.drpStates.get(lca);
