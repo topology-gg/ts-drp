@@ -255,28 +255,30 @@ export class HashGraph {
 		const visited = new Set<Hash>();
 		const result: Hash[] = [];
 		const stack: Hash[] = [origin];
-		const tmpStack = new Set<Hash>();
+		const processing = new Set<Hash>();
 
 		while (stack.length > 0) {
 			const node = stack[stack.length - 1];
 
-			if (tmpStack.has(node)) throw new Error("Graph contains a cycle!");
+			if (processing.has(node)) throw new Error("Graph contains a cycle!");
 			if (visited.has(node)) {
 				stack.pop();
 				result.push(node);
 				continue;
 			}
 
-			tmpStack.add(node);
+			processing.add(node);
 			visited.add(node);
 
-			for (const neighbor of [...(this.forwardEdges.get(node) || [])].reverse()) {
-				if (subgraph.has(neighbor) && !visited.has(neighbor)) {
-					stack.push(neighbor);
+			const neighbors = this.forwardEdges.get(node)?.reverse();
+			if (neighbors) {
+				for (const neighbor of neighbors) {
+					if (subgraph.has(neighbor) && !visited.has(neighbor)) {
+						stack.push(neighbor);
+					}
 				}
 			}
-
-			tmpStack.delete(node);
+			processing.delete(node);
 		}
 
 		return result.reverse();
