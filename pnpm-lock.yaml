@@ -44,6 +44,9 @@ importers:
       globals:
         specifier: ^15.14.0
         version: 15.14.0
+      jiti:
+        specifier: ^2.4.2
+        version: 2.4.2
       release-it:
         specifier: ^17.6.0
         version: 17.10.0(typescript@5.7.2)
@@ -10902,8 +10905,7 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jiti@2.4.2:
-    optional: true
+  jiti@2.4.2: {}
 
   js-tokens@4.0.0: {}
 

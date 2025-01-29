@@ -7,7 +7,7 @@ import vitest from "eslint-plugin-vitest";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
+const config = tseslint.config(
 	{
 		ignores: [
 			"**/.env",
@@ -46,6 +46,7 @@ export default tseslint.config(
 				ecmaVersion: 2021,
 				sourceType: "module",
 				project: "./tsconfig.json",
+				// tsconfigRootDir: __dirname,
 			},
 			globals: {
 				...globals.node,
@@ -53,6 +54,7 @@ export default tseslint.config(
 			},
 		},
 		rules: {
+			// "no-console": [0],
 			"prettier/prettier": "error",
 			"@typescript-eslint/no-unused-vars": [
 				"error",
@@ -85,3 +87,5 @@ export default tseslint.config(
 		},
 	}
 );
+
+export default config;
