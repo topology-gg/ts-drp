@@ -1,6 +1,5 @@
-
+import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
-import { ActionType, Vertex } from "@ts-drp/object";
 
 import { AddMulDRP } from "../src/AddMul/index.js";
 
@@ -25,14 +24,14 @@ describe("HashGraph for AddWinSet tests", () => {
 	});
 
 	test("Test: Add (Weird inputs)", () => {
-		drp.add(5)
+		drp.add(5);
 		drp.add("");
 		expect(drp.query_value()).toEqual(5);
 
-		drp.add(true)
+		drp.add(true);
 		expect(drp.query_value()).toEqual(5);
 
-		drp.add({})
+		drp.add({});
 		expect(drp.query_value()).toEqual(5);
 	});
 
@@ -51,18 +50,18 @@ describe("HashGraph for AddWinSet tests", () => {
 	});
 
 	test("Test: Mul (Weird inputs)", () => {
-		drp.add(5)
+		drp.add(5);
 		drp.mul("");
 		expect(drp.query_value()).toEqual(5);
 
-		drp.mul(true)
+		drp.mul(true);
 		expect(drp.query_value()).toEqual(5);
 
-		drp.mul({})
+		drp.mul({});
 		expect(drp.query_value()).toEqual(5);
 	});
 
-	test ("Test: initialValue (Basic)", () => {
+	test("Test: initialValue (Basic)", () => {
 		drp = new AddMulDRP(10);
 		expect(drp.query_value()).toEqual(10);
 
@@ -126,7 +125,7 @@ describe("HashGraph for AddWinSet tests", () => {
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		}
+		};
 		const vertex4 = {
 			hash: "4",
 			peerId: "4",
@@ -138,7 +137,7 @@ describe("HashGraph for AddWinSet tests", () => {
 			dependencies: [],
 			timestamp: 0,
 			signature: new Uint8Array(),
-		}
+		};
 
 		let action = drp.resolveConflicts([]);
 		expect(action).toEqual({ action: ActionType.Nop });
@@ -153,7 +152,7 @@ describe("HashGraph for AddWinSet tests", () => {
 		action = drp.resolveConflicts([vertex1, vertex2]);
 		expect(action).toEqual({ action: ActionType.Nop });
 		action = drp.resolveConflicts([vertex2, vertex1]);
-		expect(action).toEqual({ action: ActionType.Swap });;
+		expect(action).toEqual({ action: ActionType.Swap });
 
 		action = drp.resolveConflicts([vertex1, vertex3]);
 		expect(action).toEqual({ action: ActionType.Nop });
@@ -171,18 +170,18 @@ describe("HashGraph for AddWinSet tests", () => {
 			hash: "1",
 			operation: {
 				opType: "add",
-			}
+			},
 		};
 		const vertex2 = {
 			hash: "2",
 			operation: {
 				opType: "mulx",
-			}
+			},
 		};
 		const vertex3 = {
 			operation: {
 				opType: "mul",
-			}
+			},
 		};
 		const vertex4 = {};
 
