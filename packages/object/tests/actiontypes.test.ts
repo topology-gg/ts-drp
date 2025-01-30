@@ -1,7 +1,6 @@
 import { AddMulDRP } from "@ts-drp/blueprints/src/AddMul/index.js";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import { DRPObject, ObjectACL } from "../src/index.js";
-import { jasmine } from "globals";
 
 const acl = new ObjectACL({
 	admins: new Map(),
@@ -16,7 +15,7 @@ beforeAll(async () => {
 	globalThis.console = new Console(process.stdout, process.stderr);
 });
 
-describe("Test ActionTypes: Nop and Swap", () => {
+describe("Test: ActionTypes (Nop and Swap)", () => {
 	// AddMul always adds first, then multiplies
 	let addMul: AddMulDRP;
 	let addMul2: AddMulDRP;
@@ -108,7 +107,7 @@ describe("Test ActionTypes: Nop and Swap", () => {
 	});
 });
 
-describe("Test ActionTypes: Drops", () => {
+describe("Test: ActionTypes (Drops)", () => {
 	test("Test: DropLeft", () => {
 	});
 
