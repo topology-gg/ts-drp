@@ -1,4 +1,4 @@
-import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
 
