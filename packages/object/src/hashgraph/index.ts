@@ -17,9 +17,9 @@ export enum OperationType {
 }
 
 export enum ActionType {
-	DropLeft = 0,
-	DropRight = 1,
-	Nop = 2,
+	Nop = 0,
+	DropLeft = 1,
+	DropRight = 2,
 	Swap = 3,
 	Drop = 4,
 }
