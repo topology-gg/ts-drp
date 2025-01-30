@@ -3,7 +3,7 @@ import {
 	type DRP,
 	type ResolveConflictsType,
 	SemanticsType,
-	Vertex,
+	type Vertex,
 } from "@ts-drp/object";
 
 export class AddMulDRP implements DRP {
