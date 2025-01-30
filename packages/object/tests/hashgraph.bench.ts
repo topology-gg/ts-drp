@@ -1,7 +1,7 @@
-import { MapDRP } from "@topology-foundation/blueprints/src/index.js";
+import { MapDRP } from "@ts-drp/blueprints/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
 import Benchmark from "benchmark";
 
-import { SetDRP } from "../../blueprints/src/Set/index.js";
 import { DRPObject, ObjectACL } from "../src/index.js";
 
 const acl = new ObjectACL({
