@@ -49,7 +49,7 @@ export function linearizePairSemantics(
 					hashGraph.swapReachablePredecessors(order[i], order[j]);
 					[order[i], order[j]] = [order[j], order[i]];
 					j = i + 1;
-					anchor = order[j];
+					anchor = order[i];
 					break;
 				case ActionType.Nop:
 					j++;
