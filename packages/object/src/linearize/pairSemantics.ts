@@ -17,7 +17,7 @@ export function linearizePairSemantics(
 			i++;
 			continue;
 		}
-		const anchor = order[i];
+		let anchor = order[i];
 		let j = i + 1;
 
 		while (j < order.length) {
@@ -46,8 +46,10 @@ export function linearizePairSemantics(
 					j++;
 					break;
 				case ActionType.Swap:
+					hashGraph.swapReachablePredecessors(order[i], order[j]);
 					[order[i], order[j]] = [order[j], order[i]];
 					j = i + 1;
+					anchor = order[i];
 					break;
 				case ActionType.Nop:
 					j++;

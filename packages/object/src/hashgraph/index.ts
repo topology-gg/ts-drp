@@ -411,6 +411,14 @@ export class HashGraph {
 		return test1 || test2;
 	}
 
+	swapReachablePredecessors(hash1: Hash, hash2: Hash): void {
+		const reachable1 = this.reachablePredecessors.get(hash1);
+		const reachable2 = this.reachablePredecessors.get(hash2);
+		if (!reachable1 || !reachable2) return;
+		this.reachablePredecessors.set(hash1, reachable2);
+		this.reachablePredecessors.set(hash2, reachable1);
+	}
+
 	private _areCausallyRelatedUsingBFS(start: Hash, target: Hash): boolean {
 		const visited = new Set<Hash>();
 		const queue: Hash[] = [];
