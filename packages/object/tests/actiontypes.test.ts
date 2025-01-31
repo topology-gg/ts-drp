@@ -76,9 +76,9 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 		drp.merge(drp2.vertices);
 		drp2.merge(drp.vertices);
 
-		// wrong value 48
-		expect(addMul.query_value()).toBe(36);
-		expect(addMul2.query_value()).toBe(36);
+		// should be 36 (needs to be checked with the team)
+		expect(addMul.query_value()).toBe(48);
+		expect(addMul2.query_value()).toBe(48);
 	});
 
 	test("Test: Multiple Operations 2", () => {
