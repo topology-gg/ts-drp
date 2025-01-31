@@ -74,12 +74,11 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 		addMul.add(6)
 		addMul2.mul(3)
 		drp.merge(drp2.vertices);
-		// infinite loop
-		// drp2.merge(drp.vertices);
+		drp2.merge(drp.vertices);
 
 		// wrong value 48
 		expect(addMul.query_value()).toBe(36);
-		// expect(addMul2.query_value()).toBe(36);
+		expect(addMul2.query_value()).toBe(36);
 	});
 
 	test("Test: Multiple Operations 2", () => {
