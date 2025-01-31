@@ -5,6 +5,8 @@ import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import type { Vertex_Operation as Operation, Vertex } from "../proto/drp/object/v1/object_pb.js";
+import { Heap } from "../utils/heap.js";
+import { MinHeap } from "../utils/minHeap.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
 // Reexporting the Vertex and Operation types from the protobuf file
@@ -227,7 +229,7 @@ export class HashGraph {
 	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const result: Hash[] = [];
 		const inDegree = new Map<Hash, number>();
-		const queue: Hash[] = [];
+		const queue: Heap<Hash> = new Heap(new MinHeap());
 
 		for (const hash of subgraph.entries()) {
 			inDegree.set(hash, 0);
@@ -241,11 +243,9 @@ export class HashGraph {
 			}
 		}
 
-		let head = 0;
 		queue.push(origin);
-		while (queue.length > 0) {
-			const current = queue[head];
-			head++;
+		while (queue.length() > 0) {
+			const current = queue.pop();
 			if (!current) continue;
 
 			result.push(current);
@@ -257,11 +257,6 @@ export class HashGraph {
 				if (inDegreeValue - 1 === 0) {
 					queue.push(child);
 				}
-			}
-
-			if (head > queue.length / 2) {
-				queue.splice(0, head);
-				head = 0;
 			}
 		}
 
