@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { AddMulDRP } from "../src/AddMul/index.js";
 
-describe("HashGraph for AddWinSet tests", () => {
+describe("AddMulDRP tests", () => {
 	let drp: AddMulDRP;
 
 	beforeEach(() => {
