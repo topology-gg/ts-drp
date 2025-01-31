@@ -1,9 +1,13 @@
 import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
 import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
 import { ACLGroup, DRPObject, DrpType, type Operation, OperationType } from "../src/index.js";
+
+vi.useFakeTimers({
+	now: new Date(1738164958),
+});
 
 const acl = new ObjectACL({
 	admins: new Map([
