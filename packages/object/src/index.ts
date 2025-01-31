@@ -282,7 +282,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this._updateObjectACLState();
 		this._updateDRPState();
 		this._notify("merge", this.vertices);
-
+		// Might not be necessary
+		this.hashGraph.resetMemo();
 		return [missing.length === 0, missing];
 	}
 

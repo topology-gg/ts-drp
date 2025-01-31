@@ -50,13 +50,13 @@ export class HashGraph {
 	frontier: Hash[] = [];
 	forwardEdges: Map<Hash, Hash[]> = new Map();
 	/*
-	computeHash(
-		"",
-		{ type: OperationType.NOP, value: null },
-		[],
-		-1,
-	);
-	*/
+    computeHash(
+        "",
+        { type: OperationType.NOP, value: null },
+        [],
+        -1,
+    );
+    */
 	static readonly rootHash: Hash =
 		"425d2b1f5243dbf23c685078034b06fbfa71dc31dcce30f614e28023f140ff13";
 	private arePredecessorsFresh = false;
@@ -65,6 +65,8 @@ export class HashGraph {
 	private vertexDistances: Map<Hash, VertexDistance> = new Map();
 	// We start with a bitset of size 1, and double it every time we reach the limit
 	private currentBitsetSize = 1;
+	private lcaMemo: Map<string, Hash | undefined>;
+	private static readonly NOT_FOUND_HASH: Hash = "__NOT_FOUND__";
 
 	constructor(
 		peerId: string,
@@ -95,6 +97,15 @@ export class HashGraph {
 		this.vertexDistances.set(HashGraph.rootHash, {
 			distance: 0,
 		});
+		this.lcaMemo = new Map();
+	}
+
+	resetMemo() {
+		this.lcaMemo = new Map();
+	}
+
+	private getPairKey(h1: Hash, h2: Hash): string {
+		return h1 < h2 ? `${h1}|${h2}` : `${h2}|${h1}`;
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
@@ -327,13 +338,17 @@ export class HashGraph {
 			if (!lca) {
 				throw new Error("LCA not found");
 			}
-			if (!visited.has(targetVertices[i])) {
+			const pairKey = this.getPairKey(lca, targetVertices[i]);
+			if (this.lcaMemo.has(pairKey)) {
+				lca = this.lcaMemo.get(pairKey);
+			} else {
 				lca = this.lowestCommonAncestorPairVertices(
 					lca,
 					targetVertices[i],
 					visited,
 					targetVertices
 				);
+				this.lcaMemo.set(pairKey, lca);
 			}
 		}
 		if (!lca) {
@@ -348,6 +363,10 @@ export class HashGraph {
 		visited: ObjectSet<Hash>,
 		targetVertices: Hash[]
 	): Hash | undefined {
+		const pairKey = this.getPairKey(hash1, hash2);
+		if (this.lcaMemo.has(pairKey)) {
+			return this.lcaMemo.get(pairKey);
+		}
 		let currentHash1 = hash1;
 		let currentHash2 = hash2;
 		visited.add(currentHash1);
@@ -357,17 +376,20 @@ export class HashGraph {
 			const distance1 = this.vertexDistances.get(currentHash1);
 			if (!distance1) {
 				log.error("::hashgraph::LCA: Vertex not found");
+				this.lcaMemo.set(pairKey, undefined);
 				return;
 			}
 			const distance2 = this.vertexDistances.get(currentHash2);
 			if (!distance2) {
 				log.error("::hashgraph::LCA: Vertex not found");
+				this.lcaMemo.set(pairKey, undefined);
 				return;
 			}
 
 			if (distance1.distance > distance2.distance) {
 				if (!distance1.closestDependency) {
 					log.error("::hashgraph::LCA: Closest dependency not found");
+					this.lcaMemo.set(pairKey, undefined);
 					return;
 				}
 				for (const dep of this.vertices.get(currentHash1)?.dependencies || []) {
@@ -377,12 +399,14 @@ export class HashGraph {
 				}
 				currentHash1 = distance1.closestDependency;
 				if (visited.has(currentHash1)) {
+					this.lcaMemo.set(pairKey, currentHash2);
 					return currentHash2;
 				}
 				visited.add(currentHash1);
 			} else {
 				if (!distance2.closestDependency) {
 					log.error("::hashgraph::LCA: Closest dependency not found");
+					this.lcaMemo.set(pairKey, undefined);
 					return;
 				}
 				for (const dep of this.vertices.get(currentHash2)?.dependencies || []) {
@@ -392,11 +416,13 @@ export class HashGraph {
 				}
 				currentHash2 = distance2.closestDependency;
 				if (visited.has(currentHash2)) {
+					this.lcaMemo.set(pairKey, currentHash1);
 					return currentHash1;
 				}
 				visited.add(currentHash2);
 			}
 		}
+		this.lcaMemo.set(pairKey, currentHash1);
 		return currentHash1;
 	}
 
