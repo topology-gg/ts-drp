@@ -211,7 +211,6 @@ describe("DRPNode voting tests", () => {
 			ACLGroup.Finality
 		);
 		drp1.add(1);
-
 		obj2.merge(obj1.vertices);
 		const V1 = obj2.vertices.find(
 			(v) => v.operation?.value !== null && v.operation?.value[0] === 1
