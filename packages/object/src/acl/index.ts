@@ -1,5 +1,6 @@
 import { ActionType, type ResolveConflictsType, SemanticsType, type Vertex } from "../index.js";
 import type { DRPPublicCredential } from "../interface.js";
+import type { PeerAccess } from "./interface.js";
 import { type ACL, ACLConflictResolution, ACLGroup } from "./interface.js";
 
 export class ObjectACL implements ACL {
@@ -8,10 +9,8 @@ export class ObjectACL implements ACL {
 	// if true, any peer can write to the object
 	permissionless: boolean;
 	private _conflictResolution: ACLConflictResolution;
-	private _admins: Map<string, DRPPublicCredential>;
+	private _privilegedUsers: Map<string, PeerAccess>;
 	// peers who can sign finality
-	private _finalitySigners: Map<string, DRPPublicCredential>;
-	private _writers: Map<string, DRPPublicCredential>;
 
 	constructor(options: {
 		admins: Map<string, DRPPublicCredential>;
@@ -19,11 +18,19 @@ export class ObjectACL implements ACL {
 		conflictResolution?: ACLConflictResolution;
 	}) {
 		this.permissionless = options.permissionless ?? false;
-		this._admins = new Map(Array.from(options.admins, ([key, value]) => [key, value]));
-		this._finalitySigners = new Map(Array.from(options.admins, ([key, value]) => [key, value]));
-		this._writers = options.permissionless
-			? new Map()
-			: new Map(Array.from(options.admins, ([key, value]) => [key, value]));
+		this._privilegedUsers = new Map();
+
+		const permissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
+		if (!options.permissionless) {
+			permissions.add(ACLGroup.Writer);
+		}
+
+		for (const [key, value] of options.admins) {
+			this._privilegedUsers.set(key, {
+				publicKey: value,
+				permissions: permissions,
+			});
+		}
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
@@ -31,18 +38,24 @@ export class ObjectACL implements ACL {
 		if (!this.query_isAdmin(senderId)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
+		const existingUser = this._privilegedUsers.get(peerId);
+		const _grant = (peerId: string, group: ACLGroup) => {
+			const user = existingUser ?? { publicKey, permissions: new Set() };
+			user.permissions.add(group);
+			this._privilegedUsers.set(peerId, user);
+		};
 		switch (group) {
 			case ACLGroup.Admin:
-				this._admins.set(peerId, publicKey);
+				_grant(peerId, ACLGroup.Admin);
 				break;
 			case ACLGroup.Finality:
-				this._finalitySigners.set(peerId, publicKey);
+				_grant(peerId, ACLGroup.Finality);
 				break;
 			case ACLGroup.Writer:
 				if (this.permissionless) {
 					throw new Error("Cannot grant write permissions to a peer in permissionless mode.");
 				}
-				this._writers.set(peerId, publicKey);
+				_grant(peerId, ACLGroup.Writer);
 				break;
 			default:
 				throw new Error("Invalid group.");
@@ -62,10 +75,10 @@ export class ObjectACL implements ACL {
 				// currently no way to revoke admin privileges
 				break;
 			case ACLGroup.Finality:
-				this._finalitySigners.delete(peerId);
+				this._privilegedUsers.get(peerId)?.permissions.delete(ACLGroup.Finality);
 				break;
 			case ACLGroup.Writer:
-				this._writers.delete(peerId);
+				this._privilegedUsers.get(peerId)?.permissions.delete(ACLGroup.Writer);
 				break;
 			default:
 				throw new Error("Invalid group.");
@@ -73,25 +86,27 @@ export class ObjectACL implements ACL {
 	}
 
 	query_getFinalitySigners(): Map<string, DRPPublicCredential> {
-		return new Map(this._finalitySigners);
+		return new Map(
+			[...this._privilegedUsers.entries()]
+				.filter(([, user]) => user.permissions.has(ACLGroup.Finality))
+				.map(([peerId, user]) => [peerId, user.publicKey])
+		);
 	}
 
 	query_isAdmin(peerId: string): boolean {
-		return this._admins.has(peerId);
+		return this._privilegedUsers.get(peerId)?.permissions.has(ACLGroup.Admin) ?? false;
 	}
 
 	query_isFinalitySigner(peerId: string): boolean {
-		return this._finalitySigners.has(peerId);
+		return this._privilegedUsers.get(peerId)?.permissions.has(ACLGroup.Finality) ?? false;
 	}
 
 	query_isWriter(peerId: string): boolean {
-		return this._writers.has(peerId);
+		return this._privilegedUsers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false;
 	}
 
 	query_getPeerKey(peerId: string): DRPPublicCredential | undefined {
-		if (this._admins.has(peerId)) return this._admins.get(peerId);
-		if (this._finalitySigners.has(peerId)) return this._finalitySigners.get(peerId);
-		return this._writers.get(peerId);
+		return this._privilegedUsers.get(peerId)?.publicKey;
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
