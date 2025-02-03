@@ -1,5 +1,3 @@
-import * as crypto from "node:crypto";
-
 import { log } from "../index.js";
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";

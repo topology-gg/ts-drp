@@ -3,7 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ACLGroup, DRPObject, DrpType, type Operation, OperationType } from "../src/index.js";
+import { ACLGroup, DRPObject, DrpType, type Operation } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
