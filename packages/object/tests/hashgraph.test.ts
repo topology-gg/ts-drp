@@ -82,7 +82,7 @@ describe("HashGraph construction tests", () => {
 				[],
 				"",
 				Date.now(),
-				new Uint8Array(),
+				new Uint8Array()
 			);
 		}).toThrowError("Vertex dependencies are empty.");
 		expect(() => {
@@ -95,7 +95,7 @@ describe("HashGraph construction tests", () => {
 				["123"],
 				"",
 				Date.now(),
-				new Uint8Array(),
+				new Uint8Array()
 			);
 		}).toThrowError("Invalid dependency detected.");
 		expect(obj1.hashGraph.selfCheckConstraints()).toBe(true);

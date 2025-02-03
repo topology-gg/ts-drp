@@ -84,10 +84,7 @@ describe("DPRNode with verify and sign signature", () => {
 			},
 		];
 		await signGeneratedVertices(drpNode, vertices);
-		const verifiedVertices = await verifyACLIncomingVertices(
-			drpObject,
-			vertices,
-		);
+		const verifiedVertices = await verifyACLIncomingVertices(drpObject, vertices);
 		expect(verifiedVertices.length).toBe(1);
 	});
 
@@ -106,10 +103,7 @@ describe("DPRNode with verify and sign signature", () => {
 				signature: new Uint8Array(),
 			},
 		];
-		const verifiedVertices = await verifyACLIncomingVertices(
-			drpObject,
-			vertices,
-		);
+		const verifiedVertices = await verifyACLIncomingVertices(drpObject, vertices);
 		expect(verifiedVertices.length).toBe(0);
 	});
 });

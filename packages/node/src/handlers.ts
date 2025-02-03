@@ -4,11 +4,7 @@ import { type ACL, type DRPObject, HashGraph, type ObjectPb, type Vertex } from 
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { type DRPNode, log } from "./index.js";
-import {
-	deserializeStateMessage,
-	serializeStateMessage,
-	verifyACLSignature,
-} from "./utils.js";
+import { deserializeStateMessage, serializeStateMessage, verifyACLSignature } from "./utils.js";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -153,10 +149,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(
-			object,
-			updateMessage.vertices,
-		);
+		verifiedVertices = await verifyACLIncomingVertices(object, updateMessage.vertices);
 	}
 
 	const [merged, _] = object.merge(verifiedVertices);
@@ -258,10 +251,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
-		verifiedVertices = await verifyACLIncomingVertices(
-			object,
-			syncAcceptMessage.requested,
-		);
+		verifiedVertices = await verifyACLIncomingVertices(object, syncAcceptMessage.requested);
 	}
 
 	if (verifiedVertices.length !== 0) {
@@ -440,11 +430,7 @@ export async function verifyACLIncomingVertices(
 		const data = uint8ArrayFromString(vertex.hash);
 
 		try {
-			const isValid = await verifyACLSignature(
-				publicKeyBytes,
-				vertex.signature,
-				data
-			);
+			const isValid = await verifyACLSignature(publicKeyBytes, vertex.signature, data);
 
 			return isValid ? vertex : null;
 		} catch (error) {

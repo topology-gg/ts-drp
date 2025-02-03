@@ -1,7 +1,6 @@
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
-import * as crypto from "node:crypto";
 
 import { ObjectACL } from "./acl/index.js";
 import type { ACL } from "./acl/interface.js";
@@ -269,32 +268,25 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 							vertex.dependencies,
 							vertex.peerId,
 							vertex.timestamp,
-							vertex.signature,
+							vertex.signature
 						);
 						this._applyOperation(drp, vertex.operation);
 
 						this._setObjectACLState(vertex, preComputeLca);
 						this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 					} else {
-						const acl = this._computeObjectACL(
-							vertex.dependencies,
-							preComputeLca,
-						);
+						const acl = this._computeObjectACL(vertex.dependencies, preComputeLca);
 
 						this.hashGraph.addVertex(
 							vertex.operation,
 							vertex.dependencies,
 							vertex.peerId,
 							vertex.timestamp,
-							vertex.signature,
+							vertex.signature
 						);
 						this._applyOperation(acl, vertex.operation);
 
-						this._setObjectACLState(
-							vertex,
-							preComputeLca,
-							this._getDRPState(acl),
-						);
+						this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 						this._setDRPState(vertex, preComputeLca);
 					}
 					this._initializeFinalityState(vertex.hash);

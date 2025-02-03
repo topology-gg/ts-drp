@@ -78,10 +78,10 @@ importers:
   examples/canvas:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -100,10 +100,10 @@ importers:
   examples/chat:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -122,10 +122,10 @@ importers:
   examples/grid:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../../packages/node
       '@ts-drp/object':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../../packages/object
     devDependencies:
       '@types/node':
@@ -144,7 +144,7 @@ importers:
   examples/local-bootstrap:
     dependencies:
       '@ts-drp/node':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../../packages/node
     devDependencies:
       '@types/node':
@@ -167,7 +167,7 @@ importers:
         version: 4.1.5
     devDependencies:
       '@ts-drp/object':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../object
 
   packages/logger:
@@ -236,7 +236,7 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0
       '@ts-drp/logger':
-        specifier: ^0.6.0
+        specifier: ^0.7.0
         version: link:../logger
       it-length-prefixed:
         specifier: ^9.1.0
@@ -285,16 +285,16 @@ importers:
         specifier: ^2.1.3
         version: 2.3.0
       '@ts-drp/blueprints':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../blueprints
       '@ts-drp/logger':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../logger
       '@ts-drp/network':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../network
       '@ts-drp/object':
-        specifier: 0.6.1
+        specifier: 0.7.0
         version: link:../object
       commander:
         specifier: ^13.0.0
@@ -328,7 +328,7 @@ importers:
         specifier: ^8.1.0
         version: 8.1.0
       '@ts-drp/logger':
-        specifier: ^0.6.1
+        specifier: ^0.7.0
         version: link:../logger
       es-toolkit:
         specifier: 1.30.1
