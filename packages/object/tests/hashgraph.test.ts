@@ -790,3 +790,51 @@ describe("HashGraph for delete wins map tests", () => {
 		expect(drp2.query_get("key2")).toBe(undefined);
 	});
 });
+
+describe("Hash validation tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	beforeEach(async () => {
+		obj1 = new DRPObject({
+			peerId: "peer1",
+			acl,
+			drp: new MapDRP<string, string>(),
+		});
+
+		obj2 = new DRPObject({
+			peerId: "peer2",
+			acl,
+			drp: new MapDRP<string, string>(),
+		});
+	});
+
+	test("Should accept vertices with valid hash", () => {
+		const drp1 = obj1.drp as MapDRP<string, string>;
+		const drp2 = obj2.drp as MapDRP<string, string>;
+		drp1.set("key1", "value1");
+		drp2.set("key2", "value2");
+
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(obj2.vertices.length).toBe(3);
+		expect(obj2.hashGraph.getAllVertices().length).toBe(3);
+	});
+
+	test("Should ignore vertices with invalid hash", () => {
+		obj1.hashGraph.addVertex({
+			hash: "hash",
+			peerId: "peer1",
+			operation: {
+				opType: "add",
+				value: "value",
+				drpType: DrpType.DRP,
+			},
+			dependencies: obj1.hashGraph.getFrontier(),
+			timestamp: Date.now(),
+			signature: new Uint8Array(),
+		});
+
+		expect(obj1.hashGraph.getAllVertices().length).toBe(2);
+		expect(obj2.hashGraph.getAllVertices().length).toBe(1);
+		expect(obj2.hashGraph.getAllVertices().includes(obj1.hashGraph.getAllVertices()[1])).toBe(false);
+	});
+});
