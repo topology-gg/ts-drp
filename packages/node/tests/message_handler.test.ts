@@ -3,6 +3,7 @@ import { NetworkPb } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { DRPObject, ObjectACL } from "@ts-drp/object";
 import { beforeAll, describe, expect, test } from "vitest";
+
 import {
 	attestationUpdateHandler,
 	signGeneratedVertices,
@@ -56,7 +57,7 @@ describe("Handle message correctly", () => {
 				NetworkPb.Update.create({
 					objectId: drpObject.id,
 					vertices: vertices,
-				}),
+				})
 			).finish(),
 		});
 		const success = await updateHandler(node, message.sender, message.data);
@@ -85,7 +86,7 @@ describe("Handle message correctly", () => {
 				NetworkPb.Sync.create({
 					objectId: drpObject.id,
 					vertexHashes: drpObject.vertices.map((vertex) => vertex.hash),
-				}),
+				})
 			).finish(),
 		});
 		const success = await syncHandler(node, message.sender, message.data);
@@ -107,7 +108,7 @@ describe("Handle message correctly", () => {
 					requested: vertices,
 					requesting: [],
 					attestations: [],
-				}),
+				})
 			).finish(),
 		});
 		const success = await syncAcceptHandler(node, message.sender, message.data);
@@ -117,14 +118,12 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle update attestation message correctly", async () => {
-		const attestations = node
-			.getObject(drpObject.id)
-			?.vertices.map((vertex) => {
-				return {
-					data: vertex.hash,
-					signature: node2.credentialStore.signWithBls(vertex.hash),
-				};
-			});
+		const attestations = node.getObject(drpObject.id)?.vertices.map((vertex) => {
+			return {
+				data: vertex.hash,
+				signature: node2.credentialStore.signWithBls(vertex.hash),
+			};
+		});
 		const message = NetworkPb.Message.create({
 			sender: mockSender,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
@@ -132,14 +131,10 @@ describe("Handle message correctly", () => {
 				NetworkPb.AttestationUpdate.create({
 					objectId: drpObject.id,
 					attestations,
-				}),
+				})
 			).finish(),
 		});
-		const success = await attestationUpdateHandler(
-			node,
-			message.sender,
-			message.data,
-		);
+		const success = await attestationUpdateHandler(node, message.sender, message.data);
 		expect(success).toBe(true);
 	});
 });

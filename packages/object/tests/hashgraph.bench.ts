@@ -1,5 +1,5 @@
 import { MapDRP } from "@ts-drp/blueprints/src/index.js";
-import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
+import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import Benchmark from "benchmark";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
@@ -84,7 +84,7 @@ suite.add(`Create a HashGraph with ${NUMBER_OF_OPERATIONS} operations for set wi
 		acl,
 		drp: new MapDRP<number, number>(),
 	});
-	const drp = object.drp as MapDRP<number, number>;
+	const drp = object.drp as unknown as MapDRP<number, number>;
 	for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 		drp.set(i, i);
 	}
@@ -98,7 +98,7 @@ suite.add(
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
-		const drp = object.drp as MapDRP<number, number>;
+		const drp = object.drp as unknown as MapDRP<number, number>;
 		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i);
 		}
@@ -116,7 +116,7 @@ suite.add(
 			acl,
 			drp: new MapDRP<number, number>(),
 		});
-		const drp = object.drp as MapDRP<number, number>;
+		const drp = object.drp as unknown as MapDRP<number, number>;
 		for (let i = 0; i < NUMBER_OF_OPERATIONS; ++i) {
 			drp.set(i, i);
 		}

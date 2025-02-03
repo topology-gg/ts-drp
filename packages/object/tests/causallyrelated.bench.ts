@@ -1,19 +1,12 @@
-<<<<<<< HEAD
-import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
-import { bench, describe } from "vitest";
-=======
-import type { ACL } from "@ts-drp/blueprints/src/ACL/index.js";
-import { AddWinsSet } from "@ts-drp/blueprints/src/AddWinsSet/index.js";
+import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { bench, describe } from "vitest";
 
->>>>>>> main
 import { DRPObject, type Hash } from "../src/index.js";
 
 describe("AreCausallyDependent benchmark", async () => {
 	const samples = 100000;
 	const tests: Hash[][] = [];
 
-<<<<<<< HEAD
 	const obj1 = new DRPObject({
 		peerId: "peer1",
 		drp: new SetDRP<number>(),
@@ -26,11 +19,6 @@ describe("AreCausallyDependent benchmark", async () => {
 		peerId: "peer3",
 		drp: new SetDRP<number>(),
 	});
-=======
-	const obj1 = new DRPObject("peer1", new AddWinsSet<number>(), null as unknown as ACL);
-	const obj2 = new DRPObject("peer2", new AddWinsSet<number>(), null as unknown as ACL);
-	const obj3 = new DRPObject("peer3", new AddWinsSet<number>(), null as unknown as ACL);
->>>>>>> main
 
 	const drp1 = obj1.drp as SetDRP<number>;
 	const drp2 = obj2.drp as SetDRP<number>;

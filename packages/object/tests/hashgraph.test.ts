@@ -1,5 +1,5 @@
-import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
-import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
+import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";

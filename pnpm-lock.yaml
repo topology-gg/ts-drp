@@ -346,6 +346,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.0.0
         version: 2.2.3
+      '@types/benchmark':
+        specifier: ^2.1.5
+        version: 2.1.5
       benchmark:
         specifier: ^2.1.4
         version: 2.1.4
@@ -2296,6 +2299,9 @@ packages:
 
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
+
+  '@types/benchmark@2.1.5':
+    resolution: {integrity: sha512-cKio2eFB3v7qmKcvIHLUMw/dIx/8bhWPuzpzRT4unCPRTD8VdA9Zb0afxpcxOqR4PixRS7yT42FqGS8BYL8g1w==}
 
   '@types/dns-packet@5.6.5':
     resolution: {integrity: sha512-qXOC7XLOEe43ehtWJCMnQXvgcIpv6rPmQ1jXT98Ad8A3TB1Ue50jsCbSSSyuazScEuZ/Q026vHbrOTVkmwA+7Q==}
@@ -8505,6 +8511,8 @@ snapshots:
   '@types/babel__traverse@7.20.6':
     dependencies:
       '@babel/types': 7.26.5
+
+  '@types/benchmark@2.1.5': {}
 
   '@types/dns-packet@5.6.5':
     dependencies:

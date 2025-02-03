@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+
 import { ActionType } from "../dist/src/hashgraph/index.js";
 import { SemanticsType } from "../dist/src/hashgraph/index.js";
 import { DrpType, HashGraph, type Vertex } from "../src/index.js";
@@ -20,7 +21,7 @@ describe("Linearize correctly", () => {
 					action: ActionType.Nop,
 				};
 			},
-			SemanticsType.multiple,
+			SemanticsType.multiple
 		);
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
@@ -33,7 +34,7 @@ describe("Linearize correctly", () => {
 				frontier,
 				"",
 				Date.now(),
-				new Uint8Array(),
+				new Uint8Array()
 			);
 			hashgraph.addVertex(
 				{
@@ -44,13 +45,13 @@ describe("Linearize correctly", () => {
 				frontier,
 				"",
 				Date.now(),
-				new Uint8Array(),
+				new Uint8Array()
 			);
 		}
 		const order = linearizeMultipleSemantics(
 			hashgraph,
 			HashGraph.rootHash,
-			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash)),
+			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
 		for (let i = 0; i < 10; i++) {
 			expect(order[i].value).toStrictEqual([i]);
@@ -82,7 +83,7 @@ describe("Linearize correctly", () => {
 					action: ActionType.Nop,
 				};
 			},
-			SemanticsType.pair,
+			SemanticsType.pair
 		);
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
@@ -95,7 +96,7 @@ describe("Linearize correctly", () => {
 				[frontier[0]],
 				"",
 				Date.now(),
-				new Uint8Array(),
+				new Uint8Array()
 			);
 			hashgraph.addVertex(
 				{
@@ -106,13 +107,13 @@ describe("Linearize correctly", () => {
 				[frontier[0]],
 				"",
 				Date.now(),
-				new Uint8Array(),
+				new Uint8Array()
 			);
 		}
 		const order = linearizePairSemantics(
 			hashgraph,
 			HashGraph.rootHash,
-			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash)),
+			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
 		for (let i = 0; i < 5; i++) {
 			expect(order[i].value).toStrictEqual([i * 2]);

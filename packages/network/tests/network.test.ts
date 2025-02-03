@@ -1,5 +1,6 @@
 import { loadConfig } from "@ts-drp/node/src/config.js";
 import { beforeAll, describe, expect, test } from "vitest";
+
 import { NetworkPb } from "../src/index.js";
 import { DRPNetworkNode, streamToUint8Array } from "../src/node.js";
 
@@ -33,10 +34,8 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		bootstrapNodePeerId = bootstrapNode.peerId;
 
 		node1 = new DRPNetworkNode({
-			bootstrap_peers: [
-				`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`,
-			],
-			discovery_interval: 1000,
+			bootstrap_peers: [`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`],
+			pubsub_peer_discovery_interval: 1000,
 			log_config: {
 				level: "silent",
 			},
@@ -47,10 +46,8 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			},
 		});
 		node2 = new DRPNetworkNode({
-			bootstrap_peers: [
-				`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`,
-			],
-			discovery_interval: 1000,
+			bootstrap_peers: [`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`],
+			pubsub_peer_discovery_interval: 1000,
 			log_config: {
 				level: "silent",
 			},
@@ -65,10 +62,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		node1PeerId = node1.peerId;
 		node2PeerId = node2.peerId;
 
-		const result = await Promise.all([
-			node1.isDiablable(),
-			node2.isDiablable(),
-		]);
+		const result = await Promise.all([node1.isDiablable(), node2.isDiablable()]);
 		expect(result[0]).toBe(true);
 		expect(result[1]).toBe(true);
 	});
@@ -87,13 +81,17 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		expect(await node1.waitForUpgradedConnection(node2PeerId)).toBe(true);
 
 		const messageProcessed = new Promise((resolve) => {
-			node2.addMessageHandler(async ({ stream }) => {
-				const byteArray = await streamToUint8Array(stream);
-				const message = NetworkPb.Message.decode(byteArray);
-				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
-				boolean = true;
-				resolve(true);
-			});
+			node2
+				.addMessageHandler(async ({ stream }) => {
+					const byteArray = await streamToUint8Array(stream);
+					const message = NetworkPb.Message.decode(byteArray);
+					expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
+					boolean = true;
+					resolve(true);
+				})
+				.catch((e) => {
+					console.error(e);
+				});
 		});
 
 		await node1.sendMessage(node2PeerId, {

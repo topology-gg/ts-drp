@@ -85,8 +85,7 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
-		if (this._node?.status === "started")
-			throw new Error("Node already started");
+		if (this._node?.status === "started") throw new Error("Node already started");
 
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
@@ -255,11 +254,9 @@ export class DRPNetworkNode {
 
 	async waitForPeer(peerId: string, timeout = 5000) {
 		return new Promise((resolve, reject) => {
-			if (!this._node)
-				return reject(new Error("Node not initialized, please run .start()"));
+			if (!this._node) return reject(new Error("Node not initialized, please run .start()"));
 
-			if (this._node.getPeers().some((p) => p.toString() === peerId))
-				return resolve(true);
+			if (this._node.getPeers().some((p) => p.toString() === peerId)) return resolve(true);
 
 			const timeoutId = setTimeout(() => {
 				this._node?.removeEventListener("peer:connect", peerConnectListener);
@@ -280,15 +277,12 @@ export class DRPNetworkNode {
 
 	async waitForUpgradedConnection(peerId: string, timeout = 5000) {
 		return new Promise((resolve, reject) => {
-			if (!this._node)
-				return reject(new Error("Node not initialized, please run .start()"));
+			if (!this._node) return reject(new Error("Node not initialized, please run .start()"));
 
 			if (
 				this._node
 					.getConnections()
-					.some(
-						(c) => c.remotePeer.toString() === peerId && c.limits === undefined,
-					)
+					.some((c) => c.remotePeer.toString() === peerId && c.limits === undefined)
 			) {
 				return resolve(true);
 			}
@@ -298,15 +292,9 @@ export class DRPNetworkNode {
 			}, timeout);
 
 			const connectionListener = (e: CustomEvent<Connection>) => {
-				if (
-					e.detail.remotePeer.toString() === peerId &&
-					e.detail.limits === undefined
-				) {
+				if (e.detail.remotePeer.toString() === peerId && e.detail.limits === undefined) {
 					clearTimeout(timeoutId);
-					this._node?.removeEventListener(
-						"connection:open",
-						connectionListener,
-					);
+					this._node?.removeEventListener("connection:open", connectionListener);
 					resolve(true);
 				}
 			};
@@ -316,8 +304,7 @@ export class DRPNetworkNode {
 	}
 
 	libp2pPeerId() {
-		if (!this._node)
-			throw new Error("Node not initialized, please run .start()");
+		if (!this._node) throw new Error("Node not initialized, please run .start()");
 		return this._node.peerId;
 	}
 
@@ -340,27 +327,19 @@ export class DRPNetworkNode {
 				}
 
 				try {
-					const isDialable = await this._node.isDialable(
-						this._node.getMultiaddrs(),
-					);
+					const isDialable = await this._node.isDialable(this._node.getMultiaddrs());
 					if (isDialable) {
 						resolve(isDialable);
 					}
 				} catch {
 					resolve(false);
 				} finally {
-					this._node.removeEventListener(
-						"transport:listening",
-						transportListeningListener,
-					);
+					this._node.removeEventListener("transport:listening", transportListeningListener);
 					clearTimeout(timeoutId);
 				}
 			};
 
-			this._node.addEventListener(
-				"transport:listening",
-				transportListeningListener,
-			);
+			this._node.addEventListener("transport:listening", transportListeningListener);
 		});
 	}
 
@@ -375,27 +354,15 @@ export class DRPNetworkNode {
 				resolve(false);
 			}, timeout);
 
-			const subscriptionChangeListener = (
-				e: CustomEvent<SubscriptionChangeData>,
-			) => {
-				if (
-					e.detail.subscriptions.some(
-						(s) => s.topic === topic && e.detail.peerId === peerId,
-					)
-				) {
+			const subscriptionChangeListener = (e: CustomEvent<SubscriptionChangeData>) => {
+				if (e.detail.subscriptions.some((s) => s.topic === topic && e.detail.peerId === peerId)) {
 					resolve(true);
-					this._pubsub?.removeEventListener(
-						"subscription-change",
-						subscriptionChangeListener,
-					);
+					this._pubsub?.removeEventListener("subscription-change", subscriptionChangeListener);
 					clearTimeout(timeoutId);
 				}
 			};
 
-			this._pubsub?.addEventListener(
-				"subscription-change",
-				subscriptionChangeListener,
-			);
+			this._pubsub?.addEventListener("subscription-change", subscriptionChangeListener);
 		});
 	}
 
