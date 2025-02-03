@@ -1,9 +1,4 @@
-import {
-	ActionType,
-	type ResolveConflictsType,
-	SemanticsType,
-	type Vertex,
-} from "../index.js";
+import { ActionType, type ResolveConflictsType, SemanticsType, type Vertex } from "../index.js";
 import type { DRPPublicCredential } from "../interface.js";
 import { type ACL, ACLConflictResolution, ACLGroup } from "./interface.js";
 
@@ -24,25 +19,15 @@ export class ObjectACL implements ACL {
 		conflictResolution?: ACLConflictResolution;
 	}) {
 		this.permissionless = options.permissionless ?? false;
-		this._admins = new Map(
-			Array.from(options.admins, ([key, value]) => [key, value]),
-		);
-		this._finalitySigners = new Map(
-			Array.from(options.admins, ([key, value]) => [key, value]),
-		);
+		this._admins = new Map(Array.from(options.admins, ([key, value]) => [key, value]));
+		this._finalitySigners = new Map(Array.from(options.admins, ([key, value]) => [key, value]));
 		this._writers = options.permissionless
 			? new Map()
 			: new Map(Array.from(options.admins, ([key, value]) => [key, value]));
-		this._conflictResolution =
-			options.conflictResolution ?? ACLConflictResolution.RevokeWins;
+		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
-	grant(
-		senderId: string,
-		peerId: string,
-		publicKey: DRPPublicCredential,
-		group: ACLGroup,
-	): void {
+	grant(senderId: string, peerId: string, publicKey: DRPPublicCredential, group: ACLGroup): void {
 		if (!this.query_isAdmin(senderId)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
@@ -55,9 +40,7 @@ export class ObjectACL implements ACL {
 				break;
 			case ACLGroup.Writer:
 				if (this.permissionless) {
-					throw new Error(
-						"Cannot grant write permissions to a peer in permissionless mode.",
-					);
+					throw new Error("Cannot grant write permissions to a peer in permissionless mode.");
 				}
 				this._writers.set(peerId, publicKey);
 				break;
@@ -71,9 +54,7 @@ export class ObjectACL implements ACL {
 			throw new Error("Only admin peers can revoke permissions.");
 		}
 		if (this.query_isAdmin(peerId)) {
-			throw new Error(
-				"Cannot revoke permissions from a peer with admin privileges.",
-			);
+			throw new Error("Cannot revoke permissions from a peer with admin privileges.");
 		}
 
 		switch (group) {
@@ -109,14 +90,12 @@ export class ObjectACL implements ACL {
 
 	query_getPeerKey(peerId: string): DRPPublicCredential | undefined {
 		if (this._admins.has(peerId)) return this._admins.get(peerId);
-		if (this._finalitySigners.has(peerId))
-			return this._finalitySigners.get(peerId);
+		if (this._finalitySigners.has(peerId)) return this._finalitySigners.get(peerId);
 		return this._writers.get(peerId);
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
-		if (!vertices[0].operation || !vertices[1].operation)
-			return { action: ActionType.Nop };
+		if (!vertices[0].operation || !vertices[1].operation) return { action: ActionType.Nop };
 		if (
 			vertices[0].operation.opType === vertices[1].operation.opType ||
 			vertices[0].operation.value[0] !== vertices[1].operation.value[0]
@@ -126,15 +105,11 @@ export class ObjectACL implements ACL {
 		return this._conflictResolution === ACLConflictResolution.GrantWins
 			? {
 					action:
-						vertices[0].operation.opType === "grant"
-							? ActionType.DropRight
-							: ActionType.DropLeft,
+						vertices[0].operation.opType === "grant" ? ActionType.DropRight : ActionType.DropLeft,
 				}
 			: {
 					action:
-						vertices[0].operation.opType === "grant"
-							? ActionType.DropLeft
-							: ActionType.DropRight,
+						vertices[0].operation.opType === "grant" ? ActionType.DropLeft : ActionType.DropRight,
 				};
 	}
 }

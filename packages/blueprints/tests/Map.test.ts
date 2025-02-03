@@ -1,5 +1,6 @@
 import { ActionType } from "@ts-drp/object";
 import { beforeEach, describe, expect, test } from "vitest";
+
 import { MapDRP } from "../src/index.js";
 
 describe("MapDRP tests", () => {

@@ -1,4 +1,4 @@
-import { loadConfig } from "@topology-foundation/node/src/config.js";
+import { loadConfig } from "@ts-drp/node/src/config.js";
 import { beforeAll, describe, expect, test } from "vitest";
 import { NetworkPb } from "../src/index.js";
 import { DRPNetworkNode, streamToUint8Array } from "../src/node.js";

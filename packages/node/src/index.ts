@@ -7,6 +7,7 @@ import {
 	NetworkPb,
 } from "@ts-drp/network";
 import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
+
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
 import {
@@ -65,26 +66,29 @@ export class DRPNode {
 		this.networkNode.addGroupMessageHandler(group, handler);
 	}
 
-	sendGroupMessage(group: string, data: Uint8Array) {
+	async sendGroupMessage(group: string, data: Uint8Array) {
 		const message = NetworkPb.Message.create({
 			sender: this.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,
 			data,
 		});
-		this.networkNode.broadcastMessage(group, message);
+		await this.networkNode.broadcastMessage(group, message);
 	}
 
-	addCustomMessageHandler(protocol: string | string[], handler: StreamHandler) {
-		this.networkNode.addCustomMessageHandler(protocol, handler);
+	async addCustomMessageHandler(
+		protocol: string | string[],
+		handler: StreamHandler,
+	) {
+		await this.networkNode.addCustomMessageHandler(protocol, handler);
 	}
 
-	sendCustomMessage(peerId: string, data: Uint8Array) {
+	async sendCustomMessage(peerId: string, data: Uint8Array) {
 		const message = NetworkPb.Message.create({
 			sender: this.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,
 			data,
 		});
-		this.networkNode.sendMessage(peerId, message);
+		await this.networkNode.sendMessage(peerId, message);
 	}
 
 	async createObject(options: {
@@ -141,7 +145,7 @@ export class DRPNode {
 	}
 
 	async subscribeObject(id: string) {
-		return operations.subscribeObject(this, id);
+		await operations.subscribeObject(this, id);
 	}
 
 	unsubscribeObject(id: string, purge?: boolean) {
@@ -150,6 +154,6 @@ export class DRPNode {
 	}
 
 	async syncObject(id: string, peerId?: string) {
-		operations.syncObject(this, id, peerId);
+		await operations.syncObject(this, id, peerId);
 	}
 }

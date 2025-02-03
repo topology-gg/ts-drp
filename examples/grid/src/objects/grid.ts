@@ -20,9 +20,7 @@ export class Grid implements DRP {
 	}
 
 	moveUser(userId: string, direction: string): void {
-		const userColorString = [...this.positions.keys()].find((u) =>
-			u.startsWith(`${userId}:`),
-		);
+		const userColorString = [...this.positions.keys()].find((u) => u.startsWith(`${userId}:`));
 		if (userColorString) {
 			const position = this.positions.get(userColorString);
 			if (position) {
@@ -48,9 +46,7 @@ export class Grid implements DRP {
 		return [...this.positions.keys()];
 	}
 
-	query_userPosition(
-		userColorString: string,
-	): { x: number; y: number } | undefined {
+	query_userPosition(userColorString: string): { x: number; y: number } | undefined {
 		const position = this.positions.get(userColorString);
 		if (position) {
 			return position;

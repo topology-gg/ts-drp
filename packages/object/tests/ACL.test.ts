@@ -37,7 +37,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 				ed25519PublicKey: "publicKey3",
 				blsPublicKey: "publicKey3",
 			},
-			ACLGroup.Writer,
+			ACLGroup.Writer
 		);
 
 		expect(acl.query_isWriter("peer3")).toBe(true);
@@ -51,7 +51,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 				ed25519PublicKey: "publicKey3",
 				blsPublicKey: "publicKey3",
 			},
-			ACLGroup.Writer,
+			ACLGroup.Writer
 		);
 		acl.revoke("peer1", "peer3", ACLGroup.Writer);
 

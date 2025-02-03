@@ -8,6 +8,7 @@ import {
 	type Vertex,
 } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+
 import { type DRPNode, log } from "./index.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
@@ -39,27 +40,27 @@ export async function drpMessagesHandler(
 			fetchStateResponseHandler(node, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_UPDATE:
-			updateHandler(node, message.sender, message.data);
+			await updateHandler(node, message.sender, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC:
 			if (!stream) {
 				log.error("::messageHandler: Stream is undefined");
 				return;
 			}
-			syncHandler(node, message.sender, message.data);
+			await syncHandler(node, message.sender, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT:
 			if (!stream) {
 				log.error("::messageHandler: Stream is undefined");
 				return;
 			}
-			syncAcceptHandler(node, message.sender, message.data);
+			await syncAcceptHandler(node, message.sender, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_SYNC_REJECT:
 			syncRejectHandler(node, message.data);
 			break;
 		case NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE:
-			attestationUpdateHandler(node, message.sender, message.data);
+			await attestationUpdateHandler(node, message.sender, message.data);
 			break;
 		default:
 			log.error("::messageHandler: Invalid operation");
@@ -212,7 +213,9 @@ export async function updateHandler(
 				).finish(),
 			});
 
-			node.networkNode.broadcastMessage(object.id, message);
+			node.networkNode.broadcastMessage(object.id, message).catch((e) => {
+				log.error("::updateHandler: Error broadcasting message", e);
+			});
 		}
 	}
 
@@ -268,8 +271,10 @@ export async function syncHandler(
 			}),
 		).finish(),
 	});
-	node.networkNode.sendMessage(sender, message);
 
+	node.networkNode.sendMessage(sender, message).catch((e) => {
+		log.error("::syncHandler: Error sending message", e);
+	});
 	return true;
 }
 
@@ -333,7 +338,9 @@ export async function syncAcceptHandler(
 			}),
 		).finish(),
 	});
-	node.networkNode.sendMessage(sender, message);
+	node.networkNode.sendMessage(sender, message).catch((e) => {
+		log.error("::syncAcceptHandler: Error sending message", e);
+	});
 	return true;
 }
 
@@ -359,22 +366,30 @@ export function drpObjectChangesHandler(
 			const attestations = signFinalityVertices(node, obj, vertices);
 			node.objectStore.put(obj.id, obj);
 
-			signGeneratedVertices(node, vertices).then(() => {
-				// send vertices to the pubsub group
-				const message = NetworkPb.Message.create({
-					sender: node.networkNode.peerId,
-					type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
-					data: NetworkPb.Update.encode(
-						NetworkPb.Update.create({
-							objectId: obj.id,
-							vertices: vertices,
-							attestations: attestations,
-						}),
-					).finish(),
+			signGeneratedVertices(node, vertices)
+				.then(() => {
+					// send vertices to the pubsub group
+					const message = NetworkPb.Message.create({
+						sender: node.networkNode.peerId,
+						type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
+						data: NetworkPb.Update.encode(
+							NetworkPb.Update.create({
+								objectId: obj.id,
+								vertices: vertices,
+								attestations: attestations,
+							}),
+						).finish(),
+					});
+					node.networkNode.broadcastMessage(obj.id, message).catch((e) => {
+						log.error(
+							"::drpObjectChangesHandler: Error broadcasting message",
+							e,
+						);
+					});
+				})
+				.catch((e) => {
+					log.error("::drpObjectChangesHandler: Error signing vertices", e);
 				});
-				node.networkNode.broadcastMessage(obj.id, message);
-			});
-
 			break;
 		}
 		default:
@@ -511,7 +526,7 @@ export async function verifyIncomingVertices(
 	});
 
 	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
-		(vertex) => vertex !== null,
+		(vertex: Vertex | null) => vertex !== null,
 	);
 
 	return verifiedVertices;

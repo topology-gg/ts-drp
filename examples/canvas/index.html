@@ -1,27 +1,23 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>DRP - Canvas</title>
-    </head>
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>DRP - Canvas</title>
+	</head>
 
-    <body>
-        <div style="margin-bottom: 10px">
-            <p>Connected to <span id="canvasId"></span></p>
-            <p>peers: <span id="peers"></span></p>
-            <p>discovery_peers: <span id="discovery_peers"></span></p>
-            <p>object_peers: <span id="object_peers"></span></p>
-            <input
-                id="canvasIdInput"
-                type="text"
-                placeholder="Insert canvas ID"
-            />
-            <button id="connect">Connect</button>
-            <button id="create">Create Canvas</button>
-        </div>
-        <div id="canvas"></div>
-        <script type="module" src="/src/index.ts"></script>
-    </body>
+	<body>
+		<div style="margin-bottom: 10px">
+			<p>Connected to <span id="canvasId"></span></p>
+			<p>peers: <span id="peers"></span></p>
+			<p>discovery_peers: <span id="discovery_peers"></span></p>
+			<p>object_peers: <span id="object_peers"></span></p>
+			<input id="canvasIdInput" type="text" placeholder="Insert canvas ID" />
+			<button id="connect">Connect</button>
+			<button id="create">Create Canvas</button>
+		</div>
+		<div id="canvas"></div>
+		<script type="module" src="/src/index.ts"></script>
+	</body>
 </html>

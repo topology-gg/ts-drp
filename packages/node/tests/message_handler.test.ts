@@ -1,7 +1,7 @@
-import { SetDRP } from "@topology-foundation/blueprints/src/index.js";
-import { NetworkPb } from "@topology-foundation/network/src/index.js";
-import { DrpType } from "@topology-foundation/object/dist/src/index.js";
-import { DRPObject, ObjectACL } from "@topology-foundation/object/src/index.js";
+import { SetDRP } from "@ts-drp/blueprints";
+import { NetworkPb } from "@ts-drp/network";
+import { DrpType } from "@ts-drp/object";
+import { DRPObject, ObjectACL } from "@ts-drp/object";
 import { beforeAll, describe, expect, test } from "vitest";
 import {
 	attestationUpdateHandler,
