@@ -1,6 +1,6 @@
 import { ActionType, type ResolveConflictsType, SemanticsType, type Vertex } from "../index.js";
 import type { DRPPublicCredential } from "../interface.js";
-import type { PeerAccess } from "./interface.js";
+import type { PeerPermissions } from "./interface.js";
 import { type ACL, ACLConflictResolution, ACLGroup } from "./interface.js";
 
 export class ObjectACL implements ACL {
@@ -9,8 +9,7 @@ export class ObjectACL implements ACL {
 	// if true, any peer can write to the object
 	permissionless: boolean;
 	private _conflictResolution: ACLConflictResolution;
-	private _privilegedUsers: Map<string, PeerAccess>;
-	// peers who can sign finality
+	private _authorizedPeers: Map<string, PeerPermissions>;
 
 	constructor(options: {
 		admins: Map<string, DRPPublicCredential>;
@@ -18,7 +17,7 @@ export class ObjectACL implements ACL {
 		conflictResolution?: ACLConflictResolution;
 	}) {
 		this.permissionless = options.permissionless ?? false;
-		this._privilegedUsers = new Map();
+		this._authorizedPeers = new Map();
 
 		const permissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
 		if (!options.permissionless) {
@@ -26,7 +25,7 @@ export class ObjectACL implements ACL {
 		}
 
 		for (const [key, value] of options.admins) {
-			this._privilegedUsers.set(key, {
+			this._authorizedPeers.set(key, {
 				publicKey: value,
 				permissions: permissions,
 			});
@@ -38,11 +37,11 @@ export class ObjectACL implements ACL {
 		if (!this.query_isAdmin(senderId)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
-		const existingUser = this._privilegedUsers.get(peerId);
+		const existingUser = this._authorizedPeers.get(peerId);
 		const _grant = (peerId: string, group: ACLGroup) => {
 			const user = existingUser ?? { publicKey, permissions: new Set() };
 			user.permissions.add(group);
-			this._privilegedUsers.set(peerId, user);
+			this._authorizedPeers.set(peerId, user);
 		};
 		switch (group) {
 			case ACLGroup.Admin:
@@ -75,10 +74,10 @@ export class ObjectACL implements ACL {
 				// currently no way to revoke admin privileges
 				break;
 			case ACLGroup.Finality:
-				this._privilegedUsers.get(peerId)?.permissions.delete(ACLGroup.Finality);
+				this._authorizedPeers.get(peerId)?.permissions.delete(ACLGroup.Finality);
 				break;
 			case ACLGroup.Writer:
-				this._privilegedUsers.get(peerId)?.permissions.delete(ACLGroup.Writer);
+				this._authorizedPeers.get(peerId)?.permissions.delete(ACLGroup.Writer);
 				break;
 			default:
 				throw new Error("Invalid group.");
@@ -87,26 +86,26 @@ export class ObjectACL implements ACL {
 
 	query_getFinalitySigners(): Map<string, DRPPublicCredential> {
 		return new Map(
-			[...this._privilegedUsers.entries()]
+			[...this._authorizedPeers.entries()]
 				.filter(([, user]) => user.permissions.has(ACLGroup.Finality))
 				.map(([peerId, user]) => [peerId, user.publicKey])
 		);
 	}
 
 	query_isAdmin(peerId: string): boolean {
-		return this._privilegedUsers.get(peerId)?.permissions.has(ACLGroup.Admin) ?? false;
+		return this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Admin) ?? false;
 	}
 
 	query_isFinalitySigner(peerId: string): boolean {
-		return this._privilegedUsers.get(peerId)?.permissions.has(ACLGroup.Finality) ?? false;
+		return this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Finality) ?? false;
 	}
 
 	query_isWriter(peerId: string): boolean {
-		return this._privilegedUsers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false;
+		return this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false;
 	}
 
 	query_getPeerKey(peerId: string): DRPPublicCredential | undefined {
-		return this._privilegedUsers.get(peerId)?.publicKey;
+		return this._authorizedPeers.get(peerId)?.publicKey;
 	}
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {

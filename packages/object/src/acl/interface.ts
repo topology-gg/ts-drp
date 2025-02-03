@@ -27,7 +27,7 @@ export enum ACLGroup {
 	Finality = "FINALITY",
 	Writer = "WRITER",
 }
-export interface PeerAccess {
+export interface PeerPermissions {
 	publicKey: DRPPublicCredential;
 	permissions: Set<ACLGroup>;
 }
