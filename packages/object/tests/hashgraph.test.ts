@@ -618,6 +618,17 @@ describe("Writer permission tests", () => {
 		expect(drp1.query_has(3)).toBe(false);
 		expect(drp1.query_has(4)).toBe(true);
 	});
+
+	test("Should grant admin permission to a peer", () => {
+		const acl1 = obj1.acl as ObjectACL;
+		const newAdminPeer1 = "newAdminPeer1";
+		const newAdmin = {
+			ed25519PublicKey: "newAdmin",
+			blsPublicKey: "newAdmin",
+		};
+		acl1.grant("peer1", "newAdminPeer1", newAdmin, ACLGroup.Admin);
+		expect(acl1.query_isAdmin(newAdminPeer1)).toBe(true);
+	});
 });
 
 describe("HashGraph for set wins map tests", () => {
