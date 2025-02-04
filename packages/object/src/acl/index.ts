@@ -29,28 +29,31 @@ export class ObjectACL implements ACL {
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
-	grant(senderId: string, peerId: string, publicKey: DRPPublicCredential, group: ACLGroup): void {
+	grant(senderId: string, peerId: string, group: ACLGroup, publicKey?: DRPPublicCredential): void {
 		if (!this.query_isAdmin(senderId)) {
 			throw new Error("Only admin peers can grant permissions.");
 		}
-		const existingUser = this._authorizedPeers.get(peerId);
-		const _grant = (peerId: string, group: ACLGroup) => {
-			const user = existingUser ?? { publicKey, permissions: new Set() };
-			user.permissions.add(group);
-			this._authorizedPeers.set(peerId, user);
-		};
+		let peerPermissions = this._authorizedPeers.get(peerId);
+		if (!peerPermissions && !publicKey) {
+			throw new Error("Public key required for new peer.");
+		}
+		if (!peerPermissions && publicKey) {
+			this._authorizedPeers.set(peerId, { publicKey, permissions: new Set() });
+		}
+		peerPermissions = (peerPermissions ?? this._authorizedPeers.get(peerId)) as PeerPermissions;
+
 		switch (group) {
 			case ACLGroup.Admin:
-				_grant(peerId, ACLGroup.Admin);
+				peerPermissions.permissions.add(ACLGroup.Admin);
 				break;
 			case ACLGroup.Finality:
-				_grant(peerId, ACLGroup.Finality);
+				peerPermissions.permissions.add(ACLGroup.Finality);
 				break;
 			case ACLGroup.Writer:
 				if (this.permissionless) {
 					throw new Error("Cannot grant write permissions to a peer in permissionless mode.");
 				}
-				_grant(peerId, ACLGroup.Writer);
+				peerPermissions.permissions.add(ACLGroup.Writer);
 				break;
 			default:
 				throw new Error("Invalid group.");
