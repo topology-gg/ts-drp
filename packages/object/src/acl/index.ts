@@ -34,13 +34,13 @@ export class ObjectACL implements ACL {
 			throw new Error("Only admin peers can grant permissions.");
 		}
 		let peerPermissions = this._authorizedPeers.get(peerId);
-		if (!peerPermissions && !publicKey) {
-			throw new Error("Public key required for new peer.");
+		if (!peerPermissions) {
+			if (!publicKey) {
+				throw new Error("Public key required for new peer.");
+			}
+			peerPermissions = { publicKey, permissions: new Set() };
+			this._authorizedPeers.set(peerId, peerPermissions);
 		}
-		if (!peerPermissions && publicKey) {
-			this._authorizedPeers.set(peerId, { publicKey, permissions: new Set() });
-		}
-		peerPermissions = (peerPermissions ?? this._authorizedPeers.get(peerId)) as PeerPermissions;
 
 		switch (group) {
 			case ACLGroup.Admin:
