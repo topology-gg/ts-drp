@@ -196,7 +196,7 @@ export class DRPNetworkNode {
 			],
 		});
 		log.info(
-			"running on:",
+			"::start: running on:",
 			this._node.getMultiaddrs().map((addr) => addr.toString())
 		);
 
