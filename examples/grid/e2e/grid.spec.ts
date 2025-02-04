@@ -16,8 +16,7 @@ async function getGlowingPeer(page: Page, peerID: string) {
 
 	const matchLeft = style.match(/left: ([0-9]+)px/);
 	const matchTop = style.match(/top: ([0-9]+)px/);
-	if (!matchLeft || !matchTop)
-		throw new Error("matchLeft or matchTop is not defined");
+	if (!matchLeft || !matchTop) throw new Error("matchLeft or matchTop is not defined");
 
 	return {
 		peerID: matchPeerID[1],
@@ -43,10 +42,12 @@ test.describe("grid", () => {
 
 	test.beforeEach(async ({ browser }) => {
 		page1 = await browser.newPage();
-		page2 = await browser.newPage();
-
 		await page1.goto("/");
+		await page1.waitForSelector("#loadingMessage", { state: "hidden" });
+
+		page2 = await browser.newPage();
 		await page2.goto("/");
+		await page2.waitForSelector("#loadingMessage", { state: "hidden" });
 	});
 
 	test.afterEach(async () => {
@@ -99,12 +100,8 @@ test.describe("grid", () => {
 		await page1.keyboard.press("w");
 		await page2.keyboard.press("s");
 
-		await expect(
-			page2.locator(`div[data-glowing-peer-id="${peerID1}"]`),
-		).toBeVisible();
-		await expect(
-			page2.locator(`div[data-glowing-peer-id="${peerID2}"]`),
-		).toBeVisible();
+		await expect(page2.locator(`div[data-glowing-peer-id="${peerID1}"]`)).toBeVisible();
+		await expect(page2.locator(`div[data-glowing-peer-id="${peerID2}"]`)).toBeVisible();
 
 		const glowingPeer1 = await getGlowingPeer(page1, peerID1);
 		const glowingPeer2 = await getGlowingPeer(page1, peerID2);

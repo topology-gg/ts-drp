@@ -1,9 +1,13 @@
 {
 	"network_config": {
-		"addresses": ["/ip4/0.0.0.0/tcp/50000/ws", "/ip4/0.0.0.0/tcp/50001"],
+		"listen_addresses": ["/ip4/0.0.0.0/tcp/50000/ws", "/ip4/0.0.0.0/tcp/50001"],
 		"bootstrap": true,
 		"bootstrap_peers": [],
 		"private_key_seed": "bootstrap",
-		"pubsub_peer_discovery_interval": 1000
+		"pubsub_peer_discovery_interval": 1000,
+		"pubsub": {
+			"prune_backoff": 10,
+			"heartbeat_interval": 10
+		}
 	}
 }

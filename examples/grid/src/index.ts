@@ -4,22 +4,58 @@ import type { DRPObject } from "@ts-drp/object";
 import { Grid } from "./objects/grid";
 import { hslToRgb, rgbToHex, rgbToHsl } from "./util/color";
 
-const node = new DRPNode({
-	network_config: {
-		...(import.meta.env.VITE_BOOTSTRAP_PEERS && {
-			bootstrap_peers: import.meta.env.VITE_BOOTSTRAP_PEERS.split(","),
-		}),
-		...(import.meta.env.VITE_DISCOVERY_INTERVAL && {
-			discovery_interval: import.meta.env.VITE_DISCOVERY_INTERVAL,
-		}),
-	},
-});
+const networkConfig = getNetworkConfigFromEnv();
+const node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);
 
 let drpObject: DRPObject;
 let gridDRP: Grid;
-const peers: string[] = [];
-const discoveryPeers: string[] = [];
+let peers: string[] = [];
+let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
+
+export function getNetworkConfigFromEnv() {
+	const hasBootstrapPeers = Boolean(import.meta.env.VITE_BOOTSTRAP_PEERS);
+	const hasDiscoveryInterval = Boolean(import.meta.env.VITE_DISCOVERY_INTERVAL);
+	const hasPubsubPruneBackoff = Boolean(import.meta.env.VITE_PUBSUB_PRUNE_BACKOFF);
+	const hasPubsubHeartbeatInterval = Boolean(import.meta.env.VITE_PUBSUB_HEARTBEAT_INTERVAL);
+
+	const hasEnv =
+		hasBootstrapPeers ||
+		hasDiscoveryInterval ||
+		hasPubsubPruneBackoff ||
+		hasPubsubHeartbeatInterval;
+
+	const config: Record<string, unknown> = {
+		browser_metrics: true,
+	};
+
+	if (!hasEnv) {
+		return config;
+	}
+
+	if (hasBootstrapPeers) {
+		config.bootstrap_peers = import.meta.env.VITE_BOOTSTRAP_PEERS.split(",");
+	}
+
+	if (hasDiscoveryInterval) {
+		config.pubsub_peer_discovery_interval = import.meta.env.VITE_DISCOVERY_INTERVAL;
+	}
+
+	if (hasPubsubPruneBackoff) {
+		config.pubsub = {
+			prune_backoff: import.meta.env.VITE_PUBSUB_PRUNE_BACKOFF,
+		};
+	}
+
+	if (hasPubsubHeartbeatInterval) {
+		config.pubsub = {
+			...(config.pubsub || {}),
+			heartbeat_interval: import.meta.env.VITE_PUBSUB_HEARTBEAT_INTERVAL,
+		};
+	}
+
+	return config;
+}
 
 const formatPeerId = (id: string): string => {
 	return `${id.slice(0, 4)}...${id.slice(-4)}`;
@@ -96,6 +132,8 @@ const renderClickablePeerList = (
 let isDiscoveryPeersOpen = false;
 
 const renderDiscoveryPeers = () => {
+	discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
+
 	renderClickablePeerList(discoveryPeers, isDiscoveryPeersOpen, "discoveryPeers", () => {
 		isDiscoveryPeersOpen = !isDiscoveryPeersOpen;
 	});
@@ -104,6 +142,8 @@ const renderDiscoveryPeers = () => {
 let isPeersOpen = false;
 
 const renderPeers = () => {
+	peers = node.networkNode.getAllPeers();
+
 	renderClickablePeerList(peers, isPeersOpen, "peers", () => {
 		isPeersOpen = !isPeersOpen;
 	});
@@ -112,6 +152,8 @@ const renderPeers = () => {
 let isPeersInDRPOpen = false;
 
 const renderPeersInDRP = () => {
+	if (drpObject) objectPeers = node.networkNode.getGroupPeers(drpObject.id);
+
 	renderClickablePeerList(
 		objectPeers,
 		isPeersInDRPOpen,
@@ -296,31 +338,34 @@ async function createConnectHandlers() {
 	});
 }
 
-async function main() {
-	await node.start();
-	render();
+async function enableInterface() {
+	const loadingMessage = document.getElementById("loadingMessage");
+	if (loadingMessage) {
+		loadingMessage.style.display = "none";
+	}
 
-	//node.addNodeEventListener("peer:connect", () => {
-	//	peers = node.networkNode.getAllPeers();
-	//	discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
-	//	render();
-	//});
+	const joinButton = <HTMLButtonElement>document.getElementById("joinGrid");
+	const createButton = <HTMLButtonElement>document.getElementById("createGrid");
+	const gridInput = <HTMLInputElement>document.getElementById("gridInput");
+	const copyButton = <HTMLButtonElement>document.getElementById("copyGridId");
 
-	//node.addNodeEventListener("peer:disconnect", () => {
-	//	peers = node.networkNode.getAllPeers();
-	//	discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
-	//	render();
-	//});
+	joinButton.disabled = false;
+	createButton.disabled = false;
+	gridInput.disabled = false;
+	copyButton.disabled = false;
+}
 
-	//node.addPubsubEventListener("subscription-change", (e) => {
-	//	peers = node.networkNode.getAllPeers();
-	//	discoveryPeers = node.networkNode.getGroupPeers("drp::discovery");
-	//	if (e.detail.subscriptions.find((s) => s.topic === drpObject?.id)) {
-	//		objectPeers = node.networkNode.getGroupPeers(drpObject.id);
-	//	}
+function renderInfo() {
+	renderPeerId();
+	renderPeers();
+	renderDiscoveryPeers();
+	renderPeersInDRP();
+}
 
-	//	render();
-	//});
+async function run() {
+	await enableInterface();
+
+	renderInfo();
 
 	const button_create = <HTMLButtonElement>document.getElementById("createGrid");
 	button_create.addEventListener("click", async () => {
@@ -368,6 +413,16 @@ async function main() {
 				console.error("Failed to copy: ", err);
 			});
 	});
+}
+
+async function main() {
+	await node.start();
+	await node.networkNode.isDialable(async () => {
+		console.log("Started node", import.meta.env);
+		await run();
+	});
+
+	setInterval(renderInfo, import.meta.env.VITE_RENDER_INFO_INTERVAL);
 }
 
 void main();
