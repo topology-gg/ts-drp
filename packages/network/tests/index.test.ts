@@ -14,13 +14,33 @@ describe("isDialable", () => {
 		await btNode.start();
 	});
 
+	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+		let resolver: (value: boolean) => void;
+		const promise = new Promise<boolean>((resolve) => {
+			resolver = resolve;
+		});
+
+		if (timeout) {
+			setTimeout(() => {
+				resolver(false);
+			}, 10);
+		}
+
+		const callback = () => {
+			resolver(true);
+		};
+
+		await node.isDialable(callback);
+		return await promise;
+	};
+
 	test("should return true if the node is dialable", async () => {
 		const node = new DRPNetworkNode({
 			bootstrap_peers: btNode.getMultiaddrs()?.map((addr) => addr.toString()) || [],
 			private_key_seed: "is_dialable_node_1",
 		});
 		await node.start();
-		expect(await node.isDialable(100)).toBe(true);
+		expect(await isDialable(node)).toBe(true);
 	});
 
 	test("should return false if the node is not dialable", async () => {
@@ -30,6 +50,6 @@ describe("isDialable", () => {
 			listen_addresses: [],
 		});
 		await node.start();
-		expect(await node.isDialable(100)).toBe(false);
+		expect(await isDialable(node, true)).toBe(false);
 	});
 });
