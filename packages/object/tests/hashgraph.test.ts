@@ -835,6 +835,8 @@ describe("Hash validation tests", () => {
 
 		expect(obj1.hashGraph.getAllVertices().length).toBe(2);
 		expect(obj2.hashGraph.getAllVertices().length).toBe(1);
-		expect(obj2.hashGraph.getAllVertices().includes(obj1.hashGraph.getAllVertices()[1])).toBe(false);
+		expect(obj2.hashGraph.getAllVertices().includes(obj1.hashGraph.getAllVertices()[1])).toBe(
+			false
+		);
 	});
 });
