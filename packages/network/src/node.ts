@@ -241,20 +241,23 @@ export class DRPNetworkNode {
 		await this.start();
 	}
 
-	async isDialable(callback: () => void | Promise<void>) {
-		if (await this._node?.isDialable(this._node.getMultiaddrs())) {
+	async isDialable(callback?: () => void | Promise<void>) {
+		let dialable = await this._node?.isDialable(this._node.getMultiaddrs());
+		if (dialable && callback) {
 			await callback();
-			return;
+			return true;
 		}
+		if (!callback) return false;
 
 		const checkDialable = async () => {
-			if (await this._node?.isDialable(this._node.getMultiaddrs())) {
-				this._node?.removeEventListener("transport:listening", checkDialable);
+			dialable = await this._node?.isDialable(this._node.getMultiaddrs());
+			if (dialable) {
 				await callback();
 			}
 		};
 
 		this._node?.addEventListener("transport:listening", checkDialable);
+		return false;
 	}
 
 	private _sortAddresses(a: Address, b: Address) {
