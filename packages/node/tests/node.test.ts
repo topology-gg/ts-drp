@@ -150,8 +150,8 @@ describe("DRPNode voting tests", () => {
 		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
-			nodeB.credentialStore.getPublicCredential(),
-			ACLGroup.Finality
+			ACLGroup.Finality,
+			nodeB.credentialStore.getPublicCredential()
 		);
 		drp1.add(1);
 
@@ -178,8 +178,8 @@ describe("DRPNode voting tests", () => {
 		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
-			nodeB.credentialStore.getPublicCredential(),
-			ACLGroup.Writer
+			ACLGroup.Writer,
+			nodeB.credentialStore.getPublicCredential()
 		);
 		drp1.add(1);
 		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
@@ -207,8 +207,8 @@ describe("DRPNode voting tests", () => {
 		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
-			nodeB.credentialStore.getPublicCredential(),
-			ACLGroup.Finality
+			ACLGroup.Finality,
+			nodeB.credentialStore.getPublicCredential()
 		);
 		drp1.add(1);
 
