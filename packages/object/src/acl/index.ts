@@ -17,19 +17,15 @@ export class ObjectACL implements ACL {
 		conflictResolution?: ACLConflictResolution;
 	}) {
 		this.permissionless = options.permissionless ?? false;
-		this._authorizedPeers = new Map();
 
 		const permissions = new Set<ACLGroup>([ACLGroup.Admin, ACLGroup.Finality]);
 		if (!options.permissionless) {
 			permissions.add(ACLGroup.Writer);
 		}
 
-		for (const [key, value] of options.admins) {
-			this._authorizedPeers.set(key, {
-				publicKey: value,
-				permissions: permissions,
-			});
-		}
+		this._authorizedPeers = new Map(
+			[...options.admins.entries()].map(([key, value]) => [key, { publicKey: value, permissions }])
+		);
 		this._conflictResolution = options.conflictResolution ?? ACLConflictResolution.RevokeWins;
 	}
 
@@ -87,7 +83,7 @@ export class ObjectACL implements ACL {
 	query_getFinalitySigners(): Map<string, DRPPublicCredential> {
 		return new Map(
 			[...this._authorizedPeers.entries()]
-				.filter(([, user]) => user.permissions.has(ACLGroup.Finality))
+				.filter(([_, user]) => user.permissions.has(ACLGroup.Finality))
 				.map(([peerId, user]) => [peerId, user.publicKey])
 		);
 	}
