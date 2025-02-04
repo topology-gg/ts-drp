@@ -38,7 +38,7 @@
   "watch": "pnpm --parallel --filter '@ts-drp/*' watch"
  },
  "devDependencies": {
-	"@playwright/test": "^1.49.1",
+  "@playwright/test": "^1.49.1",
   "@release-it-plugins/workspaces": "^4.2.0",
   "@types/node": "^22.5.4",
   "@typescript-eslint/parser": "^8.21.0",
