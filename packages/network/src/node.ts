@@ -56,8 +56,8 @@ export interface DRPNetworkNodeConfig {
 	listen_addresses?: string[];
 	log_config?: LoggerOptions;
 	private_key_seed?: string;
-	pubsub_peer_discovery_interval?: number;
 	pubsub?: {
+		peer_discovery_interval?: number;
 		prune_backoff?: number;
 		heartbeat_interval?: number;
 	};
@@ -93,7 +93,7 @@ export class DRPNetworkNode {
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
 				topics: ["drp::discovery"],
-				interval: this._config?.pubsub_peer_discovery_interval || 5000,
+				interval: this._config?.pubsub?.peer_discovery_interval || 5000,
 			}),
 		];
 

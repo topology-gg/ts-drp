@@ -4,8 +4,8 @@
 		"bootstrap": true,
 		"bootstrap_peers": [],
 		"private_key_seed": "bootstrap",
-		"pubsub_peer_discovery_interval": 1000,
 		"pubsub": {
+			"peer_discovery_interval": 1000,
 			"prune_backoff": 10,
 			"heartbeat_interval": 10
 		}

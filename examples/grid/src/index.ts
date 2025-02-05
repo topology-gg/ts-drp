@@ -30,11 +30,14 @@ export function getNetworkConfigFromEnv() {
 	}
 
 	if (hasDiscoveryInterval) {
-		config.pubsub_peer_discovery_interval = import.meta.env.VITE_DISCOVERY_INTERVAL;
+		config.pubsub = {
+			peer_discovery_interval: import.meta.env.VITE_DISCOVERY_INTERVAL,
+		};
 	}
 
 	if (hasPubsubPruneBackoff) {
 		config.pubsub = {
+			...(config.pubsub || {}),
 			prune_backoff: import.meta.env.VITE_PUBSUB_PRUNE_BACKOFF,
 		};
 	}
