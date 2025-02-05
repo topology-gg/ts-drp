@@ -414,39 +414,6 @@ export class HashGraph {
 		return false;
 	}
 
-	selfCheckConstraints(): boolean {
-		const degree = new Map<Hash, number>();
-		for (const vertex of this.getAllVertices()) {
-			const hash = vertex.hash;
-			degree.set(hash, 0);
-		}
-		for (const [_, children] of this.forwardEdges) {
-			for (const child of children) {
-				degree.set(child, (degree.get(child) || 0) + 1);
-			}
-		}
-		for (const vertex of this.getAllVertices()) {
-			const hash = vertex.hash;
-			if (degree.get(hash) !== vertex.dependencies.length) {
-				return false;
-			}
-			if (vertex.dependencies.length === 0) {
-				if (hash !== HashGraph.rootHash) {
-					return false;
-				}
-			}
-		}
-
-		const topoOrder = this.kahnsAlgorithm(HashGraph.rootHash, new ObjectSet(this.vertices.keys()));
-
-		for (const vertex of this.getAllVertices()) {
-			if (!topoOrder.includes(vertex.hash)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	areCausallyRelatedUsingBFS(hash1: Hash, hash2: Hash): boolean {
 		return (
 			this._areCausallyRelatedUsingBFS(hash1, hash2) ||

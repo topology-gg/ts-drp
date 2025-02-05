@@ -3,7 +3,8 @@ import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ACLGroup, DRPObject, DrpType, type Operation } from "../src/index.js";
+import { ACLGroup, DRPObject, DrpType, Hash, HashGraph, type Operation } from "../src/index.js";
+import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
@@ -12,6 +13,39 @@ const acl = new ObjectACL({
 		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
 	]),
 });
+
+function selfCheckConstraints(hg: HashGraph): boolean {
+	const degree = new Map<Hash, number>();
+	for (const vertex of hg.getAllVertices()) {
+		const hash = vertex.hash;
+		degree.set(hash, 0);
+	}
+	for (const [_, children] of hg.forwardEdges) {
+		for (const child of children) {
+			degree.set(child, (degree.get(child) || 0) + 1);
+		}
+	}
+	for (const vertex of hg.getAllVertices()) {
+		const hash = vertex.hash;
+		if (degree.get(hash) !== vertex.dependencies.length) {
+			return false;
+		}
+		if (vertex.dependencies.length === 0) {
+			if (hash !== HashGraph.rootHash) {
+				return false;
+			}
+		}
+	}
+
+	const topoOrder = hg.kahnsAlgorithm(HashGraph.rootHash, new ObjectSet(hg.vertices.keys()));
+
+	for (const vertex of hg.getAllVertices()) {
+		if (!topoOrder.includes(vertex.hash)) {
+			return false;
+		}
+	}
+	return true;
+}
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -54,7 +88,7 @@ describe("HashGraph construction tests", () => {
 		drp2.add(2);
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(obj2.hashGraph.selfCheckConstraints()).toBe(true);
+		expect(selfCheckConstraints(obj2.hashGraph)).toBe(true);
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
@@ -95,7 +129,7 @@ describe("HashGraph construction tests", () => {
 			timestamp: Date.now(),
 			signature: new Uint8Array(),
 		});
-		expect(obj1.hashGraph.selfCheckConstraints()).toBe(false);
+		expect(selfCheckConstraints(obj1.hashGraph)).toBe(false);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
