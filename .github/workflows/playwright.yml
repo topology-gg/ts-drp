@@ -15,17 +15,25 @@ jobs:
           version: 9
           run_install: false
 
-      - uses: actions/setup-node@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "pnpm"
 
-      - shell: bash
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install dependencies
         run: |
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps
 
-      - shell: bash
+      - name: Run tests
         run: |
           pnpm e2e-test
 
