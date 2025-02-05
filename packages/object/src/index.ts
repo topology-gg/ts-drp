@@ -222,6 +222,20 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this._notify("callFn", [vertex]);
 	}
 
+	/* Merges the vertices into the hashgraph
+	 * Returns a tuple with a boolean indicating if there were
+	 * missing vertices and an array with the missing vertices
+	 */
+	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		if (!this.hashGraph) {
+			throw new Error("Hashgraph is undefined");
+		}
+		if (!this.drp) {
+			return this._mergeWithoutDrp(vertices);
+		}
+		return this._mergeWithDrp(vertices);
+	}
+
 	/* Merges the vertices into the hashgraph using DRP
 	 */
 	private _mergeWithDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
@@ -301,20 +315,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		return [missing.length === 0, missing];
-	}
-
-	/* Merges the vertices into the hashgraph
-	 * Returns a tuple with a boolean indicating if there were
-	 * missing vertices and an array with the missing vertices
-	 */
-	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
-		if (!this.hashGraph) {
-			throw new Error("Hashgraph is undefined");
-		}
-		if (!this.drp) {
-			return this._mergeWithoutDrp(vertices);
-		}
-		return this._mergeWithDrp(vertices);
 	}
 
 	subscribe(callback: DRPObjectCallback) {
