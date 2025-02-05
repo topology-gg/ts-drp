@@ -36,6 +36,13 @@ export interface DRPObjectConfig {
 	finality_config?: FinalityConfig;
 }
 
+export interface callFnResult {
+	drp: DRP;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	appliedOperationResult: any;
+	isACL: boolean;
+}
+
 export let log: Logger;
 
 export class DRPObject implements ObjectPb.DRPObjectBase {
@@ -181,56 +188,38 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType
-	): {
-		drp: DRP;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		appliedOperationResult: any;
-		isACL: boolean;
-	} {
+	): callFnResult {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let preOperationDRP: any;
-		let isACL = false;
-		if (drpType === DrpType.ACL) {
-			isACL = true;
-			preOperationDRP = this._computeObjectACL(this.hashGraph.getFrontier());
-		} else {
-			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
-		}
+
+		const isACL = drpType === DrpType.ACL;
+		const computeFn = isACL ? this._computeObjectACL : this._computeDRP;
+		const vertexDependencies = this.hashGraph.getFrontier();
+		const preOperationDRP = computeFn(vertexDependencies);
+
 		const drp = cloneDeep(preOperationDRP);
-		let appliedOperationResult = undefined;
+		const appliedOperationResult: callFnResult = { isACL, drp, appliedOperationResult: undefined };
 		try {
-			appliedOperationResult = this._applyOperation(drp, { opType: fn, value: args, drpType });
+			appliedOperationResult.appliedOperationResult = this._applyOperation(drp, {
+				opType: fn,
+				value: args,
+				drpType,
+			});
 		} catch (e) {
 			log.error(`::drpObject::callFn: ${e}`);
-			return {
-				drp,
-				appliedOperationResult,
-				isACL,
-			};
+			return appliedOperationResult;
 		}
 
-		let stateChanged = false;
-		for (const key of Object.keys(preOperationDRP)) {
-			if (!deepEqual(preOperationDRP[key], drp[key])) {
-				stateChanged = true;
-				break;
-			}
-		}
-
+		const stateChanged = Object.keys(preOperationDRP).some(
+			(key) => !deepEqual(preOperationDRP[key], drp[key])
+		);
 		if (!stateChanged) {
-			return {
-				drp,
-				appliedOperationResult,
-				isACL,
-			};
+			return appliedOperationResult;
 		}
 
 		const vertexTimestamp = Date.now();
 		const vertexOperation = { drpType: drpType, opType: fn, value: args };
-		const vertexDependencies = this.hashGraph.getFrontier();
 		const vertex = ObjectPb.Vertex.create({
 			hash: computeHash(this.peerId, vertexOperation, vertexDependencies, vertexTimestamp),
 			peerId: this.peerId,
@@ -238,19 +227,15 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			dependencies: vertexDependencies,
 			timestamp: vertexTimestamp,
 		});
-		this.hashGraph.addToFrontier(vertex);
 
+		this.hashGraph.addToFrontier(vertex);
 		this._setState(vertex, this._getDRPState(drp));
 		this._initializeFinalityState(vertex.hash);
 
 		this.vertices.push(vertex);
 		this._notify("callFn", [vertex]);
 
-		return {
-			drp,
-			appliedOperationResult,
-			isACL,
-		};
+		return appliedOperationResult;
 	}
 
 	/* Merges the vertices into the hashgraph
@@ -372,11 +357,11 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 
 	// compute the DRP based on all dependencies of the current vertex using partial linearization
-	private _computeDRP(
+	private _computeDRP = (
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation
-	): DRP {
+	): DRP => {
 		if (!this.drp || !this.originalDRP) {
 			throw new Error("DRP is undefined");
 		}
@@ -406,13 +391,13 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		return drp;
-	}
+	};
 
-	private _computeObjectACL(
+	private _computeObjectACL = (
 		vertexDependencies: Hash[],
 		preCompute?: LcaAndOperations,
 		vertexOperation?: Operation
-	): DRP {
+	): DRP => {
 		if (!this.acl || !this.originalObjectACL) {
 			throw new Error("ObjectACL is undefined");
 		}
@@ -441,7 +426,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		return acl;
-	}
+	};
 
 	private computeLCA(vertexDependencies: string[]) {
 		if (!this.hashGraph) {
