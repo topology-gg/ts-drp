@@ -1,10 +1,61 @@
 import { type Page, expect, test } from "@playwright/test";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as readline from "node:readline";
 
 const peersSelector = "#peers";
 const peerIdSelector = "#peerIdExpanded";
 const DRPIdInputSelector = "#gridInput";
 const joinGridButtonSelector = "#joinGrid";
 const objectPeersSelector = "#objectPeers";
+
+function tailFileUntilTwoMatches(
+	filePath: string,
+	searchString: string,
+	matchCount = 2
+): Promise<void> {
+	return new Promise((resolve, reject) => {
+		let count = 0;
+		let filePosition = 0;
+		const intervalMs = 100;
+
+		const interval = setInterval(() => {
+			fs.stat(filePath, (err, stats) => {
+				if (err) {
+					clearInterval(interval);
+					return reject(err);
+				}
+
+				if (stats.size > filePosition) {
+					const stream = fs.createReadStream(filePath, {
+						start: filePosition,
+						end: stats.size,
+						encoding: "utf8",
+					});
+
+					filePosition = stats.size;
+
+					const rl = readline.createInterface({ input: stream });
+					rl.on("line", (line) => {
+						if (line.includes(searchString)) {
+							count++;
+							if (count === matchCount) {
+								clearInterval(interval);
+								rl.close();
+								resolve();
+							}
+						}
+					});
+				}
+			});
+		}, intervalMs);
+	});
+}
+
+async function clearLogFile() {
+	const logPath = path.join(process.cwd(), "test.e2e.log");
+	await fs.promises.writeFile(logPath, "");
+}
 
 async function getGlowingPeer(page: Page, peerID: string) {
 	const div = page.locator(`div[data-glowing-peer-id="${peerID}"]`);
@@ -41,18 +92,37 @@ test.describe("grid", () => {
 	let page2: Page;
 
 	test.beforeEach(async ({ browser }) => {
+		const { promise, resolve } = Promise.withResolvers<boolean>();
+		let hasGraftPage2 = false;
+		let hasGraftPage1 = false;
+		await clearLogFile();
+
 		page1 = await browser.newPage();
+		page1.on("console", async (msg) => {
+			if (!page2) return;
+			const peerID2 = await getPeerID(page2);
+			if (msg.text().includes(`graft {peerId: ${peerID2}`)) {
+				hasGraftPage1 = true;
+			}
+			if (hasGraftPage1 && hasGraftPage2) resolve(true);
+		});
+
 		await page1.goto("/");
 		await page1.waitForSelector("#loadingMessage", { state: "hidden" });
 
+		// wait for the peer to identify so the PX go well
+		await tailFileUntilTwoMatches("test.e2e.log", "::start::peer::identify");
+
 		page2 = await browser.newPage();
+		page2.on("console", async (msg) => {
+			if (!page1) return;
+			const peerID1 = await getPeerID(page1);
+			if (msg.text().includes(`graft {peerId: ${peerID1}`)) hasGraftPage2 = true;
+			if (hasGraftPage1 && hasGraftPage2) resolve(true);
+		});
 		await page2.goto("/");
 		await page2.waitForSelector("#loadingMessage", { state: "hidden" });
-	});
-
-	test.afterEach(async () => {
-		await page1.close();
-		await page2.close();
+		await promise;
 	});
 
 	test("check peerID", async () => {
@@ -94,15 +164,19 @@ test.describe("grid", () => {
 			timeout: 10000,
 		});
 
-		await expect(page1.locator(DRPIdInputSelector)).toHaveValue(drpId);
-		await expect(page2.locator(DRPIdInputSelector)).toHaveValue(drpId);
-
 		await page1.keyboard.press("w");
 		await page2.keyboard.press("s");
 
-		await expect(page2.locator(`div[data-glowing-peer-id="${peerID1}"]`)).toBeVisible();
-		await expect(page2.locator(`div[data-glowing-peer-id="${peerID2}"]`)).toBeVisible();
-		await new Promise((resolve) => setTimeout(resolve, 150));
+		await expect(page1.locator(DRPIdInputSelector)).toHaveValue(drpId);
+		await expect(page2.locator(DRPIdInputSelector)).toHaveValue(drpId);
+
+		await expect(page2.locator(`div[data-glowing-peer-id="${peerID1}"]`)).toBeVisible({
+			timeout: 10000,
+		});
+		await expect(page2.locator(`div[data-glowing-peer-id="${peerID2}"]`)).toBeVisible({
+			timeout: 10000,
+		});
+
 		const glowingPeer1 = await getGlowingPeer(page1, peerID1);
 		const glowingPeer2 = await getGlowingPeer(page1, peerID2);
 		console.log(glowingPeer1, glowingPeer2);

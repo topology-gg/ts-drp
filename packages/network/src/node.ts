@@ -216,6 +216,10 @@ export class DRPNetworkNode {
 			this._node.getMultiaddrs().map((addr) => addr.toString())
 		);
 
+		this._node.addEventListener("peer:connect", (e) =>
+			log.info("::start::peer::connect", e.detail)
+		);
+
 		if (!this._config?.bootstrap) {
 			for (const addr of this._config?.bootstrap_peers || []) {
 				try {
@@ -231,16 +235,16 @@ export class DRPNetworkNode {
 
 		log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
 
-		this._node.addEventListener("peer:connect", (e) =>
-			log.info("::start::peer::connect", e.detail)
-		);
-
 		this._node.addEventListener("peer:discovery", (e) =>
 			log.info("::start::peer::discovery", e.detail)
 		);
 
 		this._node.addEventListener("peer:identify", (e) =>
 			log.info("::start::peer::identify", e.detail)
+		);
+
+		this._pubsub.addEventListener("gossipsub:graft", (e) =>
+			log.info("::start::gossipsub::graft", e.detail)
 		);
 
 		// needded as I've disabled the pubsubPeerDiscovery

@@ -66,14 +66,10 @@ export default defineConfig({
 				VITE_BOOTSTRAP_PEERS: [
 					"/ip4/127.0.0.1/tcp/50000/ws/p2p/12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ",
 				].join(","),
-				VITE_DISCOVERY_INTERVAL: "10",
-				VITE_RENDER_INFO_INTERVAL: "300",
-				VITE_PUBSUB_PRUNE_BACKOFF: "100",
-				VITE_PUBSUB_HEARTBEAT_INTERVAL: "1",
 			},
 		},
 		{
-			command: "pnpm cli --config configs/e2e-bootstrap.json",
+			command: "pnpm cli --config configs/e2e-bootstrap.json > test.e2e.log",
 			url: "http://localhost:50000",
 			reuseExistingServer: !process.env.CI,
 		},
