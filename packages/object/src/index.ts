@@ -156,7 +156,15 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 							if (callerName?.startsWith("DRPObject.resolveConflicts")) {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
-							if (!callerName?.startsWith("Proxy.")) obj.callFn(fullPropKey, args, vertexType);
+							if (!callerName?.startsWith("Proxy.")) {
+								const { applyOperationResult, stateChanged } = obj.callFn(
+									fullPropKey,
+									args,
+									vertexType
+								);
+								if (stateChanged) return applyOperationResult;
+								return undefined;
+							}
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
 					});
@@ -184,11 +192,15 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
 		}
 		const drp = cloneDeep(preOperationDRP);
+		let applyOperationResult = undefined;
 		try {
-			this._applyOperation(drp, { opType: fn, value: args, drpType });
+			applyOperationResult = this._applyOperation(drp, { opType: fn, value: args, drpType });
 		} catch (e) {
 			log.error(`::drpObject::callFn: ${e}`);
-			return;
+			return {
+				applyOperationResult: undefined,
+				stateChanged: false,
+			};
 		}
 
 		let stateChanged = false;
@@ -200,7 +212,10 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		if (!stateChanged) {
-			return;
+			return {
+				applyOperationResult: undefined,
+				stateChanged: false,
+			};
 		}
 
 		const vertexTimestamp = Date.now();
@@ -220,6 +235,11 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		this.vertices.push(vertex);
 		this._notify("callFn", [vertex]);
+
+		return {
+			applyOperationResult,
+			stateChanged,
+		};
 	}
 
 	/* Merges the vertices into the hashgraph
@@ -334,7 +354,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		try {
-			target[methodName](...value);
+			return target[methodName](...value);
 		} catch (e) {
 			throw new Error(`Error while applying operation ${opType}: ${e}`);
 		}
