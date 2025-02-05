@@ -2,10 +2,12 @@ import { DRPNode } from "@ts-drp/node";
 import type { DRPObject } from "@ts-drp/object";
 
 import { Chat } from "./objects/chat";
+import { AIBot } from "./objects/aiBot"; // Import the AIBot class
 
 const node = new DRPNode();
 let drpObject: DRPObject;
 let chatDRP: Chat;
+let aiBot: AIBot; // Declare a variable for the AI bot
 let peers: string[] = [];
 let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
@@ -85,6 +87,13 @@ async function main() {
 		chatDRP = drpObject.drp as Chat;
 		await createConnectHandlers();
 		render();
+
+		// Instantiate and add AI bot to the chat room
+		aiBot = new AIBot();
+		setInterval(async () => {
+			await aiBot.sendMessage();
+			render();
+		}, 5000); // AI bot sends messages every 5 seconds
 	});
 
 	const button_connect = <HTMLButtonElement>document.getElementById("joinRoom");
@@ -100,6 +109,13 @@ async function main() {
 		chatDRP = drpObject.drp as Chat;
 		await createConnectHandlers();
 		render();
+
+		// Instantiate and add AI bot to the chat room
+		aiBot = new AIBot();
+		setInterval(async () => {
+			await aiBot.sendMessage();
+			render();
+		}, 5000); // AI bot sends messages every 5 seconds
 	});
 
 	const button_send = <HTMLButtonElement>document.getElementById("sendMessage");
