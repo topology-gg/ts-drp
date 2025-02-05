@@ -8,14 +8,8 @@ import { getColorForPeerId } from "./util/color";
 export function getNetworkConfigFromEnv() {
 	const hasBootstrapPeers = Boolean(import.meta.env.VITE_BOOTSTRAP_PEERS);
 	const hasDiscoveryInterval = Boolean(import.meta.env.VITE_DISCOVERY_INTERVAL);
-	const hasPubsubPruneBackoff = Boolean(import.meta.env.VITE_PUBSUB_PRUNE_BACKOFF);
-	const hasPubsubHeartbeatInterval = Boolean(import.meta.env.VITE_PUBSUB_HEARTBEAT_INTERVAL);
 
-	const hasEnv =
-		hasBootstrapPeers ||
-		hasDiscoveryInterval ||
-		hasPubsubPruneBackoff ||
-		hasPubsubHeartbeatInterval;
+	const hasEnv = hasBootstrapPeers || hasDiscoveryInterval;
 
 	const config: Record<string, unknown> = {
 		browser_metrics: true,
@@ -32,20 +26,6 @@ export function getNetworkConfigFromEnv() {
 	if (hasDiscoveryInterval) {
 		config.pubsub = {
 			peer_discovery_interval: import.meta.env.VITE_DISCOVERY_INTERVAL,
-		};
-	}
-
-	if (hasPubsubPruneBackoff) {
-		config.pubsub = {
-			...(config.pubsub || {}),
-			prune_backoff: import.meta.env.VITE_PUBSUB_PRUNE_BACKOFF,
-		};
-	}
-
-	if (hasPubsubHeartbeatInterval) {
-		config.pubsub = {
-			...(config.pubsub || {}),
-			heartbeat_interval: import.meta.env.VITE_PUBSUB_HEARTBEAT_INTERVAL,
 		};
 	}
 
