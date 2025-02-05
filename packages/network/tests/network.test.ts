@@ -61,8 +61,8 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		});
 
 		await node1.start();
-		const btLibp2pNode1 = (bootstrapNode as unknown as { _node: Libp2p })._node;
-		libp2pNode1 = (node1 as unknown as { _node: Libp2p })._node;
+		const btLibp2pNode1 = bootstrapNode["_node"] as Libp2p;
+		libp2pNode1 = node1["_node"] as Libp2p;
 		await Promise.all([
 			raceEvent(btLibp2pNode1, "peer:identify", controller.signal, {
 				filter: (event: CustomEvent<IdentifyResult>) =>
@@ -73,8 +73,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 
 		await node2.start();
 		expect(await isDialable(node2)).toBe(true);
-
-		pubsubNode1 = (node1 as unknown as { _pubsub: GossipSub })._pubsub;
+		pubsubNode1 = node1["_pubsub"] as GossipSub;
 	});
 
 	test("Node can send message to peer", async () => {
