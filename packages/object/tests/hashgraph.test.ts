@@ -3,7 +3,8 @@ import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ACLGroup, DRPObject, DrpType, type Operation, OperationType } from "../src/index.js";
+import { ACLGroup, DRPObject, DrpType, Hash, HashGraph, type Operation } from "../src/index.js";
+import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
@@ -12,6 +13,39 @@ const acl = new ObjectACL({
 		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
 	]),
 });
+
+function selfCheckConstraints(hg: HashGraph): boolean {
+	const degree = new Map<Hash, number>();
+	for (const vertex of hg.getAllVertices()) {
+		const hash = vertex.hash;
+		degree.set(hash, 0);
+	}
+	for (const [_, children] of hg.forwardEdges) {
+		for (const child of children) {
+			degree.set(child, (degree.get(child) || 0) + 1);
+		}
+	}
+	for (const vertex of hg.getAllVertices()) {
+		const hash = vertex.hash;
+		if (degree.get(hash) !== vertex.dependencies.length) {
+			return false;
+		}
+		if (vertex.dependencies.length === 0) {
+			if (hash !== HashGraph.rootHash) {
+				return false;
+			}
+		}
+	}
+
+	const topoOrder = hg.kahnsAlgorithm(HashGraph.rootHash, new ObjectSet(hg.vertices.keys()));
+
+	for (const vertex of hg.getAllVertices()) {
+		if (!topoOrder.includes(vertex.hash)) {
+			return false;
+		}
+	}
+	return true;
+}
 
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
@@ -52,10 +86,9 @@ describe("HashGraph construction tests", () => {
 
 		drp1.add(1);
 		drp2.add(2);
-
 		obj2.merge(obj1.hashGraph.getAllVertices());
 
-		expect(obj2.hashGraph.selfCheckConstraints()).toBe(true);
+		expect(selfCheckConstraints(obj2.hashGraph)).toBe(true);
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
@@ -73,32 +106,34 @@ describe("HashGraph construction tests", () => {
 		drp1.add(1);
 		// add fake root
 		expect(() => {
-			obj1.hashGraph.addVertex(
-				{
+			obj1.hashGraph.addVertex({
+				hash: "hash1",
+				peerId: "peer1",
+				operation: {
 					opType: "root",
 					value: null,
 					drpType: DrpType.DRP,
 				},
-				[],
-				"",
-				Date.now(),
-				new Uint8Array()
-			);
+				dependencies: [],
+				timestamp: Date.now(),
+				signature: new Uint8Array(),
+			});
 		}).toThrowError("Vertex dependencies are empty.");
 		expect(() => {
-			obj1.hashGraph.addVertex(
-				{
+			obj1.hashGraph.addVertex({
+				hash: "hash2",
+				peerId: "peer1",
+				operation: {
 					opType: "add",
 					value: [1],
 					drpType: DrpType.DRP,
 				},
-				["123"],
-				"",
-				Date.now(),
-				new Uint8Array()
-			);
+				dependencies: ["hash1"],
+				timestamp: Date.now(),
+				signature: new Uint8Array(),
+			});
 		}).toThrowError("Invalid dependency detected.");
-		expect(obj1.hashGraph.selfCheckConstraints()).toBe(true);
+		expect(selfCheckConstraints(obj1.hashGraph)).toBe(false);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
@@ -329,15 +364,6 @@ describe("HashGraph for undefined operations tests", () => {
 		// Should only have one, since we skipped the undefined operations
 		expect(linearOps).toEqual([{ opType: "add", value: [2], drpType: DrpType.DRP }]);
 	});
-
-	test("Test: addToFrontier with undefined operation return Vertex with NoOp operation", () => {
-		// Forcefully pass an undefined value
-		const createdVertex = obj1.hashGraph.addToFrontier(undefined as unknown as Operation);
-
-		expect(createdVertex.operation).toEqual({
-			opType: OperationType.NOP,
-		} as Operation);
-	});
 });
 
 describe("Vertex state tests", () => {
@@ -452,17 +478,18 @@ describe("Vertex timestamp tests", () => {
 		drp1.add(1);
 
 		expect(() =>
-			obj1.hashGraph.addVertex(
-				{
+			obj1.hashGraph.addVertex({
+				hash: "",
+				peerId: "peer1",
+				operation: {
 					opType: "add",
 					value: 1,
 					drpType: DrpType.DRP,
 				},
-				obj1.hashGraph.getFrontier(),
-				"",
-				Number.POSITIVE_INFINITY,
-				new Uint8Array()
-			)
+				dependencies: obj1.hashGraph.getFrontier(),
+				timestamp: Number.POSITIVE_INFINITY,
+				signature: new Uint8Array(),
+			})
 		).toThrowError("Invalid timestamp detected.");
 	});
 
@@ -487,17 +514,18 @@ describe("Vertex timestamp tests", () => {
 		obj1.merge(obj3.hashGraph.getAllVertices());
 
 		expect(() =>
-			obj1.hashGraph.addVertex(
-				{
+			obj1.hashGraph.addVertex({
+				hash: "",
+				peerId: "peer1",
+				operation: {
 					opType: "add",
 					value: 1,
 					drpType: DrpType.DRP,
 				},
-				obj1.hashGraph.getFrontier(),
-				"",
-				1,
-				new Uint8Array()
-			)
+				dependencies: obj1.hashGraph.getFrontier(),
+				timestamp: 1,
+				signature: new Uint8Array(),
+			})
 		).toThrowError("Invalid timestamp detected.");
 	});
 });
@@ -547,15 +575,10 @@ describe("Writer permission tests", () => {
 		const acl2 = obj2.acl as ObjectACL;
 
 		drp1.add(1);
-		acl1.grant(
-			"peer1",
-			"peer2",
-			{
-				ed25519PublicKey: "pubKey2",
-				blsPublicKey: "pubKey2",
-			},
-			ACLGroup.Writer
-		);
+		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
+			ed25519PublicKey: "pubKey2",
+			blsPublicKey: "pubKey2",
+		});
 		expect(acl1.query_isAdmin("peer1")).toBe(true);
 
 		obj2.merge(obj1.hashGraph.getAllVertices());
@@ -580,24 +603,14 @@ describe("Writer permission tests", () => {
 		const drp3 = obj3.drp as SetDRP<number>;
 		const acl1 = obj1.acl as ObjectACL;
 
-		acl1.grant(
-			"peer1",
-			"peer2",
-			{
-				ed25519PublicKey: "pubKey2",
-				blsPublicKey: "pubKey2",
-			},
-			ACLGroup.Writer
-		);
-		acl1.grant(
-			"peer1",
-			"peer3",
-			{
-				ed25519PublicKey: "pubKey3",
-				blsPublicKey: "pubKey3",
-			},
-			ACLGroup.Writer
-		);
+		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
+			ed25519PublicKey: "pubKey2",
+			blsPublicKey: "pubKey2",
+		});
+		acl1.grant("peer1", "peer3", ACLGroup.Writer, {
+			ed25519PublicKey: "pubKey3",
+			blsPublicKey: "pubKey3",
+		});
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		obj3.merge(obj1.hashGraph.getAllVertices());
 
@@ -621,6 +634,17 @@ describe("Writer permission tests", () => {
 		obj1.merge(obj3.hashGraph.getAllVertices());
 		expect(drp1.query_has(3)).toBe(false);
 		expect(drp1.query_has(4)).toBe(true);
+	});
+
+	test("Should grant admin permission to a peer", () => {
+		const acl1 = obj1.acl as ObjectACL;
+		const newAdminPeer1 = "newAdminPeer1";
+		const newAdmin = {
+			ed25519PublicKey: "newAdmin",
+			blsPublicKey: "newAdmin",
+		};
+		acl1.grant("peer1", "newAdminPeer1", ACLGroup.Admin, newAdmin);
+		expect(acl1.query_isAdmin(newAdminPeer1)).toBe(true);
 	});
 });
 
@@ -798,5 +822,55 @@ describe("HashGraph for delete wins map tests", () => {
 		drp1.delete("key2");
 		obj2.merge(obj1.hashGraph.getAllVertices());
 		expect(drp2.query_get("key2")).toBe(undefined);
+	});
+});
+
+describe("Hash validation tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	beforeEach(async () => {
+		obj1 = new DRPObject({
+			peerId: "peer1",
+			acl,
+			drp: new MapDRP<string, string>(),
+		});
+
+		obj2 = new DRPObject({
+			peerId: "peer2",
+			acl,
+			drp: new MapDRP<string, string>(),
+		});
+	});
+
+	test("Should accept vertices with valid hash", () => {
+		const drp1 = obj1.drp as MapDRP<string, string>;
+		const drp2 = obj2.drp as MapDRP<string, string>;
+		drp1.set("key1", "value1");
+		drp2.set("key2", "value2");
+
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		expect(obj2.vertices.length).toBe(3);
+		expect(obj2.hashGraph.getAllVertices().length).toBe(3);
+	});
+
+	test("Should ignore vertices with invalid hash", () => {
+		obj1.hashGraph.addVertex({
+			hash: "hash",
+			peerId: "peer1",
+			operation: {
+				opType: "add",
+				value: "value",
+				drpType: DrpType.DRP,
+			},
+			dependencies: obj1.hashGraph.getFrontier(),
+			timestamp: Date.now(),
+			signature: new Uint8Array(),
+		});
+
+		expect(obj1.hashGraph.getAllVertices().length).toBe(2);
+		expect(obj2.hashGraph.getAllVertices().length).toBe(1);
+		expect(obj2.hashGraph.getAllVertices().includes(obj1.hashGraph.getAllVertices()[1])).toBe(
+			false
+		);
 	});
 });

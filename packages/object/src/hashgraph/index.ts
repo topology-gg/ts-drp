@@ -1,5 +1,3 @@
-import * as crypto from "node:crypto";
-
 import { log } from "../index.js";
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
@@ -106,29 +104,14 @@ export class HashGraph {
 			: { action: ActionType.Nop };
 	}
 
-	addToFrontier(operation: Operation): Vertex {
-		const deps = this.getFrontier();
-		const currentTimestamp = Date.now();
-		const hash = computeHash(this.peerId, operation, deps, currentTimestamp);
-
-		const vertex: Vertex = {
-			hash,
-			peerId: this.peerId,
-			operation: operation ?? { opType: OperationType.NOP },
-			dependencies: deps,
-			timestamp: currentTimestamp,
-			signature: new Uint8Array(),
-		};
-
-		this.vertices.set(hash, vertex);
-		this.frontier.push(hash);
-
+	addToFrontier(vertex: Vertex) {
+		this.vertices.set(vertex.hash, vertex);
 		// Update forward edges
-		for (const dep of deps) {
+		for (const dep of vertex.dependencies) {
 			if (!this.forwardEdges.has(dep)) {
 				this.forwardEdges.set(dep, []);
 			}
-			this.forwardEdges.get(dep)?.push(hash);
+			this.forwardEdges.get(dep)?.push(vertex.hash);
 		}
 
 		// Compute the distance of the vertex
@@ -136,75 +119,56 @@ export class HashGraph {
 			distance: Number.MAX_VALUE,
 			closestDependency: "",
 		};
-		for (const dep of deps) {
+		for (const dep of vertex.dependencies) {
 			const depDistance = this.vertexDistances.get(dep);
 			if (depDistance && depDistance.distance + 1 < vertexDistance.distance) {
 				vertexDistance.distance = depDistance.distance + 1;
 				vertexDistance.closestDependency = dep;
 			}
 		}
-		this.vertexDistances.set(hash, vertexDistance);
+		this.vertexDistances.set(vertex.hash, vertexDistance);
 
-		const depsSet = new Set(deps);
-		this.frontier = this.frontier.filter((hash) => !depsSet.has(hash));
+		this.frontier = [vertex.hash];
 		this.arePredecessorsFresh = false;
-
-		return vertex;
 	}
 
 	/* Add a vertex to the hashgraph with the given operation and dependencies.
 	 * If the vertex already exists, return the hash of the existing vertex.
 	 * Throws an error if any of the dependencies are not present in the hashgraph.
 	 */
-	addVertex(
-		operation: Operation,
-		deps: Hash[],
-		peerId: string,
-		timestamp: number,
-		signature: Uint8Array
-	): Hash {
-		const hash = computeHash(peerId, operation, deps, timestamp);
-		if (this.vertices.has(hash)) {
-			return hash; // Vertex already exists
+	addVertex(vertex: Vertex) {
+		if (this.vertices.has(vertex.hash)) {
+			return; // Vertex already exists
 		}
 
-		if (deps.length === 0) {
+		if (vertex.dependencies.length === 0) {
 			throw new Error("Vertex dependencies are empty.");
 		}
-		for (const dep of deps) {
-			const vertex = this.vertices.get(dep);
-			if (vertex === undefined) {
+		for (const dep of vertex.dependencies) {
+			const depVertex = this.vertices.get(dep);
+			if (depVertex === undefined) {
 				throw new Error("Invalid dependency detected.");
 			}
-			if (vertex.timestamp > timestamp) {
+			if (depVertex.timestamp > vertex.timestamp) {
 				// Vertex's timestamp must not be less than any of its dependencies' timestamps
 				throw new Error("Invalid timestamp detected.");
 			}
 		}
 
 		const currentTimestamp = Date.now();
-		if (timestamp > currentTimestamp) {
+		if (vertex.timestamp > currentTimestamp) {
 			// Vertex created in the future is invalid
 			throw new Error("Invalid timestamp detected.");
 		}
 
-		const vertex: Vertex = {
-			hash,
-			peerId,
-			operation,
-			dependencies: deps,
-			timestamp,
-			signature,
-		};
-		this.vertices.set(hash, vertex);
-		this.frontier.push(hash);
-
+		this.vertices.set(vertex.hash, vertex);
+		this.frontier.push(vertex.hash);
 		// Update forward edges
-		for (const dep of deps) {
+		for (const dep of vertex.dependencies) {
 			if (!this.forwardEdges.has(dep)) {
 				this.forwardEdges.set(dep, []);
 			}
-			this.forwardEdges.get(dep)?.push(hash);
+			this.forwardEdges.get(dep)?.push(vertex.hash);
 		}
 
 		// Compute the distance of the vertex
@@ -212,19 +176,18 @@ export class HashGraph {
 			distance: Number.MAX_VALUE,
 			closestDependency: "",
 		};
-		for (const dep of deps) {
+		for (const dep of vertex.dependencies) {
 			const depDistance = this.vertexDistances.get(dep);
 			if (depDistance && depDistance.distance + 1 < vertexDistance.distance) {
 				vertexDistance.distance = depDistance.distance + 1;
 				vertexDistance.closestDependency = dep;
 			}
 		}
-		this.vertexDistances.set(hash, vertexDistance);
+		this.vertexDistances.set(vertex.hash, vertexDistance);
 
-		const depsSet = new Set(deps);
+		const depsSet = new Set(vertex.dependencies);
 		this.frontier = this.frontier.filter((hash) => !depsSet.has(hash));
 		this.arePredecessorsFresh = false;
-		return hash;
 	}
 
 	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
@@ -454,39 +417,6 @@ export class HashGraph {
 		return false;
 	}
 
-	selfCheckConstraints(): boolean {
-		const degree = new Map<Hash, number>();
-		for (const vertex of this.getAllVertices()) {
-			const hash = vertex.hash;
-			degree.set(hash, 0);
-		}
-		for (const [_, children] of this.forwardEdges) {
-			for (const child of children) {
-				degree.set(child, (degree.get(child) || 0) + 1);
-			}
-		}
-		for (const vertex of this.getAllVertices()) {
-			const hash = vertex.hash;
-			if (degree.get(hash) !== vertex.dependencies.length) {
-				return false;
-			}
-			if (vertex.dependencies.length === 0) {
-				if (hash !== HashGraph.rootHash) {
-					return false;
-				}
-			}
-		}
-
-		const topoOrder = this.kahnsAlgorithm(HashGraph.rootHash, new ObjectSet(this.vertices.keys()));
-
-		for (const vertex of this.getAllVertices()) {
-			if (!topoOrder.includes(vertex.hash)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	areCausallyRelatedUsingBFS(hash1: Hash, hash2: Hash): boolean {
 		return (
 			this._areCausallyRelatedUsingBFS(hash1, hash2) ||
@@ -517,10 +447,4 @@ export class HashGraph {
 	getCurrentBitsetSize(): number {
 		return this.currentBitsetSize;
 	}
-}
-
-function computeHash(peerId: string, operation: Operation, deps: Hash[], timestamp: number): Hash {
-	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
-	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
-	return hash;
 }

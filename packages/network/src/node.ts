@@ -195,8 +195,11 @@ export class DRPNetworkNode {
 				webTransport(),
 			],
 		});
+		log.info(
+			"::start: running on:",
+			this._node.getMultiaddrs().map((addr) => addr.toString())
+		);
 
-		log.info("running on:", this._node.getMultiaddrs());
 		if (!this._config?.bootstrap) {
 			for (const addr of this._config?.bootstrap_peers || []) {
 				try {
@@ -236,6 +239,25 @@ export class DRPNetworkNode {
 		await this.stop();
 		if (config) this._config = config;
 		await this.start();
+	}
+
+	async isDialable(callback?: () => void | Promise<void>) {
+		let dialable = await this._node?.isDialable(this._node.getMultiaddrs());
+		if (dialable && callback) {
+			await callback();
+			return true;
+		}
+		if (!callback) return false;
+
+		const checkDialable = async () => {
+			dialable = await this._node?.isDialable(this._node.getMultiaddrs());
+			if (dialable) {
+				await callback();
+			}
+		};
+
+		this._node?.addEventListener("transport:listening", checkDialable);
+		return false;
 	}
 
 	private _sortAddresses(a: Address, b: Address) {
