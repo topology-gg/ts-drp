@@ -247,7 +247,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 
 			try {
-				if (!this._checkWriterPermission(vertex.peerId)) {
+				const acl = this._computeObjectACL(vertex.dependencies);
+				if (!acl.query_isWriter(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
 				if (
