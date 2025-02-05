@@ -1,6 +1,7 @@
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
+import * as crypto from "node:crypto";
 
 import { ObjectACL } from "./acl/index.js";
 import type { ACL } from "./acl/interface.js";
@@ -20,7 +21,6 @@ import {
 	type LcaAndOperations,
 } from "./interface.js";
 import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
-import { computeDRPObjectId } from "./utils/object.js";
 import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
@@ -68,7 +68,13 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		this.peerId = options.peerId;
 		log = new Logger("drp::object", options.config?.log_config);
-		this.id = options.id ?? computeDRPObjectId(options.peerId);
+		this.id =
+			options.id ??
+			crypto
+				.createHash("sha256")
+				.update(options.peerId)
+				.update(Math.floor(Math.random() * Number.MAX_VALUE).toString())
+				.digest("hex");
 
 		const objAcl =
 			options.acl ??

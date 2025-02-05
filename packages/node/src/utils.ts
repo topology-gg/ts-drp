@@ -23,21 +23,3 @@ export function deserializeStateMessage(state?: ObjectPb.DRPState): ObjectPb.DRP
 	}
 	return drpState;
 }
-
-export async function verifyACLSignature(
-	publicKeyBytes: Uint8Array<ArrayBufferLike>,
-	signature: Uint8Array<ArrayBufferLike>,
-	data: Uint8Array<ArrayBufferLike>
-) {
-	const cryptoKey = await crypto.subtle.importKey(
-		"raw",
-		publicKeyBytes,
-		{ name: "Ed25519" },
-		true,
-		["verify"]
-	);
-
-	const isValid = await crypto.subtle.verify({ name: "Ed25519" }, cryptoKey, signature, data);
-
-	return isValid;
-}

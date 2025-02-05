@@ -4,7 +4,7 @@ import { type ACL, type DRPObject, HashGraph, type ObjectPb, type Vertex } from 
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { type DRPNode, log } from "./index.js";
-import { deserializeStateMessage, serializeStateMessage, verifyACLSignature } from "./utils.js";
+import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -430,7 +430,20 @@ export async function verifyACLIncomingVertices(
 		const data = uint8ArrayFromString(vertex.hash);
 
 		try {
-			const isValid = await verifyACLSignature(publicKeyBytes, vertex.signature, data);
+			const cryptoKey = await crypto.subtle.importKey(
+				"raw",
+				publicKeyBytes,
+				{ name: "Ed25519" },
+				true,
+				["verify"]
+			);
+
+			const isValid = await crypto.subtle.verify(
+				{ name: "Ed25519" },
+				cryptoKey,
+				vertex.signature,
+				data
+			);
 
 			return isValid ? vertex : null;
 		} catch (error) {
