@@ -1,7 +1,7 @@
 import { DRPNode } from "@ts-drp/node";
 
 import { Grid } from "./objects/grid";
-import { render, renderInfo } from "./render";
+import { render, enableUIControls, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 
@@ -91,26 +91,8 @@ async function createConnectHandlers() {
 	});
 }
 
-async function enableInterface() {
-	const loadingMessage = document.getElementById("loadingMessage");
-	if (loadingMessage) {
-		loadingMessage.style.display = "none";
-	}
-
-	const joinButton = <HTMLButtonElement>document.getElementById("joinGrid");
-	const createButton = <HTMLButtonElement>document.getElementById("createGrid");
-	const gridInput = <HTMLInputElement>document.getElementById("gridInput");
-	const copyButton = <HTMLButtonElement>document.getElementById("copyGridId");
-
-	joinButton.disabled = false;
-	createButton.disabled = false;
-	gridInput.disabled = false;
-	copyButton.disabled = false;
-}
-
 async function run() {
-	await enableInterface();
-
+	enableUIControls();
 	renderInfo();
 
 	const button_create = <HTMLButtonElement>document.getElementById("createGrid");

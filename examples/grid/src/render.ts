@@ -210,3 +210,20 @@ export const render = () => {
 		}
 	}
 };
+
+export function enableUIControls() {
+	const loadingMessage = document.getElementById("loadingMessage");
+	if (loadingMessage) {
+		loadingMessage.style.display = "none";
+	}
+
+	const joinButton = <HTMLButtonElement>document.getElementById("joinGrid");
+	const createButton = <HTMLButtonElement>document.getElementById("createGrid");
+	const gridInput = <HTMLInputElement>document.getElementById("gridInput");
+	const copyButton = <HTMLButtonElement>document.getElementById("copyGridId");
+
+	joinButton.disabled = false;
+	createButton.disabled = false;
+	gridInput.disabled = false;
+	copyButton.disabled = false;
+}
