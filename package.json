@@ -25,7 +25,7 @@
   "cli": "tsx ./packages/node/src/run.ts",
   "coverage": "pnpm tsx scripts/coverage.ts",
   "docs": "typedoc",
-  "e2e-test": "pnpm exec playwright test",
+  "e2e-test": "pnpm exec playwright test --fail-on-flaky-tests",
   "flamegraph": "./scripts/flamegraph.sh",
   "lint": "eslint .",
   "lint:fix": "eslint . --fix",
