@@ -58,8 +58,6 @@ export interface DRPNetworkNodeConfig {
 	private_key_seed?: string;
 	pubsub?: {
 		peer_discovery_interval?: number;
-		prune_backoff?: number;
-		heartbeat_interval?: number;
 	};
 }
 
@@ -119,12 +117,6 @@ export class DRPNetworkNode {
 			pubsub: gossipsub({
 				doPX: true,
 				allowPublishToZeroTopicPeers: true,
-				...(this._config?.pubsub?.prune_backoff
-					? { pruneBackoff: this._config.pubsub.prune_backoff }
-					: {}),
-				...(this._config?.pubsub?.heartbeat_interval
-					? { heartbeatInterval: this._config.pubsub.heartbeat_interval }
-					: {}),
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
 					appSpecificScore: (peerId: string) => {
@@ -156,12 +148,6 @@ export class DRPNetworkNode {
 					doPX: true,
 					ignoreDuplicatePublishError: true,
 					allowPublishToZeroTopicPeers: true,
-					...(this._config?.pubsub?.prune_backoff
-						? { pruneBackoff: this._config.pubsub.prune_backoff }
-						: {}),
-					...(this._config?.pubsub?.heartbeat_interval
-						? { heartbeatInterval: this._config.pubsub.heartbeat_interval }
-						: {}),
 					scoreParams: createPeerScoreParams({
 						topicScoreCap: 50,
 						IPColocationFactorWeight: 0,
@@ -216,10 +202,6 @@ export class DRPNetworkNode {
 			this._node.getMultiaddrs().map((addr) => addr.toString())
 		);
 
-		this._node.addEventListener("peer:connect", (e) =>
-			log.info("::start::peer::connect", e.detail)
-		);
-
 		if (!this._config?.bootstrap) {
 			for (const addr of this._config?.bootstrap_peers || []) {
 				try {
@@ -234,6 +216,10 @@ export class DRPNetworkNode {
 		this.peerId = this._node.peerId.toString();
 
 		log.info("::start: Successfuly started DRP network w/ peer_id", this.peerId);
+
+		this._node.addEventListener("peer:connect", (e) =>
+			log.info("::start::peer::connect", e.detail)
+		);
 
 		this._node.addEventListener("peer:discovery", (e) =>
 			log.info("::start::peer::discovery", e.detail)

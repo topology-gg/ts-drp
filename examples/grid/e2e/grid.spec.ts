@@ -179,7 +179,6 @@ test.describe("grid", () => {
 
 		const glowingPeer1 = await getGlowingPeer(page1, peerID1);
 		const glowingPeer2 = await getGlowingPeer(page1, peerID2);
-		console.log(glowingPeer1, glowingPeer2);
 		expect(Math.abs(glowingPeer1.top - glowingPeer2.top)).toBe(100);
 	});
 });

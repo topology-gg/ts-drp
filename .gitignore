@@ -17,6 +17,7 @@ node_modules/
 **/flamegraph.*
 !**/flamegraph.sh
 
+test.e2e.log
 test-results/
 playwright-report/
 blob-report/
