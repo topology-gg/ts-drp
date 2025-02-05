@@ -1,84 +1,90 @@
+import { GossipSub, MeshPeer } from "@chainsafe/libp2p-gossipsub";
+import { Connection, IdentifyResult, Libp2p, SubscriptionChangeData } from "@libp2p/interface";
 import { loadConfig } from "@ts-drp/node/src/config.js";
+import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test } from "vitest";
 
 import { NetworkPb } from "../src/index.js";
-import { DRPNetworkNode, streamToUint8Array } from "../src/node.js";
+import { DRPNetworkNode, DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
+	const controller = new AbortController();
 	let node1: DRPNetworkNode;
 	let node2: DRPNetworkNode;
+	let libp2pNode1: Libp2p;
 	let bootstrapNode: DRPNetworkNode;
-	let node1PeerId: string;
-	let node2PeerId: string;
-	let bootstrapNodePeerId: string;
+	let pubsubNode1: GossipSub;
+
+	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+		let resolver: (value: boolean) => void;
+		const promise = new Promise<boolean>((resolve) => {
+			resolver = resolve;
+		});
+
+		if (timeout) {
+			setTimeout(() => {
+				resolver(false);
+			}, 10);
+		}
+
+		const callback = () => {
+			resolver(true);
+		};
+
+		await node.isDialable(callback);
+		return await promise;
+	};
 
 	beforeAll(async () => {
 		const configPath = `${__dirname}/../../../configs/local-bootstrap.json`;
-		const bootstrapConfig = loadConfig(configPath);
-		// update bootstrapConfig
-		if (bootstrapConfig) {
-			if (!bootstrapConfig.network_config) {
-				bootstrapConfig.network_config = {}; // Initialize if not present
-			}
-
-			if (!bootstrapConfig.network_config.log_config) {
-				bootstrapConfig.network_config.log_config = {}; // Initialize if not present
-			}
-			bootstrapConfig.network_config.log_config.level = "silent";
-			bootstrapConfig.network_config.gossip_sub_config = {
-				pruneBackoff: 10,
-			};
-		}
-		bootstrapNode = new DRPNetworkNode(bootstrapConfig?.network_config);
+		const bootstrapConfig: DRPNetworkNodeConfig = {
+			...loadConfig(configPath)?.network_config,
+			log_config: { level: "silent" },
+		};
+		bootstrapNode = new DRPNetworkNode(bootstrapConfig);
 		await bootstrapNode.start();
-		bootstrapNodePeerId = bootstrapNode.peerId;
 
-		node1 = new DRPNetworkNode({
-			bootstrap_peers: [`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`],
-			pubsub_peer_discovery_interval: 1000,
+		const bootstrapMultiaddrs = bootstrapNode.getMultiaddrs();
+		const nodeConfig: DRPNetworkNodeConfig = {
+			bootstrap_peers: bootstrapMultiaddrs,
 			log_config: {
 				level: "silent",
 			},
+		};
+		node1 = new DRPNetworkNode({
+			...nodeConfig,
 			private_key_seed: "node1",
-			gossip_sub_config: {
-				pruneBackoff: 10,
-				heartbeatInterval: 10,
-			},
 		});
 		node2 = new DRPNetworkNode({
-			bootstrap_peers: [`/ip4/127.0.0.1/tcp/50000/ws/p2p/${bootstrapNode.peerId}`],
-			pubsub_peer_discovery_interval: 1000,
-			log_config: {
-				level: "silent",
-			},
+			...nodeConfig,
 			private_key_seed: "node2",
-			gossip_sub_config: {
-				pruneBackoff: 10,
-				heartbeatInterval: 10,
-			},
 		});
 
-		await Promise.all([node1.start(), node2.start()]);
-		node1PeerId = node1.peerId;
-		node2PeerId = node2.peerId;
+		await node1.start();
+		const btLibp2pNode1 = (bootstrapNode as unknown as { _node: Libp2p })._node;
+		libp2pNode1 = (node1 as unknown as { _node: Libp2p })._node;
+		await Promise.all([
+			raceEvent(btLibp2pNode1, "peer:identify", controller.signal, {
+				filter: (event: CustomEvent<IdentifyResult>) =>
+					event.detail.peerId.equals(libp2pNode1.peerId) && event.detail.listenAddrs.length > 0,
+			}),
+			isDialable(node1),
+		]);
 
-		const result = await Promise.all([node1.isDiablable(), node2.isDiablable()]);
-		expect(result[0]).toBe(true);
-		expect(result[1]).toBe(true);
-	});
+		await node2.start();
+		expect(await isDialable(node2)).toBe(true);
 
-	test("Node can discovery", async () => {
-		expect(await node1.waitForPeer(bootstrapNodePeerId)).toBe(true);
-		expect(await node2.waitForPeer(bootstrapNodePeerId)).toBe(true);
-		expect(await node1.waitForPeer(node2PeerId)).toBe(true);
-		expect(await node2.waitForPeer(node1PeerId)).toBe(true);
+		pubsubNode1 = (node1 as unknown as { _pubsub: GossipSub })._pubsub;
 	});
 
 	test("Node can send message to peer", async () => {
 		const data = "Hello World!";
 		let boolean = false;
 
-		expect(await node1.waitForUpgradedConnection(node2PeerId)).toBe(true);
+		await raceEvent(libp2pNode1, "connection:open", controller.signal, {
+			filter: (event: CustomEvent<Connection>) =>
+				event.detail.remotePeer.toString() === node2.peerId && event.detail.limits === undefined,
+		});
 
 		const messageProcessed = new Promise((resolve) => {
 			node2
@@ -94,7 +100,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 				});
 		});
 
-		await node1.sendMessage(node2PeerId, {
+		await node1.sendMessage(node2.peerId, {
 			sender: "",
 			type: 0,
 			data: new Uint8Array(Buffer.from(data)),
@@ -109,6 +115,20 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		const group = "test";
 		let boolean = false;
 
+		const graftPromise = raceEvent(pubsubNode1, "gossipsub:graft", controller.signal, {
+			filter: (event: CustomEvent<MeshPeer>) => event.detail.peerId === node2.peerId,
+		});
+
+		const subscriptionChange = new Promise((resolve) => {
+			raceEvent(pubsubNode1, "subscription-change", controller.signal, {
+				filter: (event: CustomEvent<SubscriptionChangeData>) =>
+					event.detail.subscriptions.some((s) => s.topic === group) &&
+					event.detail.peerId.toString() === node2.peerId,
+			})
+				.then(() => resolve(true))
+				.catch(() => resolve(false));
+		});
+
 		node2.subscribe(group);
 		const messageProcessed = new Promise((resolve) => {
 			node2.addGroupMessageHandler(group, async (e) => {
@@ -119,7 +139,8 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			});
 		});
 
-		await node1.isSubscribed(group, node2.libp2pPeerId());
+		await Promise.all([graftPromise, subscriptionChange]);
+		console.log("peers in group", pubsubNode1.getSubscribers(group));
 		await node1.broadcastMessage(group, {
 			sender: "",
 			type: 0,

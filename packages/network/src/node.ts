@@ -1,9 +1,4 @@
-import {
-	type GossipSub,
-	type GossipsubMessage,
-	type GossipsubOpts,
-	gossipsub,
-} from "@chainsafe/libp2p-gossipsub";
+import { type GossipSub, type GossipsubMessage, gossipsub } from "@chainsafe/libp2p-gossipsub";
 import {
 	type TopicScoreParams,
 	createPeerScoreParams,
@@ -60,7 +55,6 @@ export interface DRPNetworkNodeConfig {
 	browser_metrics?: boolean;
 	listen_addresses?: string[];
 	log_config?: LoggerOptions;
-	gossip_sub_config?: Partial<GossipsubOpts>;
 	private_key_seed?: string;
 	pubsub?: {
 		peer_discovery_interval?: number;
@@ -148,7 +142,6 @@ export class DRPNetworkNode {
 					},
 				}),
 				fallbackToFloodsub: false,
-				...this._config?.gossip_sub_config,
 			}),
 		};
 
@@ -176,7 +169,6 @@ export class DRPNetworkNode {
 						IPColocationFactorWeight: 0,
 					}),
 					fallbackToFloodsub: false,
-					...this._config?.gossip_sub_config,
 				}),
 			};
 		}
