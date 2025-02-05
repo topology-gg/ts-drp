@@ -14,6 +14,7 @@ jobs:
         with:
           version: 9
           run_install: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -21,7 +22,7 @@ jobs:
 
       - shell: bash
         run: |
-          pnpm install --no-frozen-lockfile
+          pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps
 
       - shell: bash
