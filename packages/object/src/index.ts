@@ -157,13 +157,14 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
 							if (!callerName?.startsWith("Proxy.")) {
-								const { applyOperationResult, stateChanged } = obj.callFn(
-									fullPropKey,
-									args,
-									vertexType
-								);
-								if (stateChanged) return applyOperationResult;
-								return undefined;
+								const {
+									drp: newDRP,
+									appliedOperationResult,
+									isACL,
+								} = obj.callFn(fullPropKey, args, vertexType);
+								if (!isACL) Object.assign(obj.drp as DRP, newDRP);
+								else Object.assign(obj.acl as ObjectACL, newDRP);
+								return appliedOperationResult;
 							}
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
@@ -180,26 +181,34 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType
-	) {
+	): {
+		drp: DRP;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		appliedOperationResult: any;
+		isACL: boolean;
+	} {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let preOperationDRP: any;
+		let isACL = false;
 		if (drpType === DrpType.ACL) {
+			isACL = true;
 			preOperationDRP = this._computeObjectACL(this.hashGraph.getFrontier());
 		} else {
 			preOperationDRP = this._computeDRP(this.hashGraph.getFrontier());
 		}
 		const drp = cloneDeep(preOperationDRP);
-		let applyOperationResult = undefined;
+		let appliedOperationResult = undefined;
 		try {
-			applyOperationResult = this._applyOperation(drp, { opType: fn, value: args, drpType });
+			appliedOperationResult = this._applyOperation(drp, { opType: fn, value: args, drpType });
 		} catch (e) {
 			log.error(`::drpObject::callFn: ${e}`);
 			return {
-				applyOperationResult: undefined,
-				stateChanged: false,
+				drp,
+				appliedOperationResult,
+				isACL,
 			};
 		}
 
@@ -213,8 +222,9 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		if (!stateChanged) {
 			return {
-				applyOperationResult: undefined,
-				stateChanged: false,
+				drp,
+				appliedOperationResult,
+				isACL,
 			};
 		}
 
@@ -237,8 +247,9 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this._notify("callFn", [vertex]);
 
 		return {
-			applyOperationResult,
-			stateChanged,
+			drp,
+			appliedOperationResult,
+			isACL,
 		};
 	}
 
