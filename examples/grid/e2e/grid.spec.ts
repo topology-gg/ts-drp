@@ -102,7 +102,7 @@ test.describe("grid", () => {
 
 		await expect(page2.locator(`div[data-glowing-peer-id="${peerID1}"]`)).toBeVisible();
 		await expect(page2.locator(`div[data-glowing-peer-id="${peerID2}"]`)).toBeVisible();
-
+		await new Promise((resolve) => setTimeout(resolve, 150));
 		const glowingPeer1 = await getGlowingPeer(page1, peerID1);
 		const glowingPeer2 = await getGlowingPeer(page1, peerID2);
 		console.log(glowingPeer1, glowingPeer2);
