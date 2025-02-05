@@ -520,18 +520,18 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const aclState = [];
 		for (const key of Object.keys(acl)) {
 			if (typeof acl[key] !== "function") {
-				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: acl[key] }));
+				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(acl[key]) }));
 			}
 		}
 		const drp = (this.drp as DRP) ?? {};
 		const drpState = [];
 		for (const key of Object.keys(drp)) {
 			if (typeof drp[key] !== "function") {
-				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: drp[key] }));
+				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(drp[key]) }));
 			}
 		}
 		this.aclStates.set(HashGraph.rootHash, { state: aclState });
-		// this.drpStates.set(HashGraph.rootHash, { state: drpState });
+		this.drpStates.set(HashGraph.rootHash, { state: drpState });
 	}
 }
 

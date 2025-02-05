@@ -50,6 +50,9 @@ function selfCheckConstraints(hg: HashGraph): boolean {
 describe("HashGraph construction tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
+	const acl = new ObjectACL({
+		admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+	});
 
 	beforeEach(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -134,6 +137,31 @@ describe("HashGraph construction tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
 		expect(linearOps).toEqual(expectedOps);
+	});
+
+	test("Root vertex drp state should not be modified", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		drp1.add(1);
+		drp1.add(2);
+		const rootDRPState = obj1.drpStates.get(HashGraph.rootHash);
+		expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value.size).toBe(0);
+		const frontierState = obj1.drpStates.get(obj1.hashGraph.getFrontier()[0]);
+		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+	});
+
+	test("Root vertex acl state should not be modified", () => {
+		const acl1 = obj1.acl as ObjectACL;
+		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
+			ed25519PublicKey: "pubKey2",
+			blsPublicKey: "pubKey2",
+		});
+		expect(acl1.query_isWriter("peer2")).toBe(true);
+		const rootACLState = obj1.aclStates.get(HashGraph.rootHash);
+		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0]
+			.value;
+		expect(authorizedPeers.get("peer1")?.permissions.has(ACLGroup.Admin)).toBe(true);
+		expect(authorizedPeers.get("peer2")).toBe(undefined);
 	});
 });
 
