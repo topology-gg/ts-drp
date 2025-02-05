@@ -1,6 +1,6 @@
 import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
 import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
 import { ACLGroup, DRPObject, DrpType, Hash, HashGraph, type Operation } from "../src/index.js";
@@ -377,11 +377,13 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 		]),
 	});
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
 		obj3 = new DRPObject({ peerId: "peer3", acl });
+	});
 
+	test("Test object3 merge", () => {
 		// reproduce Test: Joao's latest brain teaser
 		/*
 		                     __ V2:ADD(2) -------------\
@@ -415,9 +417,7 @@ describe("Hashgraph and DRPObject merge without DRP tests", () => {
 			{ opType: "delete", value: [2], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
-	});
 
-	test("Test object3 merge", () => {
 		obj3.merge(obj1.hashGraph.getAllVertices());
 		expect(obj3.hashGraph.vertices).toEqual(obj1.hashGraph.vertices);
 	});
