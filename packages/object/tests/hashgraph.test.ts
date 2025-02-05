@@ -366,6 +366,63 @@ describe("HashGraph for undefined operations tests", () => {
 	});
 });
 
+describe("Hashgraph and DRPObject merge without DRP tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	let obj3: DRPObject;
+	const acl = new ObjectACL({
+		admins: new Map([
+			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+			["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		]),
+	});
+
+	beforeEach(async () => {
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+		obj3 = new DRPObject({ peerId: "peer3", acl });
+
+		// reproduce Test: Joao's latest brain teaser
+		/*
+		                     __ V2:ADD(2) -------------\
+		  ROOT -- V1:ADD(1) /                           \ V5:RM(2)
+		                    \__ V3:RM(2) -- V4:RM(2) --/
+		*/
+
+		const drp1 = obj1.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRP<number>;
+
+		drp1.add(1);
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		drp1.add(2);
+		drp2.delete(2);
+		drp2.delete(2);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		drp1.delete(2);
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		expect(drp1.query_has(1)).toBe(true);
+		expect(drp1.query_has(2)).toBe(false);
+		expect(obj1.hashGraph.vertices).toEqual(obj2.hashGraph.vertices);
+
+		const linearOps = obj1.hashGraph.linearizeOperations();
+		const expectedOps: Operation[] = [
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			{ opType: "delete", value: [2], drpType: DrpType.DRP },
+		];
+		expect(linearOps).toEqual(expectedOps);
+	});
+
+	test("Test object3 merge", () => {
+		obj3.merge(obj1.hashGraph.getAllVertices());
+		expect(obj3.hashGraph.vertices).toEqual(obj1.hashGraph.vertices);
+	});
+});
+
 describe("Vertex state tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
