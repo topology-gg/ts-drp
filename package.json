@@ -25,6 +25,7 @@
   "cli": "tsx ./packages/node/src/run.ts",
   "coverage": "pnpm tsx scripts/coverage.ts",
   "docs": "typedoc",
+  "e2e-test": "pnpm exec playwright test --fail-on-flaky-tests",
   "flamegraph": "./scripts/flamegraph.sh",
   "lint": "eslint .",
   "lint:fix": "eslint . --fix",
@@ -37,6 +38,7 @@
   "watch": "pnpm --parallel --filter '@ts-drp/*' watch"
  },
  "devDependencies": {
+  "@playwright/test": "^1.49.1",
   "@release-it-plugins/workspaces": "^4.2.0",
   "@types/node": "^22.5.4",
   "@typescript-eslint/parser": "^8.21.0",
@@ -58,7 +60,7 @@
   "typescript-eslint": "^8.21.0",
   "vite": "^6.0.9",
   "vite-tsconfig-paths": "^5.0.1",
-  "vitest": "^2.1.1"
+  "vitest": "^2.1.9"
  },
  "private": true,
  "release-it": {

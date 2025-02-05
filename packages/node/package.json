@@ -34,7 +34,7 @@
   "@types/node": "^22.5.4",
   "tsx": "4.19.1",
   "typescript": "^5.5.4",
-  "vitest": "^2.1.1"
+  "vitest": "^2.1.9"
  },
  "dependencies": {
   "@chainsafe/bls": "^8.1.0",

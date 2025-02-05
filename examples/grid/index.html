@@ -8,24 +8,25 @@
 	<body>
 		<div>
 			<h1>GRID</h1>
+			<p id="loadingMessage" style="color: #666;">Connecting to network...</p>
 			<p>Your Peer ID: <span id="peerId"></span></p>
 			<p>Your Peers: <span id="peers"></span></p>
 			<p>Your Discovery Peers: <span id="discoveryPeers"></span></p>
 
 			<p>
-				<button id="joinGrid" style="width: 80px">JOIN</button>
+				<button id="joinGrid" style="width: 80px" disabled>JOIN</button>
 				<span style="margin: 0 5px"></span>
-				<input id="gridInput" type="text" placeholder="GRID ID" />
+				<input id="gridInput" type="text" placeholder="GRID ID" disabled />
 				<span style="margin: 0 5px"></span>
 				<span id="objectPeers"></span>
 			</p>
 
 			<p>
-				<button id="createGrid" style="width: 80px">CREATE</button>
+				<button id="createGrid" style="width: 80px" disabled>CREATE</button>
 				<span style="margin: 0 5px"></span>
 				<span id="gridIdText"></span>
 				<span id="gridId" style="text-decoration: underline"></span>
-				<button id="copyGridId" style="margin-left: 10px; display: none">Copy</button>
+				<button id="copyGridId" style="margin-left: 10px; display: none" disabled>Copy</button>
 			</p>
 		</div>
 

@@ -3,6 +3,9 @@ import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig({
+	define: {
+		"import.meta.env.VITE_RENDER_INFO_INTERVAL": process.env.VITE_RENDER_INFO_INTERVAL || 1000,
+	},
 	build: {
 		target: "esnext",
 	},
@@ -16,5 +19,8 @@ export default defineConfig({
 		alias: {
 			"@ts-drp": path.resolve(__dirname, "../../packages"),
 		},
+	},
+	test: {
+		exclude: ["**/node_modules", "**/e2e"],
 	},
 });
