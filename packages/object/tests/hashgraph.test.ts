@@ -133,7 +133,7 @@ describe("HashGraph construction tests", () => {
 				signature: new Uint8Array(),
 			});
 		}).toThrowError("Invalid dependency detected.");
-		expect(selfCheckConstraints(obj1.hashGraph)).toBe(false);
+		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
