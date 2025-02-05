@@ -230,6 +230,15 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
+		if (!this.drp) {
+			return this._mergeWithoutDrp(vertices);
+		}
+		return this._mergeWithDrp(vertices);
+	}
+
+	/* Merges the vertices into the hashgraph using DRP
+	 */
+	private _mergeWithDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
 		const missing = [];
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
@@ -275,6 +284,35 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this._updateObjectACLState();
 		this._updateDRPState();
 		this._notify("merge", this.vertices);
+
+		return [missing.length === 0, missing];
+	}
+
+	/* Merges the vertices into the hashgraph without using DRP
+	 */
+	private _mergeWithoutDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		const missing = [];
+		for (const vertex of vertices) {
+			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+				continue;
+			}
+
+			try {
+				if (!this._checkWriterPermission(vertex.peerId)) {
+					return [false, [vertex.hash]];
+				}
+				this.hashGraph.addVertex({
+					hash: vertex.hash,
+					operation: vertex.operation,
+					dependencies: vertex.dependencies,
+					peerId: vertex.peerId,
+					timestamp: vertex.timestamp,
+					signature: vertex.signature,
+				});
+			} catch (_) {
+				missing.push(vertex.hash);
+			}
+		}
 
 		return [missing.length === 0, missing];
 	}
@@ -520,18 +558,18 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const aclState = [];
 		for (const key of Object.keys(acl)) {
 			if (typeof acl[key] !== "function") {
-				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: acl[key] }));
+				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(acl[key]) }));
 			}
 		}
 		const drp = (this.drp as DRP) ?? {};
 		const drpState = [];
 		for (const key of Object.keys(drp)) {
 			if (typeof drp[key] !== "function") {
-				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: drp[key] }));
+				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(drp[key]) }));
 			}
 		}
 		this.aclStates.set(HashGraph.rootHash, { state: aclState });
-		// this.drpStates.set(HashGraph.rootHash, { state: drpState });
+		this.drpStates.set(HashGraph.rootHash, { state: drpState });
 	}
 }
 

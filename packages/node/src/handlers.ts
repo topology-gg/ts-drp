@@ -160,7 +160,7 @@ export async function updateHandler(node: DRPNode, sender: string, data: Uint8Ar
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
-		verifiedVertices = await verifyIncomingVertices(object, updateMessage.vertices);
+		verifiedVertices = await verifyACLIncomingVertices(object, updateMessage.vertices);
 	}
 
 	const [merged, _] = object.merge(verifiedVertices);
@@ -272,7 +272,7 @@ export async function syncAcceptHandler(
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
-		verifiedVertices = await verifyIncomingVertices(object, syncAcceptMessage.requested);
+		verifiedVertices = await verifyACLIncomingVertices(object, syncAcceptMessage.requested);
 	}
 
 	if (verifiedVertices.length !== 0) {
@@ -415,7 +415,7 @@ function getAttestations(object: DRPObject, vertices: Vertex[]): ObjectPb.Aggreg
 		.filter((a) => a !== undefined);
 }
 
-export async function verifyIncomingVertices(
+export async function verifyACLIncomingVertices(
 	object: DRPObject,
 	incomingVertices: ObjectPb.Vertex[]
 ): Promise<Vertex[]> {

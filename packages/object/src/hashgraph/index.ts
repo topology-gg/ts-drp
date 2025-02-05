@@ -141,6 +141,9 @@ export class HashGraph {
 			return; // Vertex already exists
 		}
 
+		if (vertex.dependencies.length === 0) {
+			throw new Error("Vertex dependencies are empty.");
+		}
 		for (const dep of vertex.dependencies) {
 			const depVertex = this.vertices.get(dep);
 			if (depVertex === undefined) {
