@@ -574,7 +574,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 }
 
-export function computeHash(peerId: string, operation: Operation, deps: Hash[], timestamp: number): Hash {
+export function computeHash(
+	peerId: string,
+	operation: Operation,
+	deps: Hash[],
+	timestamp: number
+): Hash {
 	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;

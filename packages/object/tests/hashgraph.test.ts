@@ -3,7 +3,16 @@ import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { ACLGroup, computeHash, DRPObject, DrpType, Hash, HashGraph, Vertex, type Operation } from "../src/index.js";
+import {
+	ACLGroup,
+	computeHash,
+	DRPObject,
+	DrpType,
+	Hash,
+	HashGraph,
+	Vertex,
+	type Operation,
+} from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
@@ -738,9 +747,7 @@ describe("Writer permission tests", () => {
 		  					\_ V4:ADD(3) (invalid)
 		*/
 		const acl = new ObjectACL({
-			admins: new Map([
-				["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
-			]),
+			admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
 		});
 		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
@@ -758,11 +765,16 @@ describe("Writer permission tests", () => {
 		});
 
 		const newVertex: Vertex = {
-			hash: computeHash("peer2", {
-				opType: "add",
-				value: [3],
-				drpType: DrpType.DRP,
-			}, [hash1], Date.now()),
+			hash: computeHash(
+				"peer2",
+				{
+					opType: "add",
+					value: [3],
+					drpType: DrpType.DRP,
+				},
+				[hash1],
+				Date.now()
+			),
 			peerId: "peer2",
 			operation: {
 				opType: "add",
@@ -772,7 +784,7 @@ describe("Writer permission tests", () => {
 			dependencies: [hash1],
 			timestamp: Date.now(),
 			signature: new Uint8Array(),
-		}
+		};
 		obj2.hashGraph.addVertex(newVertex);
 
 		obj1.merge(obj2.hashGraph.getAllVertices());
