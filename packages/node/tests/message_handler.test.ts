@@ -1,14 +1,6 @@
-import { Connection, IdentifyResult, Libp2p, Stream } from "@libp2p/interface";
-import { multiaddr } from "@multiformats/multiaddr";
+import { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
-import {
-	DRP_MESSAGE_PROTOCOL,
-	DRPNetworkNode,
-	DRPNetworkNodeConfig,
-	NetworkPb,
-	uint8ArrayToStream,
-} from "@ts-drp/network";
-import { Message } from "@ts-drp/network/src/proto/drp/network/v1/messages_pb.js";
+import { DRPNetworkNode, DRPNetworkNodeConfig, NetworkPb } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { DRPObject, ObjectACL } from "@ts-drp/object";
 import { after } from "node:test";
@@ -25,6 +17,7 @@ describe("Handle message correctly", () => {
 	let bootstrapNode: DRPNetworkNode;
 	let drpObject: DRPObject;
 	let libp2pNode2: Libp2p;
+	let libp2pNode1: Libp2p;
 	const mockSender = "12D3KooWEtLcL6DZVTnDe5rkv7a9pg7FwQQAyJpJX1zWH1tgAAEs";
 
 	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
@@ -94,6 +87,8 @@ describe("Handle message correctly", () => {
 		await node1.start();
 		expect(await isDialable(node1.networkNode)).toBe(true);
 
+		libp2pNode1 = node1.networkNode["_node"] as Libp2p;
+
 		const acl = new ObjectACL({
 			admins: new Map([
 				[node1.networkNode.peerId, node1.credentialStore.getPublicCredential()],
@@ -114,11 +109,18 @@ describe("Handle message correctly", () => {
 		(drpObject.drp as SetDRP<number>).add(5);
 		(drpObject.drp as SetDRP<number>).add(10);
 
-		await raceEvent(libp2pNode2, "connection:open", controller.signal, {
-			filter: (event: CustomEvent<Connection>) =>
-				event.detail.remotePeer.toString() === node1.networkNode.peerId &&
-				event.detail.limits === undefined,
-		});
+		await Promise.all([
+			raceEvent(libp2pNode2, "connection:open", controller.signal, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node1.networkNode.peerId &&
+					event.detail.limits === undefined,
+			}),
+			raceEvent(libp2pNode1, "connection:open", controller.signal, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node2.networkNode.peerId &&
+					event.detail.limits === undefined,
+			}),
+		]);
 	});
 
 	test("should handle update message correctly", async () => {
@@ -150,33 +152,44 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle sync message correctly", async () => {
-		(drpObject.drp as SetDRP<number>).add(1);
-		(drpObject.drp as SetDRP<number>).add(2);
+		const acl = new ObjectACL({
+			admins: new Map([
+				[node1.networkNode.peerId, node1.credentialStore.getPublicCredential()],
+				[node2.networkNode.peerId, node2.credentialStore.getPublicCredential()],
+			]),
+		});
+		const objectID = "sync-correct";
+		const node1CurrentObject = await node1.createObject({
+			drp: new SetDRP<number>(),
+			id: objectID,
+			acl: acl,
+		});
+		const object = DRPObject.createObject({
+			peerId: node1.networkNode.peerId,
+			id: objectID,
+			drp: new SetDRP<number>(),
+		});
+		node2.objectStore.put(objectID, object);
+		const currentDRP = node1CurrentObject.drp as SetDRP<number>;
+		currentDRP.add(1);
+		currentDRP.add(2);
+
 		const message = NetworkPb.Message.create({
-			sender: mockSender,
+			sender: node1.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC,
 			data: NetworkPb.Sync.encode(
 				NetworkPb.Sync.create({
-					objectId: drpObject.id,
-					vertexHashes: drpObject.vertices.map((vertex) => vertex.hash),
+					objectId: objectID,
+					vertexHashes: node1CurrentObject.vertices.map((vertex) => vertex.hash),
 				})
 			).finish(),
 		});
 
-		const stream = <Stream>(
-			await libp2pNode2?.dialProtocol(
-				[multiaddr(`/p2p/${node1.networkNode.peerId}`)],
-				DRP_MESSAGE_PROTOCOL
-			)
-		);
-		const messageBuffer = Message.encode(message).finish();
-		await uint8ArrayToStream(stream, messageBuffer);
-		await drpMessagesHandler(node1, stream, undefined);
-		await stream.close();
-		console.log("here");
-		expect(node1.getObject(drpObject.id)?.vertices.length).toBe(3);
-		expect(drpObject.vertices.length).toBe(5);
-	}, 15000);
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		expect(node2.getObject(objectID)?.vertices.length).toBe(3);
+		expect(drpObject.vertices.length).toBe(3);
+	});
 
 	// test("should handle sync accept message correctly", async () => {
 	// 	const vertices = drpObject.vertices.slice(3, 5);
