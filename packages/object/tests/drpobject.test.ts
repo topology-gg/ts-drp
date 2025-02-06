@@ -64,9 +64,6 @@ describe("Drp Object should be able to change state value", () => {
 
 		// Check that each state contains the expected keys
 		for (const state of drpStates) {
-			if (state.state.length === 0) {
-				continue;
-			}
 			const stateKeys = state.state.map((x) => x.key);
 			expect(stateKeys).toEqual(expectedDrpKeys);
 		}
