@@ -248,7 +248,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 			try {
 				const acl = this._computeObjectACL(vertex.dependencies);
-				if (!(this.acl as ACL).permissionless && !acl.query_isWriter(vertex.peerId)) {
+				if (!(acl as ACL).permissionless && !acl.query_isWriter(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
 				if (
@@ -574,7 +574,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 }
 
-function computeHash(peerId: string, operation: Operation, deps: Hash[], timestamp: number): Hash {
+export function computeHash(peerId: string, operation: Operation, deps: Hash[], timestamp: number): Hash {
 	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
