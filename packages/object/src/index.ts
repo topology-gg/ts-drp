@@ -239,7 +239,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	/* Merges the vertices into the hashgraph using DRP
 	 */
 	private _mergeWithDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
-		const missing: string[] = [];
+		const missing: Hash[] = [];
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
