@@ -578,3 +578,21 @@ function computeHash(peerId: string, operation: Operation, deps: Hash[], timesta
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
 }
+
+export function newVertex(
+	peerId: string,
+	operation: Operation,
+	dependencies: Hash[],
+	timestamp: number,
+	signature: Uint8Array
+): Vertex {
+	const hash = computeHash(peerId, operation, dependencies, timestamp);
+	return {
+		hash,
+		peerId,
+		operation,
+		dependencies,
+		timestamp,
+		signature,
+	};
+}

@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 
 import { ActionType } from "../dist/src/hashgraph/index.js";
 import { SemanticsType } from "../dist/src/hashgraph/index.js";
-import { DrpType, HashGraph, type Vertex } from "../src/index.js";
+import { DrpType, HashGraph, newVertex, type Vertex } from "../src/index.js";
 import { linearizeMultipleSemantics } from "../src/linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../src/linearize/pairSemantics.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
@@ -26,26 +26,30 @@ describe("Linearize correctly", () => {
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
-				{
-					opType: "test",
-					value: [i],
-					drpType: DrpType.DRP,
-				},
-				frontier,
-				"",
-				Date.now(),
-				new Uint8Array()
+				newVertex(
+					"",
+					{
+						opType: "test",
+						value: [i],
+						drpType: DrpType.DRP,
+					},
+					frontier,
+					Date.now(),
+					new Uint8Array()
+				)
 			);
 			hashgraph.addVertex(
-				{
-					opType: "test",
-					value: [i + 1],
-					drpType: DrpType.DRP,
-				},
-				frontier,
-				"",
-				Date.now(),
-				new Uint8Array()
+				newVertex(
+					"",
+					{
+						opType: "test",
+						value: [i + 1],
+						drpType: DrpType.DRP,
+					},
+					frontier,
+					Date.now(),
+					new Uint8Array()
+				)
 			);
 		}
 		const order = linearizeMultipleSemantics(
@@ -88,26 +92,30 @@ describe("Linearize correctly", () => {
 		for (let i = 0; i < 10; i += 2) {
 			const frontier = hashgraph.getFrontier();
 			hashgraph.addVertex(
-				{
-					opType: "test",
-					value: [i],
-					drpType: DrpType.DRP,
-				},
-				[frontier[0]],
-				"",
-				Date.now(),
-				new Uint8Array()
+				newVertex(
+					"",
+					{
+						opType: "test",
+						value: [i],
+						drpType: DrpType.DRP,
+					},
+					[frontier[0]],
+					Date.now(),
+					new Uint8Array()
+				)
 			);
 			hashgraph.addVertex(
-				{
-					opType: "test",
-					value: [i + 1],
-					drpType: DrpType.DRP,
-				},
-				[frontier[0]],
-				"",
-				Date.now(),
-				new Uint8Array()
+				newVertex(
+					"",
+					{
+						opType: "test",
+						value: [i + 1],
+						drpType: DrpType.DRP,
+					},
+					[frontier[0]],
+					Date.now(),
+					new Uint8Array()
+				)
 			);
 		}
 		const order = linearizePairSemantics(

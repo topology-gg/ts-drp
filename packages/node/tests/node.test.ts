@@ -37,7 +37,7 @@ describe("DPRNode with verify and sign signature", () => {
 				peerId: "peerId",
 				operation: {
 					opType: "type",
-					value: "value",
+					value: ["value"],
 					drpType: DrpType.DRP,
 				},
 				dependencies: [],
