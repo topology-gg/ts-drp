@@ -215,13 +215,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		});
 		this.hashGraph.addToFrontier(vertex);
 
-		const preCompute = this.computeLCA(vertex.dependencies);
 		if (drpType === DrpType.DRP) {
-			this._setObjectACLState(vertex, preCompute);
-			this._setDRPState(vertex, preCompute, this._getDRPState(drp));
+			this._setObjectACLState(vertex, undefined);
+			this._setDRPState(vertex, undefined, this._getDRPState(drp));
 		} else {
-			this._setObjectACLState(vertex, preCompute, this._getDRPState(drp));
-			this._setDRPState(vertex, preCompute);
+			this._setObjectACLState(vertex, undefined, this._getDRPState(drp));
+			this._setDRPState(vertex, undefined);
 		}
 		this._initializeFinalityState(vertex.hash);
 
