@@ -77,7 +77,6 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 		drp.merge(drp2.vertices);
 		drp2.merge(drp.vertices);
 
-		// should be 36 (needs to be checked with the team)
 		expect(addMul.query_value()).toBe(48);
 		expect(addMul2.query_value()).toBe(48);
 	});
