@@ -763,8 +763,8 @@ describe("HashGraph for set wins map tests", () => {
 		      \
 		       -- V2:SET("key2, "value2")
 		*/
-		const drp1 = obj1.drp as unknown as MapDRP<string, string>;
-		const drp2 = obj2.drp as unknown as MapDRP<string, string>;
+		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
 		drp1.set("key1", "value1");
 		drp2.set("key2", "value2");
 		drp1.delete("key1");
@@ -785,8 +785,8 @@ describe("HashGraph for set wins map tests", () => {
 		       --- V2:SET("key1", "value1") -- V3:DELETE("key1") -- V4:SET("key2", "value2")
 		*/
 
-		const drp1 = obj1.drp as unknown as MapDRP<string, string>;
-		const drp2 = obj2.drp as unknown as MapDRP<string, string>;
+		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value2"); // smaller hash
 		drp2.set("key1", "value1"); // greater hash
@@ -814,9 +814,9 @@ describe("HashGraph for set wins map tests", () => {
 		       \                                                    ----------------------------\
 		        -- V6:SET("key2", "eulav3") ---------------------------------------------------- v8:SET("key1", "value")
 		*/
-		const drp1 = obj1.drp as unknown as MapDRP<string, string>;
-		const drp2 = obj2.drp as unknown as MapDRP<string, string>;
-		const drp3 = obj3.drp as unknown as MapDRP<string, string>;
+		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
+		const drp3 = obj3.drp as DRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value1");
 		drp1.delete("key2");
@@ -864,8 +864,8 @@ describe("HashGraph for delete wins map tests", () => {
 		      \
 		       -- V2:SET("key1", "value2") -- DELETE("key1")
 		*/
-		const drp1 = obj1.drp as unknown as MapDRP<string, string>;
-		const drp2 = obj2.drp as unknown as MapDRP<string, string>;
+		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value1"); // greater hash
 		drp2.set("key1", "value2"); // smaller hash
@@ -885,8 +885,8 @@ describe("HashGraph for delete wins map tests", () => {
 		       --V2:SET("key1", "value1") -- V4:SET("key2", "value3")
 		*/
 
-		const drp1 = obj1.drp as unknown as MapDRP<string, string>;
-		const drp2 = obj2.drp as unknown as MapDRP<string, string>;
+		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
 
 		drp1.set("key1", "value2");
 		drp2.set("key1", "value1");
@@ -927,8 +927,8 @@ describe("Hash validation tests", () => {
 	});
 
 	test("Should accept vertices with valid hash", () => {
-		const drp1 = obj1.drp as unknown as MapDRP<string, string>;
-		const drp2 = obj2.drp as unknown as MapDRP<string, string>;
+		const drp1 = obj1.drp as DRP as MapDRP<string, string>;
+		const drp2 = obj2.drp as DRP as MapDRP<string, string>;
 		drp1.set("key1", "value1");
 		drp2.set("key2", "value2");
 
