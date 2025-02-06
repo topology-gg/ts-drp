@@ -28,7 +28,7 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 });
 
-describe("Hi", () => {
+describe("Duplicate call detection", () => {
 	let counter = 0;
 
 	class CounterDRP implements DRP {
