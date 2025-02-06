@@ -121,16 +121,12 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 	}
 }
 
-export async function attestationUpdateHandler(
-	node: DRPNode,
-	sender: string,
-	data: Uint8Array
-): Promise<boolean> {
+async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const attestationUpdate = NetworkPb.AttestationUpdate.decode(data);
 	const object = node.objectStore.get(attestationUpdate.objectId);
 	if (!object) {
 		log.error("::attestationUpdateHandler: Object not found");
-		return false;
+		return;
 	}
 
 	try {
@@ -139,21 +135,21 @@ export async function attestationUpdateHandler(
 		}
 	} catch (e) {
 		log.error("::attestationUpdateHandler: ", e);
-		return false;
+		return;
 	}
-	return true;
+	return;
 }
 
 /*
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array doesn't contain the full remote operations array
 */
-export async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
+async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const updateMessage = NetworkPb.Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
 		log.error("::updateHandler: Object not found");
-		return false;
+		return;
 	}
 
 	let verifiedVertices: Vertex[] = [];
@@ -194,25 +190,19 @@ export async function updateHandler(node: DRPNode, sender: string, data: Uint8Ar
 	}
 
 	node.objectStore.put(object.id, object);
-
-	return true;
 }
 
 /*
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-export async function syncHandler(
-	node: DRPNode,
-	sender: string,
-	data: Uint8Array
-): Promise<boolean> {
+async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	// (might send reject) <- TODO: when should we reject?
 	const syncMessage = NetworkPb.Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
 	if (!object) {
 		log.error("::syncHandler: Object not found");
-		return false;
+		return;
 	}
 
 	await signGeneratedVertices(node, object.vertices);
@@ -228,7 +218,10 @@ export async function syncHandler(
 		}
 	}
 
-	if (requested.size === 0 && requesting.length === 0) return true;
+	if (requested.size === 0 && requesting.length === 0) return;
+
+	console.log(requested);
+	console.log(requesting);
 
 	const attestations = getAttestations(object, [...requested]);
 
@@ -249,23 +242,19 @@ export async function syncHandler(
 	node.networkNode.sendMessage(sender, message).catch((e) => {
 		log.error("::syncHandler: Error sending message", e);
 	});
-	return true;
+	return;
 }
 
 /*
   data: { id: string, operations: {nonce: string, fn: string, args: string[] }[] }
   operations array contain the full remote operations array
 */
-export async function syncAcceptHandler(
-	node: DRPNode,
-	sender: string,
-	data: Uint8Array
-): Promise<boolean> {
+async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const syncAcceptMessage = NetworkPb.SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {
 		log.error("::syncAcceptHandler: Object not found");
-		return false;
+		return;
 	}
 
 	let verifiedVertices: Vertex[] = [];
@@ -274,6 +263,8 @@ export async function syncAcceptHandler(
 	} else {
 		verifiedVertices = await verifyACLIncomingVertices(object, syncAcceptMessage.requested);
 	}
+
+	console.log(verifiedVertices);
 
 	if (verifiedVertices.length !== 0) {
 		object.merge(verifiedVertices);
@@ -293,7 +284,7 @@ export async function syncAcceptHandler(
 		}
 	}
 
-	if (requested.length === 0) return false;
+	if (requested.length === 0) return;
 
 	const attestations = getAttestations(object, requested);
 
@@ -312,7 +303,7 @@ export async function syncAcceptHandler(
 	node.networkNode.sendMessage(sender, message).catch((e) => {
 		log.error("::syncAcceptHandler: Error sending message", e);
 	});
-	return true;
+	return;
 }
 
 /* data: { id: string } */

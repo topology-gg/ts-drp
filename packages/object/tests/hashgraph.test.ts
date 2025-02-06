@@ -5,6 +5,7 @@ import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 import { ObjectACL } from "../src/acl/index.js";
 import {
 	ACLGroup,
+	DRP,
 	DRPObject,
 	DrpType,
 	Hash,
