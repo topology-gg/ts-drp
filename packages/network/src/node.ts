@@ -58,8 +58,6 @@ export interface DRPNetworkNodeConfig {
 	private_key_seed?: string;
 	pubsub?: {
 		peer_discovery_interval?: number;
-		prune_backoff?: number;
-		heartbeat_interval?: number;
 	};
 }
 
@@ -119,12 +117,6 @@ export class DRPNetworkNode {
 			pubsub: gossipsub({
 				doPX: true,
 				allowPublishToZeroTopicPeers: true,
-				...(this._config?.pubsub?.prune_backoff
-					? { pruneBackoff: this._config.pubsub.prune_backoff }
-					: {}),
-				...(this._config?.pubsub?.heartbeat_interval
-					? { heartbeatInterval: this._config.pubsub.heartbeat_interval }
-					: {}),
 				scoreParams: createPeerScoreParams({
 					IPColocationFactorWeight: 0,
 					appSpecificScore: (peerId: string) => {
@@ -156,12 +148,6 @@ export class DRPNetworkNode {
 					doPX: true,
 					ignoreDuplicatePublishError: true,
 					allowPublishToZeroTopicPeers: true,
-					...(this._config?.pubsub?.prune_backoff
-						? { pruneBackoff: this._config.pubsub.prune_backoff }
-						: {}),
-					...(this._config?.pubsub?.heartbeat_interval
-						? { heartbeatInterval: this._config.pubsub.heartbeat_interval }
-						: {}),
 					scoreParams: createPeerScoreParams({
 						topicScoreCap: 50,
 						IPColocationFactorWeight: 0,
@@ -241,6 +227,10 @@ export class DRPNetworkNode {
 
 		this._node.addEventListener("peer:identify", (e) =>
 			log.info("::start::peer::identify", e.detail)
+		);
+
+		this._pubsub.addEventListener("gossipsub:graft", (e) =>
+			log.info("::start::gossipsub::graft", e.detail)
 		);
 
 		// needded as I've disabled the pubsubPeerDiscovery
