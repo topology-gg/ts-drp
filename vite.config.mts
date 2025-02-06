@@ -11,6 +11,6 @@ export default defineConfig({
 			include: ["packages/**/*.{ts,tsx}"],
 			exclude: ["**/node_modules/**", "**/__tests__/**", "**/tests/**"],
 		},
-		testTimeout: 0,
+		testTimeout: 10000,
 	},
 });
