@@ -245,7 +245,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	validateVertex(vertex: Vertex) {
 		// Validate writer permission
 		if (!this._checkWriterPermission(vertex.peerId)) {
-			throw new Error(`${vertex.peerId} does not have write permission.`);
+			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
 		}
 		// Validate hash value
 		if (
