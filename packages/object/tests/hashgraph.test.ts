@@ -125,19 +125,18 @@ describe("HashGraph construction tests", () => {
 			new Uint8Array()
 		);
 		expect(() => {
-			obj1.hashGraph.addVertex(fakeRoot);
-		}).toThrowError("Vertex dependencies are empty.");
+			obj1.validateVertex(fakeRoot);
+		}).toThrowError(`Vertex ${fakeRoot.hash} has no dependencies.`);
+		const vertex = newVertex(
+			"peer1",
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			[fakeRoot.hash],
+			Date.now(),
+			new Uint8Array()
+		);
 		expect(() => {
-			obj1.hashGraph.addVertex(
-				newVertex(
-					"peer1",
-					{ opType: "add", value: [1], drpType: DrpType.DRP },
-					[fakeRoot.hash],
-					Date.now(),
-					new Uint8Array()
-				)
-			);
-		}).toThrowError("Invalid dependency detected.");
+			obj1.validateVertex(vertex);
+		}).toThrowError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`);
 		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
 
 		const linearOps = obj1.hashGraph.linearizeOperations();
@@ -564,17 +563,16 @@ describe("Vertex timestamp tests", () => {
 
 		drp1.add(1);
 
-		expect(() =>
-			obj1.hashGraph.addVertex(
-				newVertex(
-					"peer1",
-					{ opType: "add", value: [1], drpType: DrpType.DRP },
-					obj1.hashGraph.getFrontier(),
-					Number.POSITIVE_INFINITY,
-					new Uint8Array()
-				)
-			)
-		).toThrowError("Invalid timestamp detected.");
+		const vertex = newVertex(
+			"peer1",
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			obj1.hashGraph.getFrontier(),
+			Number.POSITIVE_INFINITY,
+			new Uint8Array()
+		);
+		expect(() => obj1.validateVertex(vertex)).toThrowError(
+			`Vertex ${vertex.hash} has invalid timestamp.`
+		);
 	});
 
 	test("Test: Vertex's timestamp must not be less than any of its dependencies' timestamps", () => {
@@ -597,21 +595,20 @@ describe("Vertex timestamp tests", () => {
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		obj1.merge(obj3.hashGraph.getAllVertices());
 
-		expect(() =>
-			obj1.hashGraph.addVertex(
-				newVertex(
-					"peer1",
-					{
-						opType: "add",
-						value: [1],
-						drpType: DrpType.DRP,
-					},
-					obj1.hashGraph.getFrontier(),
-					1,
-					new Uint8Array()
-				)
-			)
-		).toThrowError("Invalid timestamp detected.");
+		const vertex = newVertex(
+			"peer1",
+			{
+				opType: "add",
+				value: [1],
+				drpType: DrpType.DRP,
+			},
+			obj1.hashGraph.getFrontier(),
+			1,
+			new Uint8Array()
+		);
+		expect(() => obj1.validateVertex(vertex)).toThrowError(
+			`Vertex ${vertex.hash} has invalid timestamp.`
+		);
 	});
 });
 
