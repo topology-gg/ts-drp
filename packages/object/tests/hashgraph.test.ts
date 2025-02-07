@@ -728,6 +728,42 @@ describe("Writer permission tests", () => {
 		acl1.grant("peer1", "newAdminPeer1", ACLGroup.Admin, newAdmin);
 		expect(acl1.query_isAdmin(newAdminPeer1)).toBe(true);
 	});
+
+	test("Should use ACL on dependencies to determine if vertex is valid", () => {
+		/*
+		  ROOT -- V1:ADD(1) -- V2:ADD(2) -- V3:GRANT(peer2)
+		  					\_ V4:ADD(3) (invalid)
+		*/
+		const acl = new ObjectACL({
+			admins: new Map([["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }]]),
+		});
+		const obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		const obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+
+		const drp1 = obj1.drp as SetDRP<number>;
+		const acl1 = obj1.acl as ObjectACL;
+
+		drp1.add(1);
+		const hash1 = obj1.hashGraph.getFrontier()[0];
+		obj2.merge(obj1.hashGraph.getAllVertices());
+		drp1.add(2);
+		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
+			ed25519PublicKey: "pubKey2",
+			blsPublicKey: "pubKey2",
+		});
+
+		const vertex = newVertex(
+			"peer2",
+			{ opType: "add", value: [3], drpType: DrpType.DRP },
+			[hash1],
+			Date.now(),
+			new Uint8Array()
+		);
+		obj2.hashGraph.addVertex(vertex);
+
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		expect(drp1.query_has(3)).toBe(false);
+	});
 });
 
 describe("HashGraph for set wins map tests", () => {

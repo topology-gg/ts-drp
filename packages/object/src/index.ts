@@ -370,9 +370,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string): boolean {
-		return this.acl
-			? (this.acl as ACL).permissionless || (this.acl as ACL).query_isWriter(peerId)
-			: true;
+		return this.acl ? (this.acl as ACL).query_isWriter(peerId) : true;
 	}
 
 	// apply the operation to the DRP
