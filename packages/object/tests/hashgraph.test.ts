@@ -756,7 +756,7 @@ describe("Writer permission tests", () => {
 		});
 
 		const vertex = newVertex(
-			"peer1",
+			"peer2",
 			{ opType: "add", value: [3], drpType: DrpType.DRP },
 			[hash1],
 			Date.now(),
