@@ -262,6 +262,11 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 				) {
 					throw new Error(`Invalid hash for vertex ${vertex.hash}`);
 				}
+				for (const dep of vertex.dependencies) {
+					if (!this.hashGraph.vertices.has(dep)) {
+						throw new Error(`Missing dependency ${dep} for vertex ${vertex.hash}`);
+					}
+				}
 				const preComputeLca = this.computeLCA(vertex.dependencies);
 
 				if (vertex.operation.drpType === DrpType.DRP) {
