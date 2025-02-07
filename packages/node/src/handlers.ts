@@ -129,12 +129,8 @@ async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uin
 		return;
 	}
 
-	try {
-		if ((object.acl as ACL).query_isFinalitySigner(sender)) {
-			object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
-		}
-	} catch (e) {
-		log.error("::attestationUpdateHandler: ", e);
+	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
+		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 	}
 }
 
