@@ -248,7 +248,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 			try {
 				const acl = this._computeObjectACL(vertex.dependencies);
-				if (!(acl as ACL).permissionless && !acl.query_isWriter(vertex.peerId)) {
+				if (!acl.query_isWriter(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
 				if (
@@ -349,7 +349,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string): boolean {
 		return this.acl
-			? (this.acl as ACL).permissionless || (this.acl as ACL).query_isWriter(peerId)
+			? (this.acl as ACL).query_isWriter(peerId)
 			: true;
 	}
 
