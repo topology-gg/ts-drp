@@ -755,28 +755,14 @@ describe("Writer permission tests", () => {
 			blsPublicKey: "pubKey2",
 		});
 
-		const newVertex: Vertex = {
-			hash: computeHash(
-				"peer2",
-				{
-					opType: "add",
-					value: [3],
-					drpType: DrpType.DRP,
-				},
-				[hash1],
-				Date.now()
-			),
-			peerId: "peer2",
-			operation: {
-				opType: "add",
-				value: [3],
-				drpType: DrpType.DRP,
-			},
-			dependencies: [hash1],
-			timestamp: Date.now(),
-			signature: new Uint8Array(),
-		};
-		obj2.hashGraph.addVertex(newVertex);
+		const vertex = newVertex(
+			"peer1",
+			{ opType: "add", value: [3], drpType: DrpType.DRP },
+			[hash1],
+			Date.now(),
+			new Uint8Array()
+		);
+		obj2.hashGraph.addVertex(vertex);
 
 		obj1.merge(obj2.hashGraph.getAllVertices());
 		expect(drp1.query_has(3)).toBe(false);
