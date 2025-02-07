@@ -262,16 +262,11 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 				) {
 					throw new Error(`Invalid hash for vertex ${vertex.hash}`);
 				}
-				for (const dep of vertex.dependencies) {
-					if (!this.hashGraph.vertices.has(dep)) {
-						throw new Error(`Missing dependency ${dep} for vertex ${vertex.hash}`);
-					}
-				}
+				this.hashGraph.addVertex(vertex);
 				const preComputeLca = this.computeLCA(vertex.dependencies);
 
 				if (vertex.operation.drpType === DrpType.DRP) {
 					const drp = this._computeDRP(vertex.dependencies, preComputeLca);
-					this.hashGraph.addVertex(vertex);
 					this._applyOperation(drp, vertex.operation);
 
 					this._setObjectACLState(vertex, preComputeLca);
@@ -279,7 +274,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 				} else {
 					const acl = this._computeObjectACL(vertex.dependencies, preComputeLca);
 
-					this.hashGraph.addVertex(vertex);
 					this._applyOperation(acl, vertex.operation);
 
 					this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
