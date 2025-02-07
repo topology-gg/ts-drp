@@ -3,6 +3,7 @@ import prefix from "loglevel-plugin-prefix";
 
 export interface LoggerOptions {
 	level?: loglevel.LogLevelDesc;
+	template?: string;
 }
 
 export class Logger {
@@ -15,7 +16,7 @@ export class Logger {
 		this.log.setLevel(config?.level || "info");
 		prefix.reg(loglevel);
 		prefix.apply(this.log, {
-			template: "%n",
+			template: config?.template || "%n",
 		});
 
 		for (const method of Object.keys(this.log)) {

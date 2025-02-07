@@ -24,10 +24,11 @@ export class DRPNode {
 	objectStore: DRPObjectStore;
 	networkNode: DRPNetworkNode;
 	credentialStore: DRPCredentialStore;
+	log: Logger;
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
-		log = new Logger("drp::node", config?.log_config);
+		log = this.log = new Logger("drp::node", config?.log_config);
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
 		this.credentialStore = new DRPCredentialStore(config?.credential_config);

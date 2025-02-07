@@ -17,7 +17,7 @@ import {
 } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
-import { type DRPNode, log } from "./index.js";
+import type { DRPNode } from "./index.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
 /*
@@ -33,11 +33,11 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 		} else if (data) {
 			message = Message.decode(data);
 		} else {
-			log.error("::messageHandler: Stream and data are undefined");
+			node.log.error("::messageHandler: Stream and data are undefined");
 			return;
 		}
 	} catch (err) {
-		log.error("::messageHandler: Error decoding message", err);
+		node.log.error("::messageHandler: Error decoding message", err);
 		return;
 	}
 
@@ -53,14 +53,14 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 			break;
 		case MessageType.MESSAGE_TYPE_SYNC:
 			if (!stream) {
-				log.error("::messageHandler: Stream is undefined");
+				node.log.error("::messageHandler: Stream is undefined");
 				return;
 			}
 			await syncHandler(node, message.sender, message.data);
 			break;
 		case MessageType.MESSAGE_TYPE_SYNC_ACCEPT:
 			if (!stream) {
-				log.error("::messageHandler: Stream is undefined");
+				node.log.error("::messageHandler: Stream is undefined");
 				return;
 			}
 			await syncAcceptHandler(node, message.sender, message.data);
@@ -72,7 +72,7 @@ export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: 
 			await attestationUpdateHandler(node, message.sender, message.data);
 			break;
 		default:
-			log.error("::messageHandler: Invalid operation");
+			node.log.error("::messageHandler: Invalid operation");
 			break;
 	}
 }
@@ -81,7 +81,7 @@ function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const fetchState = FetchState.decode(data);
 	const drpObject = node.objectStore.get(fetchState.objectId);
 	if (!drpObject) {
-		log.error("::fetchStateHandler: Object not found");
+		node.log.error("::fetchStateHandler: Object not found");
 		return;
 	}
 
@@ -100,22 +100,22 @@ function fetchStateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 		data: FetchStateResponse.encode(response).finish(),
 	});
 	node.networkNode.sendMessage(sender, message).catch((e) => {
-		log.error("::fetchStateHandler: Error sending message", e);
+		node.log.error("::fetchStateHandler: Error sending message", e);
 	});
 }
 
 function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 	const fetchStateResponse = FetchStateResponse.decode(data);
 	if (!fetchStateResponse.drpState && !fetchStateResponse.aclState) {
-		log.error("::fetchStateResponseHandler: No state found");
+		node.log.error("::fetchStateResponseHandler: No state found");
 	}
 	const object = node.objectStore.get(fetchStateResponse.objectId);
 	if (!object) {
-		log.error("::fetchStateResponseHandler: Object not found");
+		node.log.error("::fetchStateResponseHandler: Object not found");
 		return;
 	}
 	if (!object.acl) {
-		log.error("::fetchStateResponseHandler: ACL not found");
+		node.log.error("::fetchStateResponseHandler: ACL not found");
 		return;
 	}
 
@@ -144,7 +144,7 @@ async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uin
 	const attestationUpdate = AttestationUpdate.decode(data);
 	const object = node.objectStore.get(attestationUpdate.objectId);
 	if (!object) {
-		log.error("::attestationUpdateHandler: Object not found");
+		node.log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
 
@@ -161,7 +161,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const updateMessage = Update.decode(data);
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
-		log.error("::updateHandler: Object not found");
+		node.log.error("::updateHandler: Object not found");
 		return false;
 	}
 
@@ -197,7 +197,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 			});
 
 			node.networkNode.broadcastMessage(object.id, message).catch((e) => {
-				log.error("::updateHandler: Error broadcasting message", e);
+				node.log.error("::updateHandler: Error broadcasting message", e);
 			});
 		}
 	}
@@ -216,7 +216,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const syncMessage = Sync.decode(data);
 	const object = node.objectStore.get(syncMessage.objectId);
 	if (!object) {
-		log.error("::syncHandler: Object not found");
+		node.log.error("::syncHandler: Object not found");
 		return;
 	}
 
@@ -252,7 +252,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	});
 
 	node.networkNode.sendMessage(sender, message).catch((e) => {
-		log.error("::syncHandler: Error sending message", e);
+		node.log.error("::syncHandler: Error sending message", e);
 	});
 }
 
@@ -264,7 +264,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	const syncAcceptMessage = SyncAccept.decode(data);
 	const object = node.objectStore.get(syncAcceptMessage.objectId);
 	if (!object) {
-		log.error("::syncAcceptHandler: Object not found");
+		node.log.error("::syncAcceptHandler: Object not found");
 		return;
 	}
 
@@ -310,7 +310,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 		).finish(),
 	});
 	node.networkNode.sendMessage(sender, message).catch((e) => {
-		log.error("::syncAcceptHandler: Error sending message", e);
+		node.log.error("::syncAcceptHandler: Error sending message", e);
 	});
 }
 
@@ -351,16 +351,16 @@ export function drpObjectChangesHandler(
 						).finish(),
 					});
 					node.networkNode.broadcastMessage(obj.id, message).catch((e) => {
-						log.error("::drpObjectChangesHandler: Error broadcasting message", e);
+						node.log.error("::drpObjectChangesHandler: Error broadcasting message", e);
 					});
 				})
 				.catch((e) => {
-					log.error("::drpObjectChangesHandler: Error signing vertices", e);
+					node.log.error("::drpObjectChangesHandler: Error signing vertices", e);
 				});
 			break;
 		}
 		default:
-			log.error("::createObject: Invalid origin function");
+			node.log.error("::createObject: Invalid origin function");
 	}
 }
 
@@ -372,7 +372,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 		try {
 			vertex.signature = await node.credentialStore.signWithEd25519(vertex.hash);
 		} catch (error) {
-			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
+			node.log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
 	});
 
@@ -382,6 +382,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 // Signs the vertices. Returns the attestations
 export function signFinalityVertices(node: DRPNode, obj: DRPObject, vertices: Vertex[]) {
 	if (!(obj.acl as ACL).query_isFinalitySigner(node.networkNode.peerId)) {
+		node.log.trace("Denied permission", vertices);
 		return [];
 	}
 	const attestations = generateAttestations(node, obj, vertices);
