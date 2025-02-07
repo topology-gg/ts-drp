@@ -184,6 +184,8 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	}
 
 	node.objectStore.put(object.id, object);
+
+	return true;
 }
 
 /*
@@ -233,7 +235,6 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	node.networkNode.sendMessage(sender, message).catch((e) => {
 		log.error("::syncHandler: Error sending message", e);
 	});
-	return;
 }
 
 /*
