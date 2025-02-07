@@ -4,9 +4,9 @@ import { DRPNetworkNode, DRPNetworkNodeConfig, NetworkPb } from "@ts-drp/network
 import { DrpType } from "@ts-drp/object";
 import { DRPObject, ObjectACL } from "@ts-drp/object";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test, afterAll } from "vitest";
 
-import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
+import { signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
 
 describe("Handle message correctly", () => {
@@ -17,7 +17,6 @@ describe("Handle message correctly", () => {
 	let drpObject: DRPObject;
 	let libp2pNode2: Libp2p;
 	let libp2pNode1: Libp2p;
-	const mockSender = "12D3KooWEtLcL6DZVTnDe5rkv7a9pg7FwQQAyJpJX1zWH1tgAAEs";
 
 	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
 		let resolver: (value: boolean) => void;
@@ -131,14 +130,11 @@ describe("Handle message correctly", () => {
 				})
 			).finish(),
 		});
-		await drpMessagesHandler(node1, undefined, NetworkPb.Message.encode(message).finish());
-
-		const expected_vertices = node1
-			.getObject(drpObject.id)
-			?.hashGraph.getAllVertices()
-			.map((vertex) => {
-				return vertex.operation;
-			});
+		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		const expected_vertices = node1.getObject(drpObject.id)?.vertices.map((vertex) => {
+			return vertex.operation;
+		});
 		expect(expected_vertices).toStrictEqual([
 			{ drpType: "", opType: "-1", value: null },
 			{ opType: "add", value: [5], drpType: DrpType.DRP },
@@ -177,14 +173,10 @@ describe("Handle message correctly", () => {
 	test("should handle sync accept message correctly", async () => {
 		const node1DrpObject = node1.getObject(drpObject.id);
 		expect(node1DrpObject).toBeDefined();
-
 		(node1DrpObject?.drp as SetDRP<number>).add(3);
 		(node1DrpObject?.drp as SetDRP<number>).add(20);
-
 		expect(node1DrpObject?.vertices.length).toBe(7);
-
 		await signGeneratedVertices(node1, node1DrpObject?.vertices || []);
-
 		const message = NetworkPb.Message.create({
 			sender: node1.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
@@ -197,35 +189,39 @@ describe("Handle message correctly", () => {
 				})
 			).finish(),
 		});
-
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
 		expect(node1.getObject(drpObject.id)?.vertices.length).toBe(7);
 		expect(drpObject.vertices.length).toBe(7);
-	}, 10000);
+	});
 
-	// test("should handle update attestation message correctly", async () => {
-	// 	const attestations = node1.getObject(drpObject.id)?.vertices.map((vertex) => {
-	// 		return {
-	// 			data: vertex.hash,
-	// 			signature: node2.credentialStore.signWithBls(vertex.hash),
-	// 		};
-	// 	});
-	// 	const message = NetworkPb.Message.create({
-	// 		sender: mockSender,
-	// 		type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
-	// 		data: NetworkPb.AttestationUpdate.encode(
-	// 			NetworkPb.AttestationUpdate.create({
-	// 				objectId: drpObject.id,
-	// 				attestations,
-	// 			})
-	// 		).finish(),
-	// 	});
-	// 	await drpMessagesHandler(node1, undefined, NetworkPb.Message.encode(message).finish());
-	// });
+	test("should handle update attestation message correctly", async () => {
+		const hash = drpObject.vertices[1].hash;
+		expect(node2.getObject(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
+		const attestations = node1.getObject(drpObject.id)?.vertices.map((vertex) => {
+			return {
+				data: vertex.hash,
+				signature: node1.credentialStore.signWithBls(vertex.hash),
+			};
+		});
+		const message = NetworkPb.Message.create({
+			sender: node1.networkNode.peerId,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
+			data: NetworkPb.AttestationUpdate.encode(
+				NetworkPb.AttestationUpdate.create({
+					objectId: drpObject.id,
+					attestations,
+				})
+			).finish(),
+		});
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		expect(node2.getObject(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
+	});
 
-	// after(async () => {
-	// 	await bootstrapNode.stop();
-	// 	await node1.networkNode.stop();
-	// 	await node2.networkNode.stop();
-	// });
+	afterAll(async () => {
+		await bootstrapNode.stop();
+		await node1.networkNode.stop();
+		await node2.networkNode.stop();
+	});
 });

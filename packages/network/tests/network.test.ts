@@ -1,9 +1,8 @@
 import { GossipSub, MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { Connection, IdentifyResult, Libp2p, SubscriptionChangeData } from "@libp2p/interface";
 import { loadConfig } from "@ts-drp/node/src/config.js";
-import { after } from "node:test";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test, afterAll } from "vitest";
 
 import { NetworkPb } from "../src/index.js";
 import { DRPNetworkNode, DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
@@ -150,7 +149,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		expect(boolean).toBe(true);
 	}, 10000);
 
-	after(async () => {
+	afterAll(async () => {
 		await bootstrapNode.stop();
 		await node1.stop();
 		await node2.stop();
