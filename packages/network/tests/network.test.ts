@@ -140,7 +140,6 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		});
 
 		await Promise.all([graftPromise, subscriptionChange]);
-		console.log("peers in group", pubsubNode1.getSubscribers(group));
 		await node1.broadcastMessage(group, {
 			sender: "",
 			type: 0,

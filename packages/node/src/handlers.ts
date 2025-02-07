@@ -220,9 +220,6 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 
 	if (requested.size === 0 && requesting.length === 0) return;
 
-	console.log(requested);
-	console.log(requesting);
-
 	const attestations = getAttestations(object, [...requested]);
 
 	const message = NetworkPb.Message.create({
@@ -263,8 +260,6 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	} else {
 		verifiedVertices = await verifyACLIncomingVertices(object, syncAcceptMessage.requested);
 	}
-
-	console.log(verifiedVertices);
 
 	if (verifiedVertices.length !== 0) {
 		object.merge(verifiedVertices);
