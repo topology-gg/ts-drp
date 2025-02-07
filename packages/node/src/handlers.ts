@@ -128,6 +128,7 @@ async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uin
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
+
 	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 	}
@@ -230,6 +231,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 			})
 		).finish(),
 	});
+
 	node.networkNode.sendMessage(sender, message).catch((e) => {
 		log.error("::syncHandler: Error sending message", e);
 	});
@@ -453,7 +455,7 @@ export async function verifyACLIncomingVertices(
 	});
 
 	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
-		(vertex) => vertex !== null
+		(vertex: Vertex | null) => vertex !== null
 	);
 
 	return verifiedVertices;

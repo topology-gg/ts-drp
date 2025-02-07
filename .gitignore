@@ -4,7 +4,6 @@
 **/object_grpc_pb.js
 
 dist/
-docs/
 node_modules/
 
 **/tsconfig.tsbuildinfo
