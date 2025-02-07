@@ -78,6 +78,8 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
+		if (this._node?.status === "started") throw new Error("Node already started");
+
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
@@ -238,6 +240,7 @@ export class DRPNetworkNode {
 	}
 
 	async stop() {
+		if (this._node?.status === "stopped") throw new Error("Node not started");
 		await this._node?.stop();
 	}
 

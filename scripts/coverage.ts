@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import path from "node:path";
 const lcovPath = path.resolve("./coverage/lcov.info");
-const threshold = 20; // Set your desired threshold
+const threshold = 70; // Set your desired threshold
 
 function parseCoverage(lcovFilePath: string): number {
 	if (!fs.existsSync(lcovFilePath)) {
