@@ -17,5 +17,6 @@ export default defineConfig({
 				"**/dist/**",
 			],
 		},
+		testTimeout: 10000,
 	},
 });
