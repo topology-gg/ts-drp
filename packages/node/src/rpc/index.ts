@@ -25,7 +25,9 @@ export function init(node: DRPNode) {
 	) {
 		let returnCode = 0;
 		try {
-			await node.subscribeObject(call.request.drpId);
+			await node.connectObject({
+				id: call.request.drpId,
+			});
 		} catch (e) {
 			log.error("::rpc::subscribeDRP: Error", e);
 			returnCode = 1;

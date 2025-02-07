@@ -1,0 +1,227 @@
+import { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
+import { SetDRP } from "@ts-drp/blueprints";
+import { DRPNetworkNode, DRPNetworkNodeConfig, NetworkPb } from "@ts-drp/network";
+import { DrpType } from "@ts-drp/object";
+import { DRPObject, ObjectACL } from "@ts-drp/object";
+import { raceEvent } from "race-event";
+import { beforeAll, describe, expect, test, afterAll } from "vitest";
+
+import { signGeneratedVertices } from "../src/handlers.js";
+import { DRPNode } from "../src/index.js";
+
+describe("Handle message correctly", () => {
+	const controller = new AbortController();
+	let node1: DRPNode;
+	let node2: DRPNode;
+	let bootstrapNode: DRPNetworkNode;
+	let drpObject: DRPObject;
+	let libp2pNode2: Libp2p;
+	let libp2pNode1: Libp2p;
+
+	const isDialable = async (node: DRPNetworkNode, timeout = false) => {
+		let resolver: (value: boolean) => void;
+		const promise = new Promise<boolean>((resolve) => {
+			resolver = resolve;
+		});
+
+		if (timeout) {
+			setTimeout(() => {
+				resolver(false);
+			}, 10);
+		}
+
+		const callback = () => {
+			resolver(true);
+		};
+
+		await node.isDialable(callback);
+		return await promise;
+	};
+
+	beforeAll(async () => {
+		bootstrapNode = new DRPNetworkNode({
+			bootstrap: true,
+			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
+			bootstrap_peers: [],
+			private_key_seed: "bootstrap_message_handler",
+		});
+		await bootstrapNode.start();
+
+		const bootstrapMultiaddrs = bootstrapNode.getMultiaddrs();
+		const nodeConfig: DRPNetworkNodeConfig = {
+			bootstrap_peers: bootstrapMultiaddrs,
+			log_config: {
+				level: "silent",
+			},
+		};
+		node1 = new DRPNode({
+			network_config: nodeConfig,
+			credential_config: {
+				private_key_seed: "node1",
+			},
+		});
+		node2 = new DRPNode({
+			network_config: nodeConfig,
+			credential_config: {
+				private_key_seed: "node2",
+			},
+		});
+
+		await node2.start();
+		const btLibp2pNode1 = bootstrapNode["_node"] as Libp2p;
+		libp2pNode2 = node2.networkNode["_node"] as Libp2p;
+
+		await Promise.all([
+			raceEvent(btLibp2pNode1, "peer:identify", controller.signal, {
+				filter: (event: CustomEvent<IdentifyResult>) =>
+					event.detail.peerId.equals(libp2pNode2.peerId) && event.detail.listenAddrs.length > 0,
+			}),
+			isDialable(node2.networkNode),
+		]);
+
+		await node1.start();
+		expect(await isDialable(node1.networkNode)).toBe(true);
+
+		libp2pNode1 = node1.networkNode["_node"] as Libp2p;
+
+		await Promise.all([
+			raceEvent(libp2pNode2, "connection:open", controller.signal, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node1.networkNode.peerId &&
+					event.detail.limits === undefined,
+			}),
+			raceEvent(libp2pNode1, "connection:open", controller.signal, {
+				filter: (event: CustomEvent<Connection>) =>
+					event.detail.remotePeer.toString() === node2.networkNode.peerId &&
+					event.detail.limits === undefined,
+			}),
+		]);
+	});
+
+	test("should handle update message correctly", async () => {
+		const acl = new ObjectACL({
+			admins: new Map([
+				[node1.networkNode.peerId, node1.credentialStore.getPublicCredential()],
+				[node2.networkNode.peerId, node2.credentialStore.getPublicCredential()],
+			]),
+		});
+		drpObject = await node2.createObject({
+			drp: new SetDRP<number>(),
+			acl: acl,
+		});
+		await node1.createObject({
+			drp: new SetDRP<number>(),
+			id: drpObject.id,
+			acl: acl,
+		});
+
+		(drpObject.drp as SetDRP<number>).add(5);
+		(drpObject.drp as SetDRP<number>).add(10);
+
+		const vertices = drpObject.vertices;
+		await signGeneratedVertices(node2, vertices);
+		const message = NetworkPb.Message.create({
+			sender: node2.networkNode.peerId,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
+			data: NetworkPb.Update.encode(
+				NetworkPb.Update.create({
+					objectId: drpObject.id,
+					vertices: vertices,
+				})
+			).finish(),
+		});
+		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		const expected_vertices = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
+			return vertex.operation;
+		});
+		expect(expected_vertices).toStrictEqual([
+			{ drpType: "", opType: "-1", value: null },
+			{ opType: "add", value: [5], drpType: DrpType.DRP },
+			{ opType: "add", value: [10], drpType: DrpType.DRP },
+		]);
+	});
+
+	test("should handle sync message correctly", async () => {
+		const node1DrpObject = node1.objectStore.get(drpObject.id);
+		expect(node1DrpObject).toBeDefined();
+
+		(node1DrpObject?.drp as SetDRP<number>).add(1);
+		(node1DrpObject?.drp as SetDRP<number>).add(2);
+
+		expect(drpObject.vertices.length).toBe(3);
+		expect(node1DrpObject?.vertices.length).toBe(5);
+
+		const message = NetworkPb.Message.create({
+			sender: node1.networkNode.peerId,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC,
+			data: NetworkPb.Sync.encode(
+				NetworkPb.Sync.create({
+					objectId: drpObject.id,
+					vertexHashes: node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => vertex.hash),
+				})
+			).finish(),
+		});
+
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+
+		// auto sync accept
+		expect(drpObject.vertices.length).toBe(5);
+	});
+
+	test("should handle sync accept message correctly", async () => {
+		const node1DrpObject = node1.objectStore.get(drpObject.id);
+		expect(node1DrpObject).toBeDefined();
+		(node1DrpObject?.drp as SetDRP<number>).add(3);
+		(node1DrpObject?.drp as SetDRP<number>).add(20);
+		expect(node1DrpObject?.vertices.length).toBe(7);
+		await signGeneratedVertices(node1, node1DrpObject?.vertices || []);
+		const message = NetworkPb.Message.create({
+			sender: node1.networkNode.peerId,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
+			data: NetworkPb.SyncAccept.encode(
+				NetworkPb.SyncAccept.create({
+					objectId: drpObject.id,
+					requested: node1DrpObject?.vertices,
+					requesting: [],
+					attestations: [],
+				})
+			).finish(),
+		});
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		expect(node1.objectStore.get(drpObject.id)?.vertices.length).toBe(7);
+		expect(drpObject.vertices.length).toBe(7);
+	});
+
+	test("should handle update attestation message correctly", async () => {
+		const hash = drpObject.vertices[1].hash;
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
+		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
+			return {
+				data: vertex.hash,
+				signature: node1.credentialStore.signWithBls(vertex.hash),
+			};
+		});
+		const message = NetworkPb.Message.create({
+			sender: node1.networkNode.peerId,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
+			data: NetworkPb.AttestationUpdate.encode(
+				NetworkPb.AttestationUpdate.create({
+					objectId: drpObject.id,
+					attestations,
+				})
+			).finish(),
+		});
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
+	});
+
+	afterAll(async () => {
+		await bootstrapNode.stop();
+		await node1.networkNode.stop();
+		await node2.networkNode.stop();
+	});
+});

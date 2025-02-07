@@ -4,7 +4,6 @@
 **/object_grpc_pb.js
 
 dist/
-docs/
 node_modules/
 
 **/tsconfig.tsbuildinfo
@@ -16,3 +15,9 @@ node_modules/
 
 **/flamegraph.*
 !**/flamegraph.sh
+
+test.e2e.log
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

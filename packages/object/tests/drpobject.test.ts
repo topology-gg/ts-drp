@@ -1,8 +1,15 @@
-import { beforeEach, describe, expect, test } from "vitest";
+import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { beforeEach, describe, expect, it, test } from "vitest";
 
-import { SemanticsType } from "../dist/src/hashgraph/index.js";
-import { ActionType } from "../dist/src/hashgraph/index.js";
-import { DRP, DRPObject, ResolveConflictsType, Vertex } from "../src/index.js";
+import { DRPObject, ObjectACL } from "../src/index.js";
+
+const acl = new ObjectACL({
+	admins: new Map([
+		["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],
+		["peer2", { ed25519PublicKey: "pubKey2", blsPublicKey: "pubKey2" }],
+		["peer3", { ed25519PublicKey: "pubKey3", blsPublicKey: "pubKey3" }],
+	]),
+});
 
 describe("AccessControl tests with RevokeWins resolution", () => {
 	beforeEach(() => {});
@@ -28,42 +35,37 @@ describe("AccessControl tests with RevokeWins resolution", () => {
 	});
 });
 
-describe("Duplicate call detection", () => {
-	let counter = 0;
+describe("Drp Object should be able to change state value", () => {
+	let drpObject: DRPObject;
 
-	class CounterDRP implements DRP {
-		semanticsType = SemanticsType.pair;
+	beforeEach(async () => {
+		drpObject = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+	});
 
-		private _counter: number;
+	it("should update ACL state keys when DRP state changes", () => {
+		const drpSet = drpObject.drp as SetDRP<number>;
+		const aclInstance = drpObject.acl as ObjectACL;
 
-		constructor() {
-			this._counter = 0;
+		// Add a value to the DRP set
+		drpSet.add(1);
+
+		// Get the ACL states and expected variable names
+		const aclStates = drpObject.aclStates.values();
+		const expectedKeys = Object.keys(aclInstance);
+
+		// Check that each state contains the expected keys
+		for (const state of aclStates) {
+			const stateKeys = state.state.map((x) => x.key);
+			expect(stateKeys).toEqual(expectedKeys);
 		}
 
-		test() {
-			this._counter++;
-			counter++;
-			return this._counter;
+		const drpStates = drpObject.drpStates.values();
+		const expectedDrpKeys = Object.keys(drpSet);
+
+		// Check that each state contains the expected keys
+		for (const state of drpStates) {
+			const stateKeys = state.state.map((x) => x.key);
+			expect(stateKeys).toEqual(expectedDrpKeys);
 		}
-
-		resolveConflicts(_: Vertex[]): ResolveConflictsType {
-			return { action: ActionType.Nop };
-		}
-	}
-
-	test("Detect duplicate call", () => {
-		const obj = new DRPObject({
-			peerId: "",
-			publicCredential: {
-				ed25519PublicKey: "cred",
-				blsPublicKey: "cred",
-			},
-			drp: new CounterDRP(),
-		});
-
-		const testDRP = obj.drp as CounterDRP;
-		expect(testDRP).toBeDefined();
-		const ret = testDRP.test();
-		expect(ret).toBe(counter);
 	});
 });

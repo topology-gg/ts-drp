@@ -229,7 +229,13 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		});
 
 		this.hashGraph.addToFrontier(vertex);
-		this._setState(vertex, this._getDRPState(drp));
+		if (drpType === DrpType.DRP) {
+			this._setObjectACLState(vertex, undefined);
+			this._setDRPState(vertex, undefined, this._getDRPState(drp));
+		} else {
+			this._setObjectACLState(vertex, undefined, this._getDRPState(drp));
+			this._setDRPState(vertex, undefined);
+		}
 		this._initializeFinalityState(vertex.hash);
 
 		this.vertices.push(vertex);
@@ -246,7 +252,17 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
-		const missing = [];
+		if (!this.drp) {
+			return this._mergeWithoutDrp(vertices);
+		}
+		return this._mergeWithDrp(vertices);
+	}
+
+	/* Merges the vertices into the hashgraph using DRP
+	 */
+	private _mergeWithDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		const missing: Hash[] = [];
+		const newVertices: Vertex[] = this.vertices;
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
@@ -254,7 +270,8 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 
 			try {
-				if (!this._checkWriterPermission(vertex.peerId)) {
+				const acl = this._computeObjectACL(vertex.dependencies);
+				if (!acl.query_isWriter(vertex.peerId)) {
 					throw new Error(`${vertex.peerId} does not have write permission.`);
 				}
 				if (
@@ -282,15 +299,44 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 					this._setDRPState(vertex, preComputeLca);
 				}
 				this._initializeFinalityState(vertex.hash);
+				newVertices.push(vertex);
 			} catch (_) {
 				missing.push(vertex.hash);
 			}
 		}
 
-		this.vertices = this.hashGraph.getAllVertices();
 		this._updateObjectACLState();
 		this._updateDRPState();
-		this._notify("merge", this.vertices);
+		this._notify("merge", newVertices);
+
+		return [missing.length === 0, missing];
+	}
+
+	/* Merges the vertices into the hashgraph without using DRP
+	 */
+	private _mergeWithoutDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		const missing = [];
+		for (const vertex of vertices) {
+			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
+				continue;
+			}
+
+			try {
+				if (!this._checkWriterPermission(vertex.peerId)) {
+					return [false, [vertex.hash]];
+				}
+				this.hashGraph.addVertex({
+					hash: vertex.hash,
+					operation: vertex.operation,
+					dependencies: vertex.dependencies,
+					peerId: vertex.peerId,
+					timestamp: vertex.timestamp,
+					signature: vertex.signature,
+				});
+			} catch (_) {
+				missing.push(vertex.hash);
+			}
+		}
 
 		return [missing.length === 0, missing];
 	}
@@ -325,9 +371,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string): boolean {
-		return this.acl
-			? (this.acl as ACL).permissionless || (this.acl as ACL).query_isWriter(peerId)
-			: true;
+		return this.acl ? (this.acl as ACL).query_isWriter(peerId) : true;
 	}
 
 	// apply the operation to the DRP
@@ -473,13 +517,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		return this._getDRPState(acl);
 	}
 
-	// store the state of the DRP corresponding to the given vertex
-	private _setState(vertex: Vertex, drpState?: ObjectPb.DRPState) {
-		const preCompute = this.computeLCA(vertex.dependencies);
-		this._setObjectACLState(vertex, preCompute, drpState);
-		this._setDRPState(vertex, preCompute, drpState);
-	}
-
 	private _setObjectACLState(
 		vertex: Vertex,
 		preCompute?: LcaAndOperations,
@@ -536,23 +573,46 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const aclState = [];
 		for (const key of Object.keys(acl)) {
 			if (typeof acl[key] !== "function") {
-				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: acl[key] }));
+				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(acl[key]) }));
 			}
 		}
 		const drp = (this.drp as DRP) ?? {};
 		const drpState = [];
 		for (const key of Object.keys(drp)) {
 			if (typeof drp[key] !== "function") {
-				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: drp[key] }));
+				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(drp[key]) }));
 			}
 		}
 		this.aclStates.set(HashGraph.rootHash, { state: aclState });
-		// this.drpStates.set(HashGraph.rootHash, { state: drpState });
+		this.drpStates.set(HashGraph.rootHash, { state: drpState });
 	}
 }
 
-function computeHash(peerId: string, operation: Operation, deps: Hash[], timestamp: number): Hash {
+export function computeHash(
+	peerId: string,
+	operation: Operation,
+	deps: Hash[],
+	timestamp: number
+): Hash {
 	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
+}
+
+export function newVertex(
+	peerId: string,
+	operation: Operation,
+	dependencies: Hash[],
+	timestamp: number,
+	signature: Uint8Array
+): Vertex {
+	const hash = computeHash(peerId, operation, dependencies, timestamp);
+	return {
+		hash,
+		peerId,
+		operation,
+		dependencies,
+		timestamp,
+		signature,
+	};
 }

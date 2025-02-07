@@ -128,6 +128,7 @@ async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uin
 		log.error("::attestationUpdateHandler: Object not found");
 		return;
 	}
+
 	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 	}
@@ -149,7 +150,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
-		verifiedVertices = await verifyIncomingVertices(object, updateMessage.vertices);
+		verifiedVertices = await verifyACLIncomingVertices(object, updateMessage.vertices);
 	}
 
 	const [merged, _] = object.merge(verifiedVertices);
@@ -230,6 +231,7 @@ async function syncHandler(node: DRPNode, sender: string, data: Uint8Array) {
 			})
 		).finish(),
 	});
+
 	node.networkNode.sendMessage(sender, message).catch((e) => {
 		log.error("::syncHandler: Error sending message", e);
 	});
@@ -251,7 +253,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	if ((object.acl as ACL).permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
-		verifiedVertices = await verifyIncomingVertices(object, syncAcceptMessage.requested);
+		verifiedVertices = await verifyACLIncomingVertices(object, syncAcceptMessage.requested);
 	}
 
 	if (verifiedVertices.length !== 0) {
@@ -393,7 +395,7 @@ function getAttestations(object: DRPObject, vertices: Vertex[]): ObjectPb.Aggreg
 		.filter((a) => a !== undefined);
 }
 
-export async function verifyIncomingVertices(
+export async function verifyACLIncomingVertices(
 	object: DRPObject,
 	incomingVertices: ObjectPb.Vertex[]
 ): Promise<Vertex[]> {
@@ -453,7 +455,7 @@ export async function verifyIncomingVertices(
 	});
 
 	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
-		(vertex) => vertex !== null
+		(vertex: Vertex | null) => vertex !== null
 	);
 
 	return verifiedVertices;

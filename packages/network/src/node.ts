@@ -56,7 +56,9 @@ export interface DRPNetworkNodeConfig {
 	listen_addresses?: string[];
 	log_config?: LoggerOptions;
 	private_key_seed?: string;
-	pubsub_peer_discovery_interval?: number;
+	pubsub?: {
+		peer_discovery_interval?: number;
+	};
 }
 
 type PeerDiscoveryFunction =
@@ -76,6 +78,8 @@ export class DRPNetworkNode {
 	}
 
 	async start() {
+		if (this._node?.status === "started") throw new Error("Node already started");
+
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
@@ -89,7 +93,7 @@ export class DRPNetworkNode {
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
 				topics: ["drp::discovery"],
-				interval: this._config?.pubsub_peer_discovery_interval || 5000,
+				interval: this._config?.pubsub?.peer_discovery_interval || 5000,
 			}),
 		];
 
@@ -227,11 +231,16 @@ export class DRPNetworkNode {
 			log.info("::start::peer::identify", e.detail)
 		);
 
+		this._pubsub.addEventListener("gossipsub:graft", (e) =>
+			log.info("::start::gossipsub::graft", e.detail)
+		);
+
 		// needded as I've disabled the pubsubPeerDiscovery
 		this._pubsub?.subscribe("drp::discovery");
 	}
 
 	async stop() {
+		if (this._node?.status === "stopped") throw new Error("Node not started");
 		await this._node?.stop();
 	}
 

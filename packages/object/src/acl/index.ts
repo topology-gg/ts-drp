@@ -100,7 +100,10 @@ export class ObjectACL implements ACL {
 	}
 
 	query_isWriter(peerId: string): boolean {
-		return this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false;
+		return (
+			this.permissionless ||
+			(this._authorizedPeers.get(peerId)?.permissions.has(ACLGroup.Writer) ?? false)
+		);
 	}
 
 	query_getPeerKey(peerId: string): DRPPublicCredential | undefined {

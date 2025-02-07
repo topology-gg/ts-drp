@@ -1,0 +1,8 @@
+{
+	"network_config": {
+		"listen_addresses": ["/ip4/0.0.0.0/tcp/50000/ws", "/ip4/0.0.0.0/tcp/50001"],
+		"bootstrap": true,
+		"bootstrap_peers": [],
+		"private_key_seed": "bootstrap"
+	}
+}
