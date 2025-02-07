@@ -73,8 +73,6 @@ describe("Drp Object should be able to change state value", () => {
 describe("Merging vertices tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
-	vi.useFakeTimers();
-	vi.setSystemTime(new Date(1998, 11, 19));
 
 	beforeEach(() => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
@@ -82,6 +80,8 @@ describe("Merging vertices tests", () => {
 	});
 
 	test("Test: merge should skip unknown dependencies", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 		const drp1 = obj1.drp as SetDRP<number>;
 		const drp2 = obj2.drp as SetDRP<number>;
 
@@ -98,7 +98,7 @@ describe("Merging vertices tests", () => {
 		}
 		expect(obj2.merge([vertex])).toEqual([
 			false,
-			["8f282270ff04d930b9372bad0f653cd84d113d3c28c5f07449906ee36f84e582"],
+			["e5ef52c6186abe51635619df8bc8676c19f5a6519e40f47072683437255f026a"],
 		]);
 	});
 });
