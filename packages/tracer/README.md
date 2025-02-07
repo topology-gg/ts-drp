@@ -23,6 +23,7 @@ docker-compose -f docker/docker-compose.yml up -d
 ```
 
 This will start:
+
 - Jaeger all-in-one container with the UI available at http://localhost:16686
 - NGINX reverse proxy for CORS handling
 
@@ -31,7 +32,6 @@ This will start:
 ```typescript
 import { enableTracing, traceFunc } from "@ts-drp/tracer";
 
-// Enable tracing for your service
 // Enable tracing for your service
 enableTracing("your-service-name", {
 	provider: {
