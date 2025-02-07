@@ -242,6 +242,38 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		return this._mergeWithDrp(vertices);
 	}
 
+	validateVertex(vertex: Vertex) {
+		// Validate writer permission
+		if (!this._checkWriterPermission(vertex.peerId)) {
+			throw new Error(`${vertex.peerId} does not have write permission.`);
+		}
+		// Validate hash value
+		if (
+			vertex.hash !==
+			computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp)
+		) {
+			throw new Error(`Invalid hash for vertex ${vertex.hash}`);
+		}
+		// Validate vertex dependencies
+		if (vertex.dependencies.length === 0) {
+			throw new Error(`Vertex ${vertex.hash} has no dependencies.`);
+		}
+		for (const dep of vertex.dependencies) {
+			const depVertex = this.hashGraph.vertices.get(dep);
+			if (depVertex === undefined) {
+				throw new Error(`Vertex ${vertex.hash} has invalid dependency ${dep}.`);
+			}
+			if (depVertex.timestamp > vertex.timestamp) {
+				// Vertex's timestamp must not be less than any of its dependencies' timestamps
+				throw new Error(`Vertex ${vertex.hash} has invalid timestamp.`);
+			}
+		}
+		if (vertex.timestamp > Date.now()) {
+			// Vertex created in the future is invalid
+			throw new Error(`Vertex ${vertex.hash} has invalid timestamp.`);
+		}
+	}
+
 	/* Merges the vertices into the hashgraph using DRP
 	 */
 	private _mergeWithDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
@@ -254,32 +286,19 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 
 			try {
-				if (!this._checkWriterPermission(vertex.peerId)) {
-					throw new Error(`${vertex.peerId} does not have write permission.`);
-				}
-				if (
-					vertex.hash !==
-					computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp)
-				) {
-					throw new Error(`Invalid hash for vertex ${vertex.hash}`);
-				}
-				this.hashGraph.addVertex(vertex);
+				this.validateVertex(vertex);
 				const preComputeLca = this.computeLCA(vertex.dependencies);
 
 				if (vertex.operation.drpType === DrpType.DRP) {
-					const drp = this._computeDRP(vertex.dependencies, preComputeLca);
-					this._applyOperation(drp, vertex.operation);
-
+					const drp = this._computeDRP(vertex.dependencies, preComputeLca, vertex.operation);
 					this._setObjectACLState(vertex, preComputeLca);
 					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				} else {
-					const acl = this._computeObjectACL(vertex.dependencies, preComputeLca);
-
-					this._applyOperation(acl, vertex.operation);
-
+					const acl = this._computeObjectACL(vertex.dependencies, preComputeLca, vertex.operation);
 					this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 					this._setDRPState(vertex, preComputeLca);
 				}
+				this.hashGraph.addVertex(vertex);
 				this._initializeFinalityState(vertex.hash);
 				newVertices.push(vertex);
 			} catch (_) {
@@ -304,9 +323,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 
 			try {
-				if (!this._checkWriterPermission(vertex.peerId)) {
-					return [false, [vertex.hash]];
-				}
+				this.validateVertex(vertex);
 				this.hashGraph.addVertex({
 					hash: vertex.hash,
 					operation: vertex.operation,
@@ -572,7 +589,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 }
 
-function computeHash(peerId: string, operation: Operation, deps: Hash[], timestamp: number): Hash {
+function computeHash(
+	peerId: string,
+	operation: Operation | undefined,
+	deps: Hash[],
+	timestamp: number
+): Hash {
 	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
 	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
 	return hash;
