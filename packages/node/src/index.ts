@@ -104,10 +104,6 @@ export class DRPNode {
 		return object;
 	}
 
-	getObject(id: string) {
-		return this.objectStore.get(id);
-	}
-
 	/*
 		Connect to an existing object
 		@param options.id - The object ID

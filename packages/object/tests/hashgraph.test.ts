@@ -128,7 +128,7 @@ describe("HashGraph construction tests", () => {
 			obj1.hashGraph.addVertex(fakeRoot);
 		}).toThrowError("Vertex dependencies are empty.");
 		expect(() => {
-			obj1.hashGraph.addVertex(
+		obj1.hashGraph.addVertex(
 				newVertex(
 					"peer1",
 					{ opType: "add", value: [1], drpType: DrpType.DRP },

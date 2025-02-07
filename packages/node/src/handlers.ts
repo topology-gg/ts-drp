@@ -135,9 +135,7 @@ async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uin
 		}
 	} catch (e) {
 		log.error("::attestationUpdateHandler: ", e);
-		return;
 	}
-	return;
 }
 
 /*
@@ -149,7 +147,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	const object = node.objectStore.get(updateMessage.objectId);
 	if (!object) {
 		log.error("::updateHandler: Object not found");
-		return;
+		return false;
 	}
 
 	let verifiedVertices: Vertex[] = [];
@@ -298,7 +296,6 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	node.networkNode.sendMessage(sender, message).catch((e) => {
 		log.error("::syncAcceptHandler: Error sending message", e);
 	});
-	return;
 }
 
 /* data: { id: string } */
