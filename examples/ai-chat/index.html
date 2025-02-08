@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>DRP - Chat</title>
+	</head>
+	<body>
+		<div>
+			<h1>AI Talk</h1>
+			<p>My peer ID <span id="peerId"></span></p>
+			<p>Connected to <span id="chatId" style="color: #0066cc;"></span></p>
+			<p>peers: <span id="peers"></span></p>
+			<!-- <p>discovery_peers: <span id="discoveryPeers"></span></p> -->
+			<p>object_peers: <span id="objectPeers"></span></p>
+
+			<input id="roomInput" type="text" placeholder="Room ID" />
+			<button id="joinRoom">Connect</button>
+			<button id="createRoom">Create Room</button>
+		</div>
+
+		<div id="chat" style="overflow-y: scroll; min-height: 200px; max-height: 60vh; width: 100%; border: #333333;">
+			<!-- Messages will appear here -->
+		</div>
+
+		<div style="margin-bottom: 10px">
+			<input id="messageInput" type="text" placeholder="Message" />
+			<button id="sendMessage">Send</button>
+		</div>
+
+		<script>
+			var input = document.getElementById("messageInput");
+			input.addEventListener("keypress", function (event) {
+				if (event.key === "Enter") {
+					document.getElementById("sendMessage").click();
+				}
+			});
+		</script>
+
+		<script type="module" src="/src/index.ts"></script>
+	</body>
+</html>
