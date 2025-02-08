@@ -2,7 +2,7 @@ import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, StreamHandler } from "@libp2p/interface";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
-import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
+import { type ACL, type DRP, DRPObject, DRPObjectConfig } from "@ts-drp/object";
 import { IMetrics } from "@ts-drp/tracer";
 import { Message, MessageType } from "@ts-drp/types";
 
@@ -92,6 +92,7 @@ export class DRPNode {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
+		config?: DRPObjectConfig;
 	}) {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
@@ -100,6 +101,7 @@ export class DRPNode {
 			drp: options.drp,
 			id: options.id,
 			metrics: options.metrics,
+			config: options.config,
 		});
 		operations.createObject(this, object);
 		await operations.subscribeObject(this, object.id);
@@ -123,12 +125,13 @@ export class DRPNode {
 			peerId?: string;
 		};
 		metrics?: IMetrics;
+		config?: DRPObjectConfig;
 	}) {
 		const object = operations.connectObject(this, options.id, {
 			peerId: options.sync?.peerId,
 			drp: options.drp,
 			metrics: options.metrics,
-		});
+		}, options.config);
 		return object;
 	}
 
