@@ -13,6 +13,8 @@ import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeDisplayBlock from "@/components/code-display-block";
+import { useChat } from "@/hooks/use-chat";
+import { Role } from "@/objects/chat";
 
 const ChatAiIcons = [
 	{
@@ -29,28 +31,25 @@ const ChatAiIcons = [
 	},
 ];
 
-type Message = {
-	role: string;
-	content: string;
-};
 
 export default function Home() {
 	const [isGenerating, setIsGenerating] = useState(false);
-	const [messages, setMessages] = useState<Message[]>([]);
-	//const { messages, setMessages, input, handleInputChange, handleSubmit, isLoading, reload } =
-	//	useChat({
-	//		onResponse(response) {
-	//			if (response) {
-	//				console.log(response);
-	//				setIsGenerating(false);
-	//			}
+	const { messages,  input, handleInputChange, handleSubmit, 
+		//isLoading, reload 
+	} =
+		useChat({
+			//onResponse(response) {
+			//	if (response) {
+			//		console.log(response);
+			//		setIsGenerating(false);
+			//	}
 	//		},
 	//		onError(error) {
 	//			if (error) {
 	//				setIsGenerating(false);
 	//			}
 	//		},
-	//	});
+		});
 
 	const messagesRef = useRef<HTMLDivElement>(null);
 	const formRef = useRef<HTMLFormElement>(null);
@@ -64,11 +63,7 @@ export default function Home() {
 	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setIsGenerating(true);
-		messages.push({
-			role: "user",
-			content: "Hello, how are you?",
-		});
-		//handleSubmit(e);
+		handleSubmit(e);
 	};
 
 	const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -94,10 +89,10 @@ export default function Home() {
 		}
 
 		if (action === "Copy") {
-			//const message = messages[messageIndex];
-			//if (message && message.role === "assistant") {
-			//	navigator.clipboard.writeText(message.content);
-			//}
+			const message = messages[messageIndex];
+			if (message && message.role === Role.Assistant) {
+				navigator.clipboard.writeText(message.content);
+			}
 		}
 	};
 
@@ -157,8 +152,8 @@ export default function Home() {
 					{/* Messages */}
 					{messages &&
 						messages.map((message, index) => (
-							<ChatBubble key={index} variant={message.role == "user" ? "sent" : "received"}>
-								<ChatBubbleAvatar src="" fallback={message.role == "user" ? "👨🏽" : "🤖"} />
+							<ChatBubble key={index} variant={message.role === Role.User ? "sent" : "received"}>
+								<ChatBubbleAvatar src="" fallback={message.role === Role.User ? "👨🏽" : "🤖"} />
 								<ChatBubbleMessage>
 									{message.content.split("```").map((part: string, index: number) => {
 										if (index % 2 === 0) {
@@ -176,7 +171,7 @@ export default function Home() {
 										}
 									})}
 
-									{message.role === "assistant" && messages.length - 1 === index && (
+									{message.role === Role.Assistant && messages.length - 1 === index && (
 										<div className="flex items-center mt-1.5 gap-1">
 											{!isGenerating && (
 												<>
@@ -218,15 +213,17 @@ export default function Home() {
 					className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
 				>
 					<ChatInput
-						//value={input}
+						value={input}
 						onKeyDown={onKeyDown}
-						//onChange={handleInputChange}
+						onChange={handleInputChange}
 						placeholder="Type your message here..."
 						className="rounded-lg bg-background border-0 shadow-none focus-visible:ring-0"
 					/>
 					<div className="flex items-center p-3 pt-0">
 						<Button
-							//disabled={!input || isLoading}
+							disabled={!input 
+								//|| isLoading
+							}
 							type="submit"
 							size="sm"
 							className="ml-auto gap-1.5"
