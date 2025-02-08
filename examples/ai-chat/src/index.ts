@@ -3,6 +3,7 @@ import type { DRPObject } from "@ts-drp/object";
 import Groq from 'groq-sdk';
 import { Chat } from "./objects/chat";
 import { getColorForPeerId } from "./util/color";
+import { systemPrompt } from './prompt';
 
 const node = new DRPNode();
 let drpObject: DRPObject;
@@ -12,13 +13,12 @@ let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 
 // Initialize Groq agent for this client
-// const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const groq = new Groq({
-	apiKey: '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',
+	apiKey: import.meta.env.VITE_GROQ_API_KEY || '',
 	dangerouslyAllowBrowser: true
 });
 let aiPeerId: string;
-const MAX_MESSAGES = 20;
+const MAX_MESSAGES = 500;
 let isAgentTurn = false;
 
 const formatPeerId = (id: string): string => {
@@ -31,21 +31,11 @@ const stylizedPeerId = (id: string): string => {
 
 async function generateAIResponse(messages: string[]): Promise<string> {
 	const prompt = `
-	You are participating in a group chat.
+	${systemPrompt}
 
-	Recent chat history: ${messages.join('\n')}
+	----------
 
-	Follow these instructions to generate a response:
-	- Be engaging and inviting.
-	- Keep your message in one sentence with less than 15 words.
-	- Engage in either divergent mode or convergent mode.
-	- Don't mention your mode in your message.
-	- In divergent mode, always bring in more information or opinions. Always avoid repeating what was already mentioned in the chat.
-	- In convergent mode, analyze the existing content in chat history and summarize, and be explicit of the intent of performing analysis and summary.
-	- If the previous response is the original human message, go divergent mode.
-	- If the past 3 messages are divergent, converge.
-	- If the last message is convergent, diverge.
-	- No message ends in a question.
+	Chat history: ${messages.join('\n')}
 	`;
 
 	const completion = await groq.chat.completions.create({
@@ -54,12 +44,14 @@ async function generateAIResponse(messages: string[]): Promise<string> {
 		temperature: 0.9,
 		max_tokens: 200,
 	});
-
+	console.log('>>> prompting with', prompt);
 	return completion.choices[0]?.message?.content || "hmm ...";
 }
 
+let questionAgent = false
 // Modified sendMessage to only handle human messages
 async function sendMessage(message: string) {
+	questionAgent = true
 	const timestamp: string = Date.now().toString();
 	if (!chatDRP) {
 		console.error("Chat DRP not initialized");
@@ -69,18 +61,34 @@ async function sendMessage(message: string) {
 
 	chatDRP.addMessage(timestamp, message, node.networkNode.peerId);
 	render();
+
 	// agentLoop();
 }
-
-async function agentLoop() {
-	if (!chatDRP || chatDRP.query_messages().size >= MAX_MESSAGES) return;
+let isRunning = false;
+async function agentLoop(object: DRPObject) {
+	if (isRunning) return;
+	isRunning = true;
+	const verticesCountTmp = object.hashGraph.vertices.size;
+    const isOdd = verticesCountTmp % 2 === 1;
+    if ((!isOdd && questionAgent) || (isOdd && !questionAgent)) {
+        isRunning = false;
+        return;
+    }
+	if (!chatDRP || chatDRP.query_messages().size >= MAX_MESSAGES) {
+		isRunning = false;
+		return;
+	}
 
 	const messages = [...chatDRP.query_messages()];
-	if (messages.length === 0) return; // Wait for initial human message
+	if (messages.length === 0) {
+		console.log('asd')
+		isRunning = false;
+		return;
+	 } // Wait for initial human message
 
-	// Wait 4 seconds before checking turn
-	console.log('>>> waiting 4 seconds ...')
-	await new Promise(resolve => setTimeout(resolve, 4000));
+	// Wait 3 + rand(1000,5000)/1000 seconds before checking turn
+	console.log('>>> waiting 2 + rand(1000,4000)/1000 seconds ...')
+	await new Promise(resolve => setTimeout(resolve, 2000 + Math.floor(Math.random() * 4000 + 1000)));
 	console.log('>>> waiting done ...')
 
 	// Recheck conditions after delay
@@ -101,20 +109,28 @@ async function agentLoop() {
 	const isMyTurn = lastSender !== aiPeerId;
 
 	// console.log('>>> lastSender', lastSender);
-	console.log('>>> isMyTurn', isMyTurn);
+	// console.log('>>> isMyTurn', isMyTurn);
 
+	// const isMyTurn = true;
 	if (isMyTurn) {
 		try {
-			// const aiResponse = await generateAIResponse(currentMessages);
-			const aiResponse = `${currentMessages.length}`
+			const aiResponse = await generateAIResponse(
+				currentMessages.map(m => {
+					const [,message,] = m.slice(1, -1).split('//');
+					return message;
+				})
+			);
+			// const aiResponse = `${currentMessages.length}`
 			// console.log(`len ${currentMessages.length}`)
 			const timestamp = Date.now().toString();
 			chatDRP.addMessage(timestamp, aiResponse, aiPeerId);
+			console.log('>>> send message', aiResponse);
 			render();
 		} catch (error) {
 			console.error('AI response generation failed:', error);
 		}
 	}
+	isRunning = false
 }
 
 async function createConnectHandlers() {
@@ -125,9 +141,21 @@ async function createConnectHandlers() {
 		render();
 	});
 
-	node.objectStore.subscribe(drpObject.id, async () => {
+	let verticesCount = -1;
+
+	node.objectStore.subscribe(drpObject.id, async (_, object) => {
+		const tmpCount = object.hashGraph.vertices.size;
+		const isOdd = tmpCount % 2 === 1;
+
 		render();
-		await agentLoop();
+		console.log('verticesCount', verticesCount, 'tmpCount', tmpCount, 'isOdd', isOdd, 'questionAgent', questionAgent)
+		if (
+			verticesCount !== tmpCount &&
+			((isOdd && questionAgent) || (!isOdd && !questionAgent))
+		) {
+			await agentLoop(object);
+			verticesCount = tmpCount;
+		}
 	});
 }
 
@@ -168,11 +196,11 @@ const render = () => {
 		const div = document.createElement("div");
 		const [timestamp, content, senderId] = message.slice(1, -1).split('//');
 		div.style.padding = "10px";
-		// div.style.color = senderId === aiPeerId ? getColorForPeerId(senderId) : 'black';
-		// div.style.color = getColorForPeerId(senderId);
-		div.style.color = getColorForPeerId(senderId.startsWith('ai-for-') ? senderId.slice(7) : senderId);
+		div.style.color = '#CCCCCC';
+		div.style.backgroundColor = getColorForPeerId(senderId.startsWith('ai-for-') ? senderId.slice(7) : senderId);
 		// div.innerHTML = `(${timestamp}, ${content}, ${senderId})`;
-		div.innerHTML = `> (content='${content}', senderId='${senderId}')`;
+		// div.innerHTML = `> (content='${content}', senderId='${senderId}')`;
+		div.innerHTML = `> ${content}`;
 		element_chat.appendChild(div);
 	}
 };
