@@ -9,7 +9,8 @@ import vitest from "eslint-plugin-vitest";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-const config = tseslint.config(
+/** @type {import("typescript-eslint").InfiniteDepthConfigWithExtends[]} */
+export const baseConfig = [
 	{
 		ignores: [
 			"**/.env",
@@ -96,6 +97,9 @@ const config = tseslint.config(
 			],
 		},
 	}
-);
+];
+
+/** @type {import("typescript-eslint").ConfigArray} */
+const config = tseslint.config(...baseConfig);
 
 export default config;

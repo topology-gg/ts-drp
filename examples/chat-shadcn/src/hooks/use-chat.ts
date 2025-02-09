@@ -1,6 +1,8 @@
-import { useCallback, useState } from "react";
+import { DRPNode } from "@ts-drp/node";
+import { DRPObject } from "@ts-drp/object";
+import React, { useCallback, useState } from "react";
 
-import { Message } from "@/objects/chat";
+import { Chat, Message, Role } from "@/objects/chat";
 import { UseChatOptions } from "@/types";
 
 export type UseChatHelpers = {
@@ -22,11 +24,48 @@ export type UseChatHelpers = {
 	/** Form submission handler to automatically reset input and append a user message */
 	handleSubmit: (event?: { preventDefault?: () => void }) => void;
 
+	/** The peers the node is connected to */
+	peers: string[];
+
+	/** The peers in the chat */
+	chatPeers: string[];
+
+	/** handle create Chat */
+	createChat: () => void;
+
+	/** Whether the question has been submitted */
+	questionSubmitted: boolean;
+
+	/** The DRPNode instance */
+	node: DRPNode;
+
+	/** The DRPObject instance */
+	drp: DRPObject | null;
+
+	/** The chat instance */
+	chat: Chat | null;
+
 	/** The id of the chat */
-	id: string;
+	id: string | null;
 };
 
-export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpers {
+function createOrJoinDRP(node: DRPNode, id?: string): Promise<{ chat: Chat; drp: DRPObject }> {
+	if (id) {
+		//return joinDRP(node, id);
+	}
+	return createDRP(node);
+}
+
+//function joinDRP(node: DRPNode, id: string) {
+//}
+
+async function createDRP(node: DRPNode): Promise<{ chat: Chat; drp: DRPObject }> {
+	const chat = new Chat();
+	const drp = await node.createObject({ drp: chat });
+	return { chat: drp.drp as Chat, drp };
+}
+
+export function useChat({ id, initialInput = "", node }: UseChatOptions): UseChatHelpers {
 	// Messages state and handlers.
 	const [messages, setMessages] = useState<Message[]>([]);
 
@@ -46,18 +85,45 @@ export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpe
 		setInput(e.target.value);
 	};
 
-	const drpID = id ?? crypto.randomUUID();
+	// Whether the question has been submitted
+	const [questionSubmitted, setQuestionSubmitted] = useState(false);
+
+	const [chat, setChat] = useState<Chat | null>(null);
+	const [drp, setDrp] = useState<DRPObject | null>(null);
+	const [drpID, setDrpID] = useState<string | null>(null);
+
+	const createChat = useCallback(async () => {
+		const result = await createOrJoinDRP(node, id);
+		setChat(result.chat);
+		setDrp(result.drp);
+		setDrpID(result.drp.id);
+	}, [node, id]);
+
+	const [peers, setPeers] = useState<string[]>([]);
+	const [chatPeers, setChatPeers] = useState<string[]>([]);
+
+	setInterval(() => {
+		setPeers(node.networkNode.getAllPeers());
+		if (drpID) {
+			setChatPeers(node.networkNode.getGroupPeers(drpID));
+		}
+	}, 1000);
+
+	//const { chat, drp } = useMemo(async () => await createOrJoinDRP(node, id), [node, id]);
 
 	const handleSubmit = useCallback(() => {
 		const now = Date.now().toString();
 		appendMessage({
 			timestamp: now,
 			content: input,
-			peerId: drpID,
+			peerId: node.networkNode.peerId,
+			role: Role.User,
 		});
-	}, [input, appendMessage, drpID]);
+		setQuestionSubmitted(true);
+	}, [input, appendMessage, node.networkNode.peerId]);
 
 	return {
+		node,
 		input,
 		setInput,
 		handleInputChange,
@@ -65,5 +131,11 @@ export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpe
 		messages,
 		appendMessage,
 		id: drpID,
+		chat,
+		drp,
+		peers,
+		chatPeers,
+		questionSubmitted,
+		createChat,
 	};
 }

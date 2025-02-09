@@ -1,4 +1,10 @@
-import { ActionType, type DRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/object";
+import {
+	ActionType,
+	type DRP,
+	type ResolveConflictsType,
+	SemanticsType,
+	Vertex,
+} from "@ts-drp/object";
 
 export type Message = {
 	timestamp: string;
@@ -38,7 +44,7 @@ export class Chat implements DRP {
 		return this.messages;
 	}
 
-	resolveConflicts(_): ResolveConflictsType {
+	resolveConflicts(_: Vertex[]): ResolveConflictsType {
 		return { action: ActionType.Nop };
 	}
 }

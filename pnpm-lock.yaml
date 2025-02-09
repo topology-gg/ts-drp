@@ -170,8 +170,11 @@ importers:
       '@tanstack/react-store':
         specifier: ^0.7.0
         version: 0.7.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@ts-drp/node':
+        specifier: ^0.7.0
+        version: link:../../packages/node
       '@ts-drp/object':
-        specifier: workspace:0.7.0
+        specifier: ^0.7.0
         version: link:../../packages/object
       class-variance-authority:
         specifier: ^0.7.1
@@ -209,6 +212,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.15)(@types/node@22.13.1)(typescript@5.7.3)))
+      vite-plugin-node-polyfills:
+        specifier: ^0.22.0
+        version: 0.22.0(rollup@4.34.4)(vite@6.1.0(@types/node@22.13.1)(jiti@1.21.7)(terser@5.38.0)(tsx@4.19.1)(yaml@2.7.0))
     devDependencies:
       '@eslint/js':
         specifier: ^9.19.0

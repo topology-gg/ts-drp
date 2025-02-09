@@ -1,8 +1,9 @@
 import { CheckIcon, CopyIcon } from "@radix-ui/react-icons";
 import React from "react";
 import { CodeBlock, dracula, github } from "react-code-blocks";
-import { Button } from "./ui/button";
 import { toast } from "sonner";
+
+import { Button } from "./ui/button";
 import { useTheme } from "@/components/theme-provider";
 
 interface ButtonCodeblockProps {
@@ -14,8 +15,8 @@ export default function CodeDisplayBlock({ code }: ButtonCodeblockProps) {
 	const [isCopied, setisCopied] = React.useState(false);
 	const { theme } = useTheme();
 
-	const copyToClipboard = () => {
-		navigator.clipboard.writeText(code);
+	const copyToClipboard = async () => {
+		await navigator.clipboard.writeText(code);
 		setisCopied(true);
 		toast.success("Code copied to clipboard!");
 		setTimeout(() => {
