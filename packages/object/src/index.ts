@@ -243,10 +243,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 
 	validateVertex(vertex: Vertex) {
-		// Validate writer permission
-		if (!this._checkWriterPermission(vertex.peerId)) {
-			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
-		}
 		// Validate hash value
 		if (
 			vertex.hash !==
@@ -254,6 +250,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		) {
 			throw new Error(`Invalid hash for vertex ${vertex.hash}`);
 		}
+
 		// Validate vertex dependencies
 		if (vertex.dependencies.length === 0) {
 			throw new Error(`Vertex ${vertex.hash} has no dependencies.`);
@@ -271,6 +268,11 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		if (vertex.timestamp > Date.now()) {
 			// Vertex created in the future is invalid
 			throw new Error(`Vertex ${vertex.hash} has invalid timestamp.`);
+		}
+
+		// Validate writer permission
+		if (!this._checkWriterPermission(vertex.peerId, vertex.dependencies)) {
+			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
 		}
 	}
 
@@ -369,8 +371,13 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 
 	// check if the given peer has write permission
-	private _checkWriterPermission(peerId: string): boolean {
-		return this.acl ? (this.acl as ACL).query_isWriter(peerId) : true;
+	private _checkWriterPermission(peerId: string, deps: Hash[]): boolean {
+		if (!this.drp) {
+			return (this.acl as ACL).query_isWriter(peerId);
+		}
+
+		const acl = this._computeObjectACL(deps)
+		return (acl as ACL).query_isWriter(peerId);
 	}
 
 	// apply the operation to the DRP
