@@ -16,7 +16,7 @@ import {
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { useChat } from "@/hooks/use-chat";
-import { Role } from "@/objects/chat";
+import { Message, Role } from "@/objects/chat";
 
 const ChatAiIcons = [
 	{
@@ -35,6 +35,8 @@ const ChatAiIcons = [
 
 export default function Home({ node }: { node: DRPNode }) {
 	const [isGenerating, setIsGenerating] = useState(false);
+	const [firstMessage, setFirstMessage] = useState<Message | null>(null);
+	const [joinId, setJoinId] = useState("");
 
 	const {
 		messages,
@@ -42,6 +44,7 @@ export default function Home({ node }: { node: DRPNode }) {
 		handleInputChange,
 		handleSubmit,
 		createChat,
+		joinChat,
 		id,
 		peers,
 		chatPeers,
@@ -60,6 +63,12 @@ export default function Home({ node }: { node: DRPNode }) {
 		//			}
 		//		},
 	});
+
+	useEffect(() => {
+		if (messages.length > 0) {
+			setFirstMessage(messages[0]);
+		}
+	}, [messages]);
 
 	const messagesRef = useRef<HTMLDivElement>(null);
 	const formRef = useRef<HTMLFormElement>(null);
@@ -110,9 +119,36 @@ export default function Home({ node }: { node: DRPNode }) {
 		<main className="flex h-screen w-full">
 			{/* Left Column */}
 			<div className="w-64 border-r bg-background p-4 flex flex-col gap-4">
-				<Button variant="outline" onClick={createChat} className="w-full">
-					Create chat
-				</Button>
+				<div className="space-y-2">
+					<div className="flex flex-col gap-2">
+						<input
+							type="text"
+							placeholder="Enter Chat ID"
+							className="w-full px-3 py-1 text-sm rounded-md border bg-background"
+							value={joinId}
+							onChange={(e) => setJoinId(e.target.value)}
+						/>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => joinId && joinChat(joinId)}
+							className="w-full"
+						>
+							Join chat
+						</Button>
+					</div>
+					<div className="relative">
+						<div className="absolute inset-0 flex items-center">
+							<span className="w-full border-t" />
+						</div>
+						<div className="relative flex justify-center text-xs uppercase">
+							<span className="bg-background px-2 text-muted-foreground">or</span>
+						</div>
+					</div>
+					<Button variant="outline" onClick={createChat} className="w-full">
+						Create new chat
+					</Button>
+				</div>
 
 				<div className="space-y-2">
 					<div className="text-sm flex items-center gap-1">
@@ -188,54 +224,69 @@ export default function Home({ node }: { node: DRPNode }) {
 
 						{/* Messages */}
 						{messages &&
-							messages.map((message, index) => (
-								<ChatBubble key={index} variant={message.role === Role.User ? "sent" : "received"}>
-									<ChatBubbleAvatar src="" fallback={message.role === Role.User ? "👨🏽" : "🤖"} />
-									<ChatBubbleMessage>
-										{message.content.split("```").map((part: string, index: number) => {
-											if (index % 2 === 0) {
-												return (
-													<Markdown key={index} remarkPlugins={[remarkGfm]}>
-														{part}
-													</Markdown>
-												);
-											} else {
-												return (
-													<pre className="whitespace-pre-wrap pt-2" key={index}>
-														<CodeDisplayBlock code={part} lang="" />
-													</pre>
-												);
-											}
-										})}
+							messages.map((message, index) => {
+								const isFirstMessage = index === 0;
+								let avatar = "🐱";
+								if (isFirstMessage) {
+									avatar = "👨🏽";
+								} else if (firstMessage?.peerId === message.peerId) {
+									avatar = "🐕";
+								}
+								return (
+									<ChatBubble
+										key={index}
+										variant={message.role === Role.User ? "sent" : "received"}
+									>
+										<ChatBubbleAvatar src="" fallback={avatar} />
+										<ChatBubbleMessage>
+											{message.content.split("```").map((part: string, index: number) => {
+												if (index % 2 === 0) {
+													return (
+														<Markdown key={index} remarkPlugins={[remarkGfm]}>
+															{part}
+														</Markdown>
+													);
+												} else {
+													return (
+														<pre className="whitespace-pre-wrap pt-2" key={index}>
+															<CodeDisplayBlock code={part} lang="" />
+														</pre>
+													);
+												}
+											})}
 
-										{message.role === Role.Assistant && messages.length - 1 === index && (
-											<div className="flex items-center mt-1.5 gap-1">
-												{!isGenerating && (
-													<>
-														{ChatAiIcons.map((icon, iconIndex) => {
-															const Icon = icon.icon;
-															return (
-																<ChatBubbleAction
-																	variant="outline"
-																	className="size-5"
-																	key={iconIndex}
-																	icon={<Icon className="size-3" />}
-																	onClick={() => handleActionClick(icon.label, index)}
-																/>
-															);
-														})}
-													</>
-												)}
-											</div>
-										)}
-									</ChatBubbleMessage>
-								</ChatBubble>
-							))}
+											{message.role === Role.Assistant && messages.length - 1 === index && (
+												<div className="flex items-center mt-1.5 gap-1">
+													{!isGenerating && (
+														<>
+															{ChatAiIcons.map((icon, iconIndex) => {
+																const Icon = icon.icon;
+																return (
+																	<ChatBubbleAction
+																		variant="outline"
+																		className="size-5"
+																		key={iconIndex}
+																		icon={<Icon className="size-3" />}
+																		onClick={() => handleActionClick(icon.label, index)}
+																	/>
+																);
+															})}
+														</>
+													)}
+												</div>
+											)}
+										</ChatBubbleMessage>
+									</ChatBubble>
+								);
+							})}
 
 						{/* Loading */}
 						{isGenerating && (
 							<ChatBubble variant="received">
-								<ChatBubbleAvatar src="" fallback="🤖" />
+								<ChatBubbleAvatar
+									src=""
+									fallback={firstMessage?.peerId === node.networkNode.peerId ? "🐕" : "🐱"}
+								/>
 								<ChatBubbleMessage isLoading />
 							</ChatBubble>
 						)}

@@ -33,6 +33,9 @@ export type UseChatHelpers = {
 	/** handle create Chat */
 	createChat: () => void;
 
+	/** handle join Chat */
+	joinChat: (id: string) => void;
+
 	/** Whether the question has been submitted */
 	questionSubmitted: boolean;
 
@@ -51,13 +54,16 @@ export type UseChatHelpers = {
 
 function createOrJoinDRP(node: DRPNode, id?: string): Promise<{ chat: Chat; drp: DRPObject }> {
 	if (id) {
-		//return joinDRP(node, id);
+		return joinDRP(node, id);
 	}
 	return createDRP(node);
 }
 
-//function joinDRP(node: DRPNode, id: string) {
-//}
+async function joinDRP(node: DRPNode, id: string) {
+	const chat = new Chat();
+	const drp = await node.connectObject({ id, drp: chat });
+	return { chat: drp.drp as Chat, drp };
+}
 
 async function createDRP(node: DRPNode): Promise<{ chat: Chat; drp: DRPObject }> {
 	const chat = new Chat();
@@ -99,6 +105,16 @@ export function useChat({ id, initialInput = "", node }: UseChatOptions): UseCha
 		setDrpID(result.drp.id);
 	}, [node, id]);
 
+	const joinChat = useCallback(
+		async (chatId: string) => {
+			const result = await createOrJoinDRP(node, chatId);
+			setChat(result.chat);
+			setDrp(result.drp);
+			setDrpID(result.drp.id);
+		},
+		[node]
+	);
+
 	const [peers, setPeers] = useState<string[]>([]);
 	const [chatPeers, setChatPeers] = useState<string[]>([]);
 
@@ -107,9 +123,7 @@ export function useChat({ id, initialInput = "", node }: UseChatOptions): UseCha
 		if (drpID) {
 			setChatPeers(node.networkNode.getGroupPeers(drpID));
 		}
-	}, 1000);
-
-	//const { chat, drp } = useMemo(async () => await createOrJoinDRP(node, id), [node, id]);
+	}, 300);
 
 	const handleSubmit = useCallback(() => {
 		const now = Date.now().toString();
@@ -137,5 +151,6 @@ export function useChat({ id, initialInput = "", node }: UseChatOptions): UseCha
 		chatPeers,
 		questionSubmitted,
 		createChat,
+		joinChat,
 	};
 }
