@@ -376,7 +376,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			return (this.acl as ACL).query_isWriter(peerId);
 		}
 
-		const acl = this._computeObjectACL(deps)
+		const acl = this._computeObjectACL(deps);
 		return (acl as ACL).query_isWriter(peerId);
 	}
 
