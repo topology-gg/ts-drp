@@ -154,7 +154,7 @@ export default function Home({ node }: { node: DRPNode }) {
 					<div className="text-sm flex items-center gap-1">
 						<span className="text-muted-foreground shrink-0">Chat ID:</span>
 						<span className="font-mono" title={id || ""}>
-							{id ? `${id.slice(0, 4)}..${id.slice(-4)}` : ""}
+							{id ? `${id.slice(0, 7)}..${id.slice(-4)}` : ""}
 						</span>
 					</div>
 					<Button
@@ -171,7 +171,7 @@ export default function Home({ node }: { node: DRPNode }) {
 						<div className="font-mono flex flex-col">
 							{peers.map((peer) => (
 								<span key={peer} title={peer}>
-									{`${peer.slice(0, 4)}..${peer.slice(-4)}`}
+									{`${peer.slice(0, 8)}..${peer.slice(-4)}`}
 								</span>
 							))}
 						</div>
