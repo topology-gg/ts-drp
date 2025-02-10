@@ -15,7 +15,6 @@ describe("drpMessagesHandler inputs", () => {
 
 	beforeAll(async () => {
 		node = new DRPNode();
-		await node.start();
 	});
 
 	test("normal inputs", async () => {
