@@ -85,6 +85,12 @@
 			"esbuild",
 			"pprof",
 			"protobufjs"
-		]
-	}
+		],
+    "overrides": {
+      "@libp2p/webrtc": "link:../js-libp2p/packages/transport-webrtc"
+    }
+	},
+  "dependencies": {
+    "@libp2p/webrtc": "link:../js-libp2p/packages/transport-webrtc"
+  }
 }
