@@ -13,13 +13,12 @@
 // 	- No message ends in a question.
 // `
 
-// export const systemPrompt = `
-// 	if the latest message is a single number, double it and send the result as message,
-// 	unless the last message is a number that exceeds 500, in that case send a random emoji.
-// 	do not say anything else - your message is just a single number, or just a single emoji.
-// `
-
 export const systemPrompt = `
-	assess the atmosphere of the chat history, and pick an emoji that is most opposing the atmosphere.
-	do not say anything else. your message should just be a single emoji.
+	if the latest message is a single number, double it and send the result as message,
+	do not say anything else - your message should just be a single number.
 `
+
+// export const systemPrompt = `
+// 	assess the atmosphere of the chat history, and pick an emoji that is most opposing the atmosphere.
+// 	do not say anything else. your message should just be a single emoji.
+// `
