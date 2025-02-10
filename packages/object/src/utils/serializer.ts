@@ -8,8 +8,8 @@ export function serializeValue(obj: any): Uint8Array {
 
 export function deserializeValue(value: any): any {
 	const bytes = new Uint8Array(_objectValues(value));
-	const v = Value.decode(bytes);
-	const unwrapped = Value.unwrap(v);
+	const decoded = Value.decode(bytes);
+	const unwrapped = Value.unwrap(decoded);
 	return _deserializeFromJSON(unwrapped);
 }
 
@@ -21,63 +21,119 @@ function _objectValues(obj: any): any[] {
 	return tmp;
 }
 
-function _serializeToJSON(obj: any): any {
-	// Handle null/undefined
-	if (obj == null) return null;
+type StackItem = {
+	parent: any;
+	key: string | number | null;
+	value: any;
+};
 
-	// Handle primitive types
-	if (typeof obj !== "object") return obj;
+type SerializedValue = any[] | { __type: string; value: any };
 
-	// Handle Date objects
-	if (obj instanceof Date) {
-		return {
-			__type: "Date",
-			value: obj.toISOString(),
-		};
+interface TypeSerializer {
+	check: (obj: any) => boolean;
+	serialize: (obj: any, stack: StackItem[]) => SerializedValue;
+}
+
+function _serializeDate(date: Date): SerializedValue {
+	return { __type: "Date", value: date.toISOString() };
+}
+
+function _serializeMap(map: Map<any, any>, stack: StackItem[]): SerializedValue {
+	const result = { __type: "Map", value: [] as any[] };
+	for (const [k, v] of map.entries()) {
+		result.value.push([undefined, undefined]);
+		const pairIndex = result.value.length - 1;
+		// Push the value first so that the key gets processed later.
+		stack.push({ parent: result.value[pairIndex], key: 1, value: v });
+		stack.push({ parent: result.value[pairIndex], key: 0, value: k });
 	}
-
-	// Handle Maps
-	if (obj instanceof Map) {
-		return {
-			__type: "Map",
-			value: Array.from(obj.entries()).map(([k, v]) => [_serializeToJSON(k), _serializeToJSON(v)]),
-		};
-	}
-
-	// Handle Sets
-	if (obj instanceof Set) {
-		return {
-			__type: "Set",
-			value: Array.from(obj.values()).map(v => _serializeToJSON(v)),
-		};
-	}
-
-	// Handle regular arrays
-	if (Array.isArray(obj)) {
-		return obj.map((item) => _serializeToJSON(item));
-	}
-
-	// Handle regular objects
-	const result: any = {};
-	for (const [key, value] of Object.entries(obj)) {
-		// Skip non-enumerable properties and functions
-		if (typeof value === "function") continue;
-
-		// Handle circular references
-		try {
-			result[key] = _serializeToJSON(value);
-		} catch (_) {
-			console.warn(`Circular reference detected for key: ${key}`);
-			result[key] = null;
-		}
-	}
-
-	// Add class name if available
-	if (obj.constructor && obj.constructor.name !== "Object") {
-		result.__type = obj.constructor.name;
-	}
-
 	return result;
+}
+
+function _serializeSet(set: Set<any>, stack: StackItem[]): SerializedValue {
+	const result = { __type: "Set", value: [] as any[] };
+	for (const item of set.values()) {
+		result.value.push(undefined);
+		const idx = result.value.length - 1;
+		stack.push({ parent: result.value, key: idx, value: item });
+	}
+	return result;
+}
+
+function _serializeUint8Array(arr: Uint8Array): SerializedValue {
+	return { __type: "Uint8Array", value: Array.from(arr) };
+}
+
+function _serializeFloat32Array(arr: Float32Array): SerializedValue {
+	return { __type: "Float32Array", value: Array.from(arr) };
+}
+
+function _serializeArray(arr: any[], stack: StackItem[]): SerializedValue {
+	const result: any[] = [];
+	for (let i = arr.length - 1; i >= 0; i--) {
+		stack.push({ parent: result, key: i, value: arr[i] });
+	}
+	return result;
+}
+
+const typeSerializers: TypeSerializer[] = [
+	{ check: (obj: any) => obj instanceof Date, serialize: _serializeDate },
+	{ check: (obj: any) => obj instanceof Map, serialize: _serializeMap },
+	{ check: (obj: any) => obj instanceof Set, serialize: _serializeSet },
+	{ check: (obj: any) => obj instanceof Uint8Array, serialize: _serializeUint8Array },
+	{ check: (obj: any) => obj instanceof Float32Array, serialize: _serializeFloat32Array },
+	{ check: (obj: any) => Array.isArray(obj), serialize: _serializeArray },
+];
+
+function _serializeToJSON(obj: any): any {
+	if (obj === null || typeof obj !== "object") return obj;
+
+	let root: any = Array.isArray(obj) ? [] : {};
+	const stack: StackItem[] = [{ parent: null, key: null, value: obj }];
+	const seen = new WeakMap();
+
+	function assignValue(parent: any, key: string | number | null, value: any): void {
+		if (parent === null) root = value;
+		else if (Array.isArray(parent)) parent[key as number] = value;
+		else parent[key as string] = value;
+	}
+
+	while (stack.length > 0) {
+		const item = stack.pop();
+		if (!item) continue; // should never happen
+		const { parent, key, value } = item;
+
+		if (value === null || typeof value !== "object") {
+			assignValue(parent, key, value);
+			continue;
+		}
+
+		if (seen.has(value)) {
+			console.warn("Circular reference detected; substituting with null.");
+			assignValue(parent, key, null);
+			continue;
+		}
+		seen.set(value, true);
+
+		const serializer = typeSerializers.find((s) => s.check(value));
+		if (serializer) {
+			assignValue(parent, key, serializer.serialize(value, stack));
+			continue;
+		}
+
+		const serialized: any = {};
+		if (value.constructor && value.constructor.name !== "Object") {
+			serialized.__type = value.constructor.name;
+		}
+
+		const entries = Object.entries(value).filter(([, v]) => typeof v !== "function");
+		for (let i = entries.length - 1; i >= 0; i--) {
+			const [prop, propVal] = entries[i];
+			stack.push({ parent: serialized, key: prop, value: propVal });
+		}
+		assignValue(parent, key, serialized);
+	}
+	return root;
 }
 
 function _deserializeFromJSON(obj: any): any {

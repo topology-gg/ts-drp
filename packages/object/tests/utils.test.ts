@@ -66,6 +66,13 @@ describe("Serialize & deserialize", () => {
 		expect(deserialized).toEqual(set);
 	});
 
+	it("should serialize & deserialize correctly Array", () => {
+		const array = [1, 2, 3];
+		const serialized = serializeValue(array);
+		const deserialized = deserializeValue(serialized);
+		expect(deserialized).toEqual(array);
+	});
+
 	it("should serialize & deserialize correctly complex array", () => {
 		const array = [
 			new Set([1, 2]),
@@ -73,6 +80,7 @@ describe("Serialize & deserialize", () => {
 			{ a: 1, b: 2 },
 			new Date(),
 			[1, 2, 3],
+			[new Set([1, 2])],
 			new Map<string, any>([
 				["a", 1],
 				["b", 2],
@@ -81,6 +89,8 @@ describe("Serialize & deserialize", () => {
 			]),
 			new Set([1, 2]),
 			new Date(),
+			new TestCustomClass("test", 42),
+			[new TestCustomClass("test", 42)],
 		];
 		const serialized = serializeValue(array);
 		const deserialized = deserializeValue(serialized);
@@ -128,6 +138,20 @@ describe("Serialize & deserialize", () => {
 			g: new Uint8Array([1, 2, 3, 4]),
 			h: new Float32Array([1.1, 2.2, 3.3, 4.4]),
 			i: new TestCustomClass("nested", 123),
+			j: [new Set([1, 2, 3])],
+			k: [new TestCustomClass("nested", 123)],
+			l: [
+				new Map<string, any>([
+					["a", 1],
+					["b", 2],
+					["c", new Set([1, 2])],
+					["d", new Date()],
+					["e", [1, 2, 3]],
+					["f", new Uint8Array([1, 2, 3, 4])],
+					["g", new Float32Array([1.1, 2.2, 3.3, 4.4])],
+					["h", new TestCustomClass("test", 42)],
+				]),
+			],
 		};
 		const serialized = serializeValue(obj);
 		const deserialized = deserializeValue(serialized);
