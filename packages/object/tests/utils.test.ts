@@ -3,6 +3,13 @@ import { expect, describe, it } from "vitest";
 
 import { deserializeValue, serializeValue } from "../src/index.js";
 
+class TestCustomClass {
+	constructor(
+		public name: string,
+		public value: number
+	) {}
+}
+
 describe("Serialize & deserialize", () => {
 	it("should serialize & deserialize correctly simple object", () => {
 		const obj = { a: 1, b: 2 };
@@ -94,6 +101,13 @@ describe("Serialize & deserialize", () => {
 		expect(deserialized).toEqual(float32Array);
 	});
 
+	it("should serialize & deserialize correctly CustomClass", () => {
+		const customObj = new TestCustomClass("test", 42);
+		const serialized = serializeValue(customObj);
+		const deserialized = deserializeValue(serialized);
+		expect(deserialized).toEqual(customObj);
+	});
+
 	it("should serialize & deserialize correctly complex nested object", () => {
 		const obj = {
 			a: new Set([1, 2]),
@@ -109,9 +123,11 @@ describe("Serialize & deserialize", () => {
 				["e", [1, 2, 3]],
 				["f", new Uint8Array([1, 2, 3, 4])],
 				["g", new Float32Array([1.1, 2.2, 3.3, 4.4])],
+				["h", new TestCustomClass("test", 42)],
 			]),
 			g: new Uint8Array([1, 2, 3, 4]),
 			h: new Float32Array([1.1, 2.2, 3.3, 4.4]),
+			i: new TestCustomClass("nested", 123),
 		};
 		const serialized = serializeValue(obj);
 		const deserialized = deserializeValue(serialized);

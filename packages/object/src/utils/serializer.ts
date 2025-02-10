@@ -124,7 +124,7 @@ function _deserializeFromJSON(obj: any): any {
 							_deserializeFromJSON({ ...obj, __type: undefined })
 						);
 					}
-				} catch (e) {
+				} catch (_) {
 					console.warn(`Could not reconstruct class ${obj.__type}`);
 				}
 		}
