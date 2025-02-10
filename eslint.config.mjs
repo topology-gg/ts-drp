@@ -27,7 +27,6 @@ const config = tseslint.config(
 			"**/*.log",
 			"**/*_pb.js",
 			"**/*_pb.ts",
-			"**/serializer.ts",
 		],
 	},
 	eslint.configs.recommended,

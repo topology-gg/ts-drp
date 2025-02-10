@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Value } from "../proto/google/protobuf/struct_pb.js";
 
 export function serializeValue(obj: any): Uint8Array {
@@ -65,7 +66,7 @@ function _serializeToJSON(obj: any): any {
 		// Handle circular references
 		try {
 			result[key] = _serializeToJSON(value);
-		} catch (e) {
+		} catch (_) {
 			console.warn(`Circular reference detected for key: ${key}`);
 			result[key] = null;
 		}
