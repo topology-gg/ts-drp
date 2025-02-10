@@ -36,13 +36,6 @@ export interface DRPObjectConfig {
 	finality_config?: FinalityConfig;
 }
 
-export interface callFnResult {
-	drp: DRP;
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	appliedOperationResult: any;
-	isACL: boolean;
-}
-
 export let log: Logger;
 
 export class DRPObject implements ObjectPb.DRPObjectBase {
@@ -164,13 +157,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
 							if (!callerName?.startsWith("Proxy.")) {
-								const {
-									drp: newDRP,
-									appliedOperationResult,
-									isACL,
-								} = obj.callFn(fullPropKey, args, vertexType);
-								if (!isACL) Object.assign(obj.drp as DRP, newDRP);
-								else Object.assign(obj.acl as ObjectACL, newDRP);
+								const appliedOperationResult = obj.callFn(fullPropKey, args, vertexType);
 								return appliedOperationResult;
 							}
 							return Reflect.apply(applyTarget, thisArg, args);
@@ -188,7 +175,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		args: any,
 		drpType: DrpType
-	): callFnResult {
+	) {
 		if (!this.hashGraph) {
 			throw new Error("Hashgraph is undefined");
 		}
@@ -199,9 +186,9 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const preOperationDRP = computeFn(vertexDependencies);
 
 		const drp = cloneDeep(preOperationDRP);
-		const appliedOperationResult: callFnResult = { isACL, drp, appliedOperationResult: undefined };
+		let appliedOperationResult = undefined;
 		try {
-			appliedOperationResult.appliedOperationResult = this._applyOperation(drp, {
+			appliedOperationResult = this._applyOperation(drp, {
 				opType: fn,
 				value: args,
 				drpType,
@@ -240,6 +227,9 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 
 		this.vertices.push(vertex);
 		this._notify("callFn", [vertex]);
+
+		if (!isACL) Object.assign(this.drp as DRP, drp);
+		else Object.assign(this.acl as ObjectACL, drp);
 
 		return appliedOperationResult;
 	}
