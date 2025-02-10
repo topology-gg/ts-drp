@@ -1,6 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Value } from "../proto/google/protobuf/struct_pb.js";
 
+type FinalizerItem = {
+	target: any[];
+	type: "Map" | "Set";
+};
+
+type StackItem = {
+	parent: any;
+	key: string | number | null;
+	value: any;
+};
+
+type SerializedValue = any[] | { __type: string; value: any };
+
+interface TypeSerializer {
+	check: (obj: any) => boolean;
+	serialize: (obj: any, stack: StackItem[]) => SerializedValue;
+}
+
 export function serializeValue(obj: any): Uint8Array {
 	const serialized = _serializeToJSON(obj);
 	return Value.encode(Value.wrap(serialized)).finish();
@@ -19,19 +37,6 @@ function _objectValues(obj: any): any[] {
 		tmp.push(obj[key]);
 	}
 	return tmp;
-}
-
-type StackItem = {
-	parent: any;
-	key: string | number | null;
-	value: any;
-};
-
-type SerializedValue = any[] | { __type: string; value: any };
-
-interface TypeSerializer {
-	check: (obj: any) => boolean;
-	serialize: (obj: any, stack: StackItem[]) => SerializedValue;
 }
 
 function _serializeDate(date: Date): SerializedValue {
@@ -85,6 +90,16 @@ const typeSerializers: TypeSerializer[] = [
 	{ check: (obj: any) => Array.isArray(obj), serialize: _serializeArray },
 ];
 
+/**
+ * Serializes an object to a JSON-like structure
+ * Handles:
+ * - Primitive types
+ * - Arrays
+ * - Objects
+ * - Special types like Date, Uint8Array, Float32Array
+ * - Custom class
+ * - Circular references
+ */
 function _serializeToJSON(obj: any): any {
 	if (obj === null || typeof obj !== "object") return obj;
 
@@ -136,63 +151,186 @@ function _serializeToJSON(obj: any): any {
 	return root;
 }
 
-function _deserializeFromJSON(obj: any): any {
-	// Handle null/undefined
-	if (obj == null) return obj;
-
-	// Handle primitive types
-	if (typeof obj !== "object") return obj;
-
-	// Handle arrays
-	if (Array.isArray(obj)) {
-		return obj.map((item) => _deserializeFromJSON(item));
+/**
+ * Advanced JSON deserializer that handles complex object types
+ * Supports:
+ * - Primitive types
+ * - Arrays
+ * - Objects
+ * - Special types like Date, Uint8Array, Float32Array
+ * - Custom class reconstruction
+ * - Map and Set reconstructions
+ * - Circular references
+ */
+function _deserializeFromJSON(serialized: any): any {
+	// Early return for primitives
+	if (serialized === null || typeof serialized !== "object") {
+		return serialized;
 	}
 
-	// Handle special types
-	if (obj.__type) {
-		switch (obj.__type) {
-			case "Date":
-				return new Date(obj.value);
+	// Initialize root object based on input type
+	let root: any = Array.isArray(serialized) ? [] : {};
+	const stack: StackItem[] = [{ parent: null, key: null, value: serialized }];
+	const seenObjects = new WeakMap();
+	const finalizers: FinalizerItem[] = [];
 
-			case "Map":
-				return new Map(
-					obj.value.map(([k, v]: [any, any]) => [_deserializeFromJSON(k), _deserializeFromJSON(v)])
-				);
+	function assignValue(parent: any, key: string | number | null, value: any): void {
+		if (parent === null) {
+			root = value;
+		} else if (key != null) {
+			parent[key] = value;
+		}
+	}
 
-			case "Set":
-				return new Set(obj.value.map((v: any) => _deserializeFromJSON(v)));
+	// Helper function to check if a value is an object
+	function isObject(value: any): boolean {
+		return value !== null && (typeof value === "object" || typeof value === "function");
+	}
 
-			case "Uint8Array":
-				return new Uint8Array(obj.value);
+	while (stack.length > 0) {
+		const item = stack.pop();
+		if (!item) continue;
 
-			case "Float32Array":
-				return new Float32Array(obj.value);
+		const { parent, key, value } = item;
+		let deserialized: any;
 
-			// Add other TypedArrays as needed
+		if (!isObject(value)) {
+			assignValue(parent, key, value);
+			continue;
+		}
 
-			default:
-				// Try to reconstruct custom class if available
-				try {
-					const CustomClass = globalThis[obj.__type as keyof typeof globalThis];
-					if (typeof CustomClass === "function") {
-						return Object.assign(
-							new CustomClass(),
-							_deserializeFromJSON({ ...obj, __type: undefined })
-						);
-					}
-				} catch (_) {
-					console.warn(`Could not reconstruct class ${obj.__type}`);
+		if (seenObjects.has(value)) {
+			assignValue(parent, key, seenObjects.get(value));
+			continue;
+		}
+
+		if (value.__type) {
+			deserialized = handleSpecialTypes(value, stack, finalizers);
+		} else if (Array.isArray(value)) {
+			deserialized = [];
+			for (let i = value.length - 1; i >= 0; i--) {
+				stack.push({ parent: deserialized, key: i, value: value[i] });
+			}
+		} else {
+			deserialized = {};
+			for (const prop in value) {
+				stack.push({ parent: deserialized, key: prop, value: value[prop] });
+			}
+		}
+
+		seenObjects.set(value, deserialized);
+		assignValue(parent, key, deserialized);
+	}
+
+	return processFinalizers(root, finalizers);
+}
+
+/**
+ * Handle special type reconstructions
+ */
+function handleSpecialTypes(value: any, stack: StackItem[], finalizers: FinalizerItem[]): any {
+	switch (value.__type) {
+		case "Date":
+			return new Date(value.value);
+
+		case "Uint8Array":
+			return new Uint8Array(value.value);
+
+		case "Float32Array":
+			return new Float32Array(value.value);
+
+		case "Map": {
+			const mapTemp: any[] = [];
+			finalizers.push({ target: mapTemp, type: "Map" });
+
+			if (Array.isArray(value.value)) {
+				for (let i = value.value.length - 1; i >= 0; i--) {
+					stack.push({ parent: mapTemp, key: i, value: value.value[i] });
 				}
+			}
+			return mapTemp;
+		}
+		case "Set": {
+			const setTemp: any[] = [];
+			finalizers.push({ target: setTemp, type: "Set" });
+
+			if (Array.isArray(value.value)) {
+				for (let i = value.value.length - 1; i >= 0; i--) {
+					stack.push({ parent: setTemp, key: i, value: value.value[i] });
+				}
+			}
+			return setTemp;
+		}
+		default:
+			return reconstructCustomClass(value, stack);
+	}
+}
+
+/**
+ * Attempt to reconstruct custom classes
+ */
+function reconstructCustomClass(value: any, stack: StackItem[]): any {
+	try {
+		const CustomClass = globalThis[value.__type as keyof typeof globalThis];
+
+		if (typeof CustomClass === "function") {
+			const instance = new CustomClass();
+			const { __type, ...clone } = value;
+
+			for (const [prop, propVal] of Object.entries(clone)) {
+				stack.push({ parent: instance, key: prop, value: propVal });
+			}
+
+			return instance;
+		}
+	} catch {
+		console.warn(`Could not reconstruct class ${value.__type}`);
+	}
+
+	return {};
+}
+
+/**
+ * Replace temporary arrays with actual Map and Set instances
+ */
+function processFinalizers(root: any, finalizers: FinalizerItem[]): any {
+	for (let i = finalizers.length - 1; i >= 0; i--) {
+		const finalizer = finalizers[i];
+
+		if (finalizer.type === "Map") {
+			const mapInstance = new Map(
+				finalizer.target.filter((pair) => Array.isArray(pair) && pair.length === 2)
+			);
+			root = replaceFinalizerTarget(root, finalizer.target, mapInstance);
+		} else if (finalizer.type === "Set") {
+			const setInstance = new Set(finalizer.target);
+			root = replaceFinalizerTarget(root, finalizer.target, setInstance);
 		}
 	}
 
-	// Handle regular objects
-	const result: any = {};
-	for (const [key, value] of Object.entries(obj)) {
-		if (key !== "__type") {
-			result[key] = _deserializeFromJSON(value);
+	return root;
+}
+
+/**
+ * Recursively replace temporary arrays with their final Map/Set instances
+ */
+function replaceFinalizerTarget(root: any, target: any, replacement: any): any {
+	if (root === target) return replacement;
+
+	const stack = [root];
+	while (stack.length > 0) {
+		const current = stack.pop();
+
+		if (current && typeof current === "object") {
+			for (const key in current) {
+				if (current[key] === target) {
+					current[key] = replacement;
+				} else if (typeof current[key] === "object" && current[key] !== null) {
+					stack.push(current[key]);
+				}
+			}
 		}
 	}
 
-	return result;
+	return root;
 }
