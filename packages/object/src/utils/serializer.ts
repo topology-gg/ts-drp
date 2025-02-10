@@ -39,7 +39,7 @@ function _serializeToJSON(obj: any): any {
 	if (obj instanceof Map) {
 		return {
 			__type: "Map",
-			value: Array.from(obj.entries()),
+			value: Array.from(obj.entries()).map(([k, v]) => [_serializeToJSON(k), _serializeToJSON(v)]),
 		};
 	}
 
@@ -47,7 +47,7 @@ function _serializeToJSON(obj: any): any {
 	if (obj instanceof Set) {
 		return {
 			__type: "Set",
-			value: Array.from(obj.values()),
+			value: Array.from(obj.values()).map(v => _serializeToJSON(v)),
 		};
 	}
 
