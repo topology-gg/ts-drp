@@ -72,7 +72,7 @@ async function prof() {
 	});
 
 	const buf = await pprof.encode(profile);
-	fs.writeFile("flamegraph.pb.gz", buf, (err) => {
+	fs.writeFile("flamegraph.pprof", buf, (err) => {
 		if (err) {
 			throw err;
 		}

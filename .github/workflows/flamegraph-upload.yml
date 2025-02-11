@@ -1,0 +1,31 @@
+name: Flamegraph Upload
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - shell: bash
+        run: |
+          pnpm install --no-frozen-lockfile
+
+      - shell: bash
+        run: |
+          pnpm run flamegraph
+
+      - uses: pyroscope-io/flamegraph.com-github-action@main
+        with:
+          file: flamegraph.pprof
