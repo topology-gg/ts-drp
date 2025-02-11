@@ -65,10 +65,10 @@ function flamegraphForSetDRP(numDRPs: number, verticesPerDRP: number, mergeFn: b
 	}
 }
 
-async function prof() {
+async function pprofTime() {
 	console.log("start to profile >>>");
 	const profile = await pprof.time.profile({
-		durationMillis: 5000,
+		durationMillis: 1000,
 	});
 
 	const buf = await pprof.encode(profile);
@@ -77,9 +77,10 @@ async function prof() {
 			throw err;
 		}
 	});
+
 	console.log("<<< finished to profile");
 }
 
-prof().catch(console.error);
+pprofTime().catch(console.error);
 
 flamegraphForSetDRP(1, 1000, false);
