@@ -30,4 +30,4 @@ jobs:
         with:
           file: flamegraph.pprof
           postInPR: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
