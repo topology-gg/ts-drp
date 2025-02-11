@@ -3,6 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
+import { Vertex } from "../src/hashgraph/index.js";
 import {
 	ACLGroup,
 	DRP,
@@ -993,5 +994,49 @@ describe("Hash validation tests", () => {
 		expect(obj2.hashGraph.getAllVertices().includes(obj1.hashGraph.getAllVertices()[1])).toBe(
 			false
 		);
+	});
+});
+
+describe("HashGraph hook tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+	beforeEach(async () => {
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+	});
+
+	test("New operations are hooked from callFn", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		const newVertices: Vertex[] = [];
+
+		obj1.subscribe((object, origin, vertices) => {
+			if (origin === "callFn") {
+				newVertices.push(...vertices);
+			}
+		});
+		for (let i = 1; i < 100; i++) {
+			drp1.add(i);
+			expect(newVertices.length).toBe(i);
+			expect(newVertices[i - 1].operation?.opType).toBe("add");
+			expect(newVertices[i - 1].operation?.value[0]).toBe(i);
+		}
+	});
+
+	test("Merged operations are hooked from merge", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		const newVertices: Vertex[] = [];
+
+		obj2.subscribe((object, origin, vertices) => {
+			if (origin === "merge") {
+				newVertices.push(...vertices);
+			}
+		});
+		for (let i = 1; i < 100; i++) {
+			drp1.add(i);
+			obj2.merge(obj1.hashGraph.getAllVertices());
+			expect(newVertices.length).toBe(i);
+			expect(newVertices[i - 1].operation?.opType).toBe("add");
+			expect(newVertices[i - 1].operation?.value[0]).toBe(i);
+		}
 	});
 });
