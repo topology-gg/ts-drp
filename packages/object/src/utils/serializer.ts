@@ -4,7 +4,7 @@ import { Value } from "../proto/google/protobuf/struct_pb.js";
 /**
  * Represents an item that needs to be finalized after deserialization.
  * Used for Map and Set reconstruction from temporary arrays.
-*/
+ */
 type FinalizerItem = {
 	target: any[]; // Temporary array holding Map entries or Set values
 	type: "Map" | "Set"; // Type of collection to create
@@ -13,7 +13,7 @@ type FinalizerItem = {
 /**
  * Represents an item in the serialization/deserialization stack.
  * Used to track parent-child relationships during processing.
-*/
+ */
 type StackItem = {
 	parent: any; // The parent object/array that will contain this value
 	key: string | number | null; // The key/index where this value belongs in the parent
@@ -23,13 +23,13 @@ type StackItem = {
 /**
  * Represents a serialized value in our custom format.
  * Either an array or an object with type information.
-*/
+ */
 type SerializedValue = any[] | { __type: string; value: any };
 
 /**
  * Interface for type-specific serializers.
  * Each serializer knows how to check for and serialize a specific type.
-*/
+ */
 interface TypeSerializer {
 	check: (obj: any) => boolean; // Determines if this serializer can handle the object
 	serialize: (obj: any, stack: StackItem[]) => SerializedValue; // Converts object to serializable form
@@ -68,10 +68,10 @@ export function deserializeValue(value: any): any {
  * Extracts all values from an object into an array.
  * Used to convert object-like Uint8Array representations into actual arrays
  * that can be used to construct Uint8Arrays.
- * 
+ *
  * @example
  * _objectValues({0: 1, 1: 2, 2: 3}) // returns [1, 2, 3]
- * 
+ *
  * @param obj - The object to extract values from
  * @returns An array containing all values from the object
  */
@@ -86,7 +86,7 @@ function _objectValues(obj: any): any[] {
 /**
  * Serializes a Date object into our custom format
  * Converts the date to ISO string for reliable reconstruction
- * 
+ *
  * @param date - The Date object to serialize
  * @returns A serialized representation with type information
  */
@@ -97,7 +97,7 @@ function _serializeDate(date: Date): SerializedValue {
 /**
  * Serializes a Map into our custom format
  * Handles nested structures by pushing key-value pairs onto the processing stack
- * 
+ *
  * @param map - The Map to serialize
  * @param stack - The processing stack for handling nested structures
  * @returns A serialized representation with type information
@@ -117,7 +117,7 @@ function _serializeMap(map: Map<any, any>, stack: StackItem[]): SerializedValue 
 /**
  * Serializes a Set into our custom format
  * Handles nested structures by pushing items onto the processing stack
- * 
+ *
  * @param set - The Set to serialize
  * @param stack - The processing stack for handling nested structures
  * @returns A serialized representation with type information
@@ -135,7 +135,7 @@ function _serializeSet(set: Set<any>, stack: StackItem[]): SerializedValue {
 /**
  * Serializes a Uint8Array into our custom format
  * Converts the typed array to a regular array for JSON compatibility
- * 
+ *
  * @param arr - The Uint8Array to serialize
  * @returns A serialized representation with type information
  */
@@ -146,7 +146,7 @@ function _serializeUint8Array(arr: Uint8Array): SerializedValue {
 /**
  * Serializes a Float32Array into our custom format
  * Converts the typed array to a regular array for JSON compatibility
- * 
+ *
  * @param arr - The Float32Array to serialize
  * @returns A serialized representation with type information
  */
@@ -157,7 +157,7 @@ function _serializeFloat32Array(arr: Float32Array): SerializedValue {
 /**
  * Serializes an Array into our custom format
  * Handles nested structures by pushing items onto the processing stack
- * 
+ *
  * @param arr - The Array to serialize
  * @param stack - The processing stack for handling nested structures
  * @returns The serialized array (no type information needed as it's a native JSON type)
@@ -173,16 +173,16 @@ function _serializeArray(arr: any[], stack: StackItem[]): SerializedValue {
 /**
  * Serializes any JavaScript value into a JSON-compatible structure
  * Handles complex types by converting them to a special format with type information
- * 
+ *
  * @example
  * // Simple object
  * _serializeToJSON({ a: 1, b: "test" })
  * // Returns: { a: 1, b: "test" }
- * 
+ *
  * // Date object
  * _serializeToJSON(new Date("2024-01-01"))
  * // Returns: { __type: "Date", value: "2024-01-01T00:00:00.000Z" }
- * 
+ *
  * // Complex object with special types
  * _serializeToJSON({
  *   date: new Date("2024-01-01"),
@@ -194,7 +194,7 @@ function _serializeArray(arr: any[], stack: StackItem[]): SerializedValue {
  * //   map: { __type: "Map", value: [["key", "value"]] },
  * //   set: { __type: "Set", value: [1, 2, 3] }
  * // }
- * 
+ *
  * @param obj - The value to serialize
  * @returns A JSON-compatible representation of the value
  */
@@ -252,16 +252,16 @@ function _serializeToJSON(obj: any): any {
 /**
  * Deserializes a value from our custom JSON format back into its original form
  * Reconstructs complex types from their serialized representations
- * 
+ *
  * @example
  * // Simple object
  * _deserializeFromJSON({ a: 1, b: "test" })
  * // Returns: { a: 1, b: "test" }
- * 
+ *
  * // Date object
  * _deserializeFromJSON({ __type: "Date", value: "2024-01-01T00:00:00.000Z" })
  * // Returns: Date<2024-01-01T00:00:00.000Z>
- * 
+ *
  * // Complex object with special types
  * _deserializeFromJSON({
  *   date: { __type: "Date", value: "2024-01-01T00:00:00.000Z" },
@@ -273,13 +273,13 @@ function _serializeToJSON(obj: any): any {
  * //   map: Map<string, string>(1) { "key" => "value" },
  * //   set: Set<number>(3) { 1, 2, 3 }
  * // }
- * 
+ *
  * // Custom class
  * class Person { constructor(public name: string) {} }
  * globalThis.Person = Person;
  * _deserializeFromJSON({ __type: "Person", name: "John" })
  * // Returns: Person { name: "John" }
- * 
+ *
  * @param serialized - The serialized value to deserialize
  * @returns The reconstructed value with all special types restored
  */
@@ -349,7 +349,7 @@ function _deserializeFromJSON(serialized: any): any {
 /**
  * Handles special type reconstructions during deserialization
  * Processes Date, TypedArrays, Map, Set, and custom class instances
- * 
+ *
  * @param value - The value containing type information to reconstruct
  * @param stack - The processing stack for handling nested structures
  * @param finalizers - Collection of Map/Set temporary arrays that need post-processing
@@ -396,7 +396,7 @@ function handleSpecialTypes(value: any, stack: StackItem[], finalizers: Finalize
 /**
  * Attempts to reconstruct instances of custom classes
  * Looks up the class in globalThis and creates a new instance with the serialized properties
- * 
+ *
  * @param value - The serialized object with type information
  * @param stack - The processing stack for handling nested properties
  * @returns A new instance of the custom class or an empty object if reconstruction fails
@@ -425,7 +425,7 @@ function reconstructCustomClass(value: any, stack: StackItem[]): any {
 /**
  * Processes temporary arrays into their final Map/Set instances
  * Called after the main deserialization to finalize all collections
- * 
+ *
  * @param root - The root object containing temporary arrays
  * @param finalizers - Collection of temporary arrays to convert to Map/Set
  * @returns The root object with all collections properly reconstructed
@@ -451,7 +451,7 @@ function processFinalizers(root: any, finalizers: FinalizerItem[]): any {
 /**
  * Recursively replaces all references to a temporary array with its final Map/Set instance
  * Traverses the entire object tree to ensure all references are updated
- * 
+ *
  * @param root - The root object to traverse
  * @param target - The temporary array to replace
  * @param replacement - The final Map/Set instance
