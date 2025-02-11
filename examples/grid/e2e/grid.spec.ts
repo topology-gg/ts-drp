@@ -172,3 +172,51 @@ test.describe("grid", () => {
 		expect(Math.abs(glowingPeer1.top - glowingPeer2.top)).toBe(100);
 	});
 });
+
+test.describe("laggy grid", () => {
+	const NUM_PEERS = 5;
+	const NUM_OPS = 100;
+	let pages: Page[] = [];
+	let grafts: boolean[] = [];
+
+	test.beforeEach(async ({ browser }) => {
+		const { promise, resolve } = Promise.withResolvers<boolean>();
+		await clearLogFile();
+
+		for (let i = 0; i < NUM_PEERS; i++) {
+			const page = await browser.newPage();
+			page.on("console", async (msg) => {
+				if (!pages) return;
+				const peerID = await getPeerID(page);
+				if (msg.text().includes(`graft {peerId: ${peerID}`)) {
+					grafts[i] = true;
+				}
+				if (grafts.every((g) => g)) resolve(true);
+			});
+
+			await page.goto("/");
+			await page.waitForSelector("#loadingMessage", { state: "hidden" });
+			pages.push(page);
+		}
+
+		await promise;
+	});
+
+	test("connect to DRP and create many operations", async () => {
+		const peerIds = await Promise.all(pages.map((page) => getPeerID(page)));
+		const drpId = `test-drp-id-${Math.random().toString(36).substring(2, 15)}`;
+
+		for (const page of pages) {
+			await page.fill(DRPIdInputSelector, drpId);
+			await page.click(joinGridButtonSelector);
+		}
+
+		for (let i = 0; i < NUM_OPS; i++) {
+			if (Math.random() < 0.5) {
+				await pages[0].keyboard.press("w");
+			} else {
+				await pages[0].keyboard.press("s");
+			}
+		}
+	});
+});
