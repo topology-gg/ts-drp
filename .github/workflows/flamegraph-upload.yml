@@ -29,5 +29,5 @@ jobs:
       - uses: pyroscope-io/flamegraph.com-github-action@main
         with:
           file: flamegraph.pprof
-          postInPR: true
-          token: ${{ github.token }}
+          postInPR: false
+          token: ${{ secrets.GITHUB_TOKEN }}
