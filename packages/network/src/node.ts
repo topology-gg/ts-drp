@@ -33,7 +33,7 @@ import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
-import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import * as crypto from "node:crypto";
 
 import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
@@ -82,8 +82,11 @@ export class DRPNetworkNode {
 
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
-			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			privateKey = await generateKeyPairFromSeed("Ed25519", uint8ArrayFromString(tmp));
+			const hashKeySeed = crypto
+				.createHash("sha256")
+				.update(this._config.private_key_seed)
+				.digest();
+			privateKey = await generateKeyPairFromSeed("Ed25519", hashKeySeed);
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
