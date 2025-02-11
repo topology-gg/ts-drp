@@ -38,7 +38,12 @@ import { Message, Role } from "@/objects/chat";
 export default function Home() {
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [_, setFirstMessage] = useState<Message | null>(null);
+	const [questionSubmitted, setQuestionSubmitted] = useState(false);
 	const node = getNode();
+
+	useEffect(() => {
+		console.log(">>> questionSubmitted changed:", questionSubmitted);
+	}, [questionSubmitted]);
 
 	const {
 		messages,
@@ -50,17 +55,10 @@ export default function Home() {
 		id,
 		//isLoading, reload
 	} = useChat({
-		//onResponse(response) {
-		//	if (response) {
-		//		console.log(response);
-		//		setIsGenerating(false);
-		//	}
-		//		},
-		//		onError(error) {
-		//			if (error) {
-		//				setIsGenerating(false);
-		//			}
-		//		},
+		// id,
+		// initialInput = "",
+		questionSubmitted,
+		setQuestionSubmitted,
 	});
 
 	useEffect(() => {
@@ -178,7 +176,7 @@ export default function Home() {
 								// Get the chat object and members
 								const chat = getChat();
 								const members = chat.getMembers();
-								console.log("message.peerId", message.peerId, "members", members);
+								// console.log("message.peerId", message.peerId, "members", members);
 
 								// If first message => use human emoji
 								// If message.peerId starts with ai-for- => use animal emoji

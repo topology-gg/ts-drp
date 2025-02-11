@@ -57,7 +57,8 @@ export type UseChatHelpers = {
 // 	return completion.choices[0]?.message?.content || "hmm ...";
 // }
 
-function getAgentLoop(/*object: DRPObject,*/ questionSubmitted: boolean) {
+function getAgentLoop(object: DRPObject, questionSubmitted: boolean) {
+	console.log("ayyy1");
 	let isRunning = false;
 	const aiPeerId = "ai-for-" + getNode().networkNode.peerId;
 	return async () => {
@@ -67,13 +68,16 @@ function getAgentLoop(/*object: DRPObject,*/ questionSubmitted: boolean) {
 			// const node = getNode();
 			const chat = getChat();
 			if (!chat) return;
-			// const verticesCount = object.hashGraph.vertices.size;
-			// const isOdd = verticesCount % 2 === 1;
+			const verticesCount = object.hashGraph.vertices.size;
+			const isOdd = verticesCount % 2 === 1;
 
-			// if ((!isOdd && questionSubmitted) || (isOdd && !questionSubmitted)) return;
+			console.log("ayyy2");
+			console.log("isOdd", isOdd, "questionSubmitted", questionSubmitted);
+			if ((isOdd && questionSubmitted) || (!isOdd && !questionSubmitted)) return;
 			if (chat.query_messages().size >= MAX_MESSAGES) return;
-			if (!questionSubmitted) return;
+			// if (!questionSubmitted) return;
 
+			console.log("ayyy3");
 			const waitTime = 2000 + Math.floor(Math.random() * 4000 + 1000);
 			console.log(`waiting for ${waitTime} ...`);
 			await new Promise((resolve) => setTimeout(resolve, waitTime));
@@ -109,15 +113,15 @@ function subscribeToChat(
 	messages: Message[],
 	setMessages: (messages: Message[]) => void
 ) {
-	// const agentLoop = getAgentLoop(drp, questionSubmitted);
-	const agentLoop = getAgentLoop(questionSubmitted);
-	let verticesCount = -1;
+	const agentLoop = getAgentLoop(drp, questionSubmitted);
+	// let verticesCount = -1;
 	console.log("subscribing to chat", drp.id);
 	const node = getNode();
 	node.objectStore.subscribe(drp.id, (_, object) => {
 		const chat = object.drp as Chat;
-		const tmpCount = object.hashGraph.vertices.size;
-		const isOdd = tmpCount % 2 === 1;
+		const hashgraphVerticeCount = object.hashGraph.vertices.size;
+		console.log("subscribe callback called: hashgraphVerticeCount", hashgraphVerticeCount);
+		// const isOdd = tmpCount % 2 === 1;
 
 		const chatMessages = Array.from(chat.query_messages());
 		if (messages.length === chatMessages.length) {
@@ -125,22 +129,33 @@ function subscribeToChat(
 		}
 		setMessages(chatMessages);
 
-		if (
-			verticesCount !== tmpCount &&
-			((isOdd && questionSubmitted) || (!isOdd && !questionSubmitted))
-		) {
-			agentLoop().catch((e) => console.error("agentLoop error", e));
-			verticesCount = tmpCount;
-		}
+		agentLoop().catch((e) => console.error("agentLoop error", e));
+		// console.log("verticesCount", verticesCount, "tmpCount", tmpCount)
+		// if (
+		// 	verticesCount !== tmpCount &&
+		// 	((isOdd && questionSubmitted) || (!isOdd && !questionSubmitted))
+		// ) {
+		// 	agentLoop().catch((e) => console.error("agentLoop error", e));
+		// 	verticesCount = tmpCount;
+		// }
 	});
 }
 
-export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpers {
+export function useChat({
+	id,
+	// initialInput = "",
+	questionSubmitted,
+	setQuestionSubmitted,
+}: UseChatOptions & {
+	questionSubmitted: boolean;
+	setQuestionSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+}): UseChatHelpers {
 	// console.log("useChat");
 	// Messages state and handlers.
 	const [messages, setMessages] = useState<Message[]>([]);
 
 	// Input state and handlers.
+	const initialInput = "";
 	const [input, setInput] = useState(initialInput);
 
 	const handleInputChange = (
@@ -150,9 +165,11 @@ export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpe
 	};
 
 	// Whether the question has been submitted
-	const [questionSubmitted, setQuestionSubmitted] = useState(false);
+	// const [questionSubmitted, setQuestionSubmitted] = useState(false);
 
 	const [drpID, setDrpID] = useState<string | null>(null);
+
+	const [drpObject, setDrpObject] = useState<DRPObject | null>(null);
 
 	const joinCreateAndAddMember = useCallback(
 		async (id?: string) => {
@@ -161,6 +178,7 @@ export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpe
 			const emojiUnicode = animalEmojis[randomIndex];
 			const result = await createOrJoinDRP(id);
 			setDrpID(result.drp.id);
+			setDrpObject(result.drp);
 			subscribeToChat(result.drp, questionSubmitted, messages, setMessages);
 			result.chat.addMember(peerID, emojiUnicode);
 		},
@@ -191,13 +209,16 @@ export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpe
 				role: Role.User,
 			},
 		]);
-		setQuestionSubmitted(true);
+		setQuestionSubmitted(() => true);
+		setInput("");
 		if (drpID) {
 			getChat().addMessage(now, input, node.networkNode.peerId, Role.User);
-			const agentLoop = getAgentLoop(true);
-			agentLoop().catch((e) => console.error("agentLoop error", e));
+			if (drpObject) {
+				const agentLoop = getAgentLoop(drpObject, true);
+				agentLoop().catch((e) => console.error("agentLoop error", e));
+			}
 		}
-	}, [messages, setMessages, input, drpID]);
+	}, [messages, setMessages, input, drpID, drpObject, setQuestionSubmitted]);
 
 	return {
 		input,
