@@ -2,7 +2,7 @@ import { CopyIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { getNode } from "@/lib/node";
+import { getNode, getChat } from "@/lib/node";
 
 interface ChatSidebarProps {
 	id: string | null;
@@ -16,6 +16,13 @@ export function ChatSidebar({ id, onJoinChat, onCreateChat }: ChatSidebarProps) 
 	const [joinId, setJoinId] = useState("");
 
 	const node = getNode();
+	let chat;
+	try {
+		chat = getChat();
+	} catch (error) {
+		console.error("Error getting chat:", error);
+		chat = null;
+	}
 
 	useEffect(() => {
 		const intervalID = setInterval(() => {
@@ -43,7 +50,7 @@ export function ChatSidebar({ id, onJoinChat, onCreateChat }: ChatSidebarProps) 
 				<div className="flex flex-col gap-2">
 					<input
 						type="text"
-						placeholder="Enter Chat ID"
+						placeholder="Room ID"
 						className="w-full px-3 py-1 text-sm rounded-md border bg-background"
 						value={joinId}
 						onChange={(e) => setJoinId(e.target.value)}
@@ -54,7 +61,7 @@ export function ChatSidebar({ id, onJoinChat, onCreateChat }: ChatSidebarProps) 
 						onClick={() => joinId && onJoinChat(joinId)}
 						className="w-full"
 					>
-						Join chat
+						Join room
 					</Button>
 				</div>
 				<div className="relative">
@@ -66,7 +73,7 @@ export function ChatSidebar({ id, onJoinChat, onCreateChat }: ChatSidebarProps) 
 					</div>
 				</div>
 				<Button variant="outline" onClick={onCreateChat} className="w-full">
-					Create new chat
+					Create room
 				</Button>
 			</div>
 
@@ -87,10 +94,10 @@ export function ChatSidebar({ id, onJoinChat, onCreateChat }: ChatSidebarProps) 
 					Copy ID
 				</Button>
 				<div className="text-sm flex items-start gap-1">
-					<span className="text-muted-foreground shrink-0">Node ID:</span>
+					<span className="text-muted-foreground shrink-0">My ID:</span>
 					<div className="font-mono flex flex-col">
 						<span key={node.networkNode.peerId} title={node.networkNode.peerId}>
-							{`${node.networkNode.peerId.slice(0, 7)}..${node.networkNode.peerId.slice(-4)}`}
+							<strong>{`${node.networkNode.peerId.slice(0, 7)}..${node.networkNode.peerId.slice(-4)}`}</strong>
 						</span>
 					</div>
 				</div>
@@ -99,7 +106,7 @@ export function ChatSidebar({ id, onJoinChat, onCreateChat }: ChatSidebarProps) 
 					<div className="font-mono flex flex-col">
 						{peers.map((peer) => (
 							<span key={peer} title={peer}>
-								{`${peer.slice(0, 8)}..${peer.slice(-4)}`}
+								{`${peer.slice(0, 7)}..${peer.slice(-4)}`}
 							</span>
 						))}
 					</div>
@@ -114,6 +121,26 @@ export function ChatSidebar({ id, onJoinChat, onCreateChat }: ChatSidebarProps) 
 						))}
 					</div>
 				</div>
+				{chat ? (
+					<div className="text-sm flex items-start gap-1">
+						{/* <span className="text-muted-foreground shrink-0"></span> */}
+						<div className="font-mono flex flex-col items-center">
+							<span style={{ fontSize: "5rem", marginTop: "50px" }}>
+								{(() => {
+									const members = getChat().getMembers();
+									const memberInfo = Array.from(members).find(
+										(member) => member.peerId === node.networkNode.peerId
+									);
+									return memberInfo
+										? String.fromCodePoint(parseInt(memberInfo.emojiUnicode.replace("U+", ""), 16))
+										: "❓";
+								})()}
+							</span>
+						</div>
+					</div>
+				) : (
+					<></>
+				)}
 			</div>
 		</div>
 	);

@@ -13,6 +13,11 @@ export type Message = {
 	role: Role;
 };
 
+export type Identity = {
+	peerId: string;
+	emojiUnicode: string;
+};
+
 export enum Role {
 	User = 0,
 	Assistant = 1,
@@ -21,18 +26,21 @@ export enum Role {
 export class Chat implements DRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
 	// store messages as strings in the format (timestamp, message, peerId)
-	members: Set<string>;
+	members: Set<Identity>;
 	messages: Set<Message>;
 	constructor() {
 		this.messages = new Set<Message>();
-		this.members = new Set<string>();
+		this.members = new Set<Identity>();
 	}
 
-	addMember(memberPeerId: string): void {
-		this.members.add(memberPeerId);
+	addMember(memberPeerId: string, emojiUnicode: string): void {
+		this.members.add({
+			peerId: memberPeerId,
+			emojiUnicode: emojiUnicode,
+		});
 	}
 
-	getMembers(): Set<string> {
+	getMembers(): Set<Identity> {
 		return this.members;
 	}
 

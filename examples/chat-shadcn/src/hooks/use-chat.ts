@@ -1,18 +1,15 @@
 import { DRPObject } from "@ts-drp/object";
-import Groq from "groq-sdk";
+// import Groq from "groq-sdk";
 import React, { useCallback, useState } from "react";
 
-import { systemPrompt } from "@/lib/constants";
+// import { systemPrompt } from "@/lib/constants";
+import { generateAIResponse } from "@/lib/agent";
+import { animalEmojis } from "@/lib/emojis";
 import { createOrJoinDRP, getChat, getNode } from "@/lib/node";
 import { Chat, Message, Role } from "@/objects/chat";
 import { UseChatOptions } from "@/types";
 
-const MAX_MESSAGES = 500;
-
-const groq = new Groq({
-	apiKey: import.meta.env.VITE_GROQ_API_KEY || "",
-	dangerouslyAllowBrowser: true,
-});
+const MAX_MESSAGES = 20;
 
 export type UseChatHelpers = {
 	/** Current messages in the chat */
@@ -41,44 +38,46 @@ export type UseChatHelpers = {
 	id: string | null;
 };
 
-async function generateAIResponse(messages: string[]): Promise<string> {
-	const prompt = `
-	${systemPrompt}
+// async function generateAIResponse(messages: string[]): Promise<string> {
+// 	const prompt = `
+// 	${systemPrompt}
 
-	----------
+// 	----------
 
-	Chat history: ${messages.join("\n")}
-	`;
+// 	Chat history: ${messages.join("\n")}
+// 	`;
 
-	const completion = await groq.chat.completions.create({
-		messages: [{ role: "user", content: prompt }],
-		model: "llama-3.1-8b-instant", //'mixtral-8x7b-32768'
-		temperature: 0.9,
-		max_tokens: 200,
-	});
-	console.log(">>> prompting with", prompt);
-	return completion.choices[0]?.message?.content || "hmm ...";
-}
+// 	const completion = await groq.chat.completions.create({
+// 		messages: [{ role: "user", content: prompt }],
+// 		model: "llama-3.1-8b-instant", //'mixtral-8x7b-32768'
+// 		temperature: 0.9,
+// 		max_tokens: 200,
+// 	});
+// 	console.log(">>> prompting with", prompt);
+// 	return completion.choices[0]?.message?.content || "hmm ...";
+// }
 
-function getAgentLoop(object: DRPObject, questionSubmitted: boolean) {
+function getAgentLoop(/*object: DRPObject,*/ questionSubmitted: boolean) {
 	let isRunning = false;
+	const aiPeerId = "ai-for-" + getNode().networkNode.peerId;
 	return async () => {
 		if (isRunning) return;
 		try {
 			isRunning = true;
-			const node = getNode();
+			// const node = getNode();
 			const chat = getChat();
 			if (!chat) return;
-			const verticesCount = object.hashGraph.vertices.size;
-			const isOdd = verticesCount % 2 === 1;
+			// const verticesCount = object.hashGraph.vertices.size;
+			// const isOdd = verticesCount % 2 === 1;
 
-			if ((!isOdd && questionSubmitted) || (isOdd && !questionSubmitted)) return;
+			// if ((!isOdd && questionSubmitted) || (isOdd && !questionSubmitted)) return;
+			if (chat.query_messages().size >= MAX_MESSAGES) return;
+			if (!questionSubmitted) return;
 
-			if (!chat || chat.query_messages().size >= MAX_MESSAGES) return;
-
-			await new Promise((resolve) =>
-				setTimeout(resolve, 2000 + Math.floor(Math.random() * 4000 + 1000))
-			);
+			const waitTime = 2000 + Math.floor(Math.random() * 4000 + 1000);
+			console.log(`waiting for ${waitTime} ...`);
+			await new Promise((resolve) => setTimeout(resolve, waitTime));
+			console.log(`waiting done.`);
 
 			// Recheck conditions after delay
 			if (!chat || chat.query_messages().size >= MAX_MESSAGES) return;
@@ -87,13 +86,13 @@ function getAgentLoop(object: DRPObject, questionSubmitted: boolean) {
 
 			// Check the last message's sender
 			const { peerId } = currentMessages[currentMessages.length - 1];
-			const isMyTurn = peerId !== node.networkNode.peerId;
+			const isMyTurn = peerId !== aiPeerId;
 
 			if (isMyTurn) {
 				const aiResponse = await generateAIResponse(currentMessages.map((m) => m.content));
 				const timestamp = Date.now().toString();
 				console.log(`aiResponse "${aiResponse}"`);
-				getChat().addMessage(timestamp, aiResponse, peerId, Role.Assistant);
+				getChat().addMessage(timestamp, aiResponse, aiPeerId, Role.Assistant);
 			}
 			isRunning = false;
 		} catch (error) {
@@ -110,7 +109,8 @@ function subscribeToChat(
 	messages: Message[],
 	setMessages: (messages: Message[]) => void
 ) {
-	const agentLoop = getAgentLoop(drp, questionSubmitted);
+	// const agentLoop = getAgentLoop(drp, questionSubmitted);
+	const agentLoop = getAgentLoop(questionSubmitted);
 	let verticesCount = -1;
 	console.log("subscribing to chat", drp.id);
 	const node = getNode();
@@ -136,7 +136,7 @@ function subscribeToChat(
 }
 
 export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpers {
-	console.log("useChat");
+	// console.log("useChat");
 	// Messages state and handlers.
 	const [messages, setMessages] = useState<Message[]>([]);
 
@@ -157,10 +157,12 @@ export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpe
 	const joinCreateAndAddMember = useCallback(
 		async (id?: string) => {
 			const peerID = getNode().networkNode.peerId;
+			const randomIndex = Math.floor(Math.random() * animalEmojis.length);
+			const emojiUnicode = animalEmojis[randomIndex];
 			const result = await createOrJoinDRP(id);
 			setDrpID(result.drp.id);
 			subscribeToChat(result.drp, questionSubmitted, messages, setMessages);
-			result.chat.addMember(peerID);
+			result.chat.addMember(peerID, emojiUnicode);
 		},
 		[questionSubmitted, messages, setMessages]
 	);
@@ -192,6 +194,8 @@ export function useChat({ id, initialInput = "" }: UseChatOptions): UseChatHelpe
 		setQuestionSubmitted(true);
 		if (drpID) {
 			getChat().addMessage(now, input, node.networkNode.peerId, Role.User);
+			const agentLoop = getAgentLoop(true);
+			agentLoop().catch((e) => console.error("agentLoop error", e));
 		}
 	}, [messages, setMessages, input, drpID]);
 

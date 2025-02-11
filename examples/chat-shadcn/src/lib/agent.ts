@@ -7,6 +7,7 @@ import { tools } from "./tools";
 
 const client = new Anthropic({
 	apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
+	dangerouslyAllowBrowser: true,
 });
 
 export async function generateAIResponse(messages: string[]): Promise<string> {
@@ -19,26 +20,26 @@ export async function generateAIResponse(messages: string[]): Promise<string> {
 	`;
 
 	const completion = await client.messages.create({
-		max_tokens: 1024,
+		max_tokens: 64,
 		messages: [{ role: "user", content: prompt }],
 		model: "claude-3-5-sonnet-latest",
-		tools: tools.map((tool) => {
-			const properties = [];
-			const required = [];
-			for (const value of Object.values(tool.input_schema?.definitions || {})) {
-				properties.push(...(value as any).properties);
-				required.push(...(value as any).required);
-			}
-			return {
-				name: tool.name,
-				description: tool.description,
-				input_schema: {
-					type: "object",
-					properties,
-					required,
-				},
-			};
-		}),
+		// tools: tools.map((tool) => {
+		// 	const properties = [];
+		// 	const required = [];
+		// 	for (const value of Object.values(tool.input_schema?.definitions || {})) {
+		// 		properties.push(...(value as any).properties);
+		// 		required.push(...(value as any).required);
+		// 	}
+		// 	return {
+		// 		name: tool.name,
+		// 		description: tool.description,
+		// 		input_schema: {
+		// 			type: "object",
+		// 			properties,
+		// 			required,
+		// 		},
+		// 	};
+		// }),
 	});
 
 	let response = "";

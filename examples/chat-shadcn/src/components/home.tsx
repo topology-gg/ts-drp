@@ -1,5 +1,6 @@
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { CopyIcon, CornerDownLeft, RefreshCcw, Volume2 } from "lucide-react";
+// import { CopyIcon, CornerDownLeft, RefreshCcw, Volume2 } from "lucide-react";
+import { CornerDownLeft } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -9,34 +10,34 @@ import CodeDisplayBlock from "@/components/code-display-block";
 import { Button } from "@/components/ui/button";
 import {
 	ChatBubble,
-	ChatBubbleAction,
+	// ChatBubbleAction,
 	ChatBubbleAvatar,
 	ChatBubbleMessage,
 } from "@/components/ui/chat/chat-bubble";
 import { ChatInput } from "@/components/ui/chat/chat-input";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { useChat } from "@/hooks/use-chat";
-import { getNode } from "@/lib/node";
+import { getNode, getChat } from "@/lib/node";
 import { Message, Role } from "@/objects/chat";
 
-const ChatAiIcons = [
-	{
-		icon: CopyIcon,
-		label: "Copy",
-	},
-	{
-		icon: RefreshCcw,
-		label: "Refresh",
-	},
-	{
-		icon: Volume2,
-		label: "Volume",
-	},
-];
+// const ChatAiIcons = [
+// 	{
+// 		icon: CopyIcon,
+// 		label: "Copy",
+// 	},
+// 	{
+// 		icon: RefreshCcw,
+// 		label: "Refresh",
+// 	},
+// 	{
+// 		icon: Volume2,
+// 		label: "Volume",
+// 	},
+// ];
 
 export default function Home() {
 	const [isGenerating, setIsGenerating] = useState(false);
-	const [firstMessage, setFirstMessage] = useState<Message | null>(null);
+	const [_, setFirstMessage] = useState<Message | null>(null);
 	const node = getNode();
 
 	const {
@@ -92,26 +93,44 @@ export default function Home() {
 		}
 	};
 
-	const handleActionClick = async (action: string, messageIndex: number) => {
-		console.log("Action clicked:", action, "Message index:", messageIndex);
-		if (action === "Refresh") {
-			setIsGenerating(true);
-			try {
-				//await reload();
-			} catch (error) {
-				console.error("Error reloading:", error);
-			} finally {
-				setIsGenerating(false);
-			}
-		}
+	// const handleActionClick = async (action: string, messageIndex: number) => {
+	// 	console.log("Action clicked:", action, "Message index:", messageIndex);
+	// 	if (action === "Refresh") {
+	// 		setIsGenerating(true);
+	// 		try {
+	// 			//await reload();
+	// 		} catch (error) {
+	// 			console.error("Error reloading:", error);
+	// 		} finally {
+	// 			setIsGenerating(false);
+	// 		}
+	// 	}
 
-		if (action === "Copy") {
-			const message = messages[messageIndex];
-			if (message && message.role === Role.Assistant) {
-				await navigator.clipboard.writeText(message.content);
-			}
+	// 	if (action === "Copy") {
+	// 		const message = messages[messageIndex];
+	// 		if (message && message.role === Role.Assistant) {
+	// 			await navigator.clipboard.writeText(message.content);
+	// 		}
+	// 	}
+	// };
+
+	let myAvatar = "?";
+	let chat;
+	try {
+		chat = getChat();
+	} catch (error) {
+		console.error("Error getting chat:", error);
+		chat = null;
+	}
+	if (chat) {
+		const members = chat.getMembers();
+		const memberInfo = Array.from(members).find(
+			(member) => member.peerId === node.networkNode.peerId
+		);
+		if (memberInfo) {
+			myAvatar = String.fromCodePoint(parseInt(memberInfo.emojiUnicode.replace("U+", ""), 16));
 		}
-	};
+	}
 
 	return (
 		<main className="flex h-screen w-full">
@@ -124,9 +143,9 @@ export default function Home() {
 						{/* Initial Message */}
 						{messages.length === 0 && (
 							<div className="w-full bg-background shadow-sm border rounded-lg p-8 flex flex-col gap-2">
-								<h2 className="font-bold">Welcome to this example DRP Chat application.</h2>
+								<h2 className="font-bold">AI-DRP v1</h2>
 								<p className="text-muted-foreground text-sm">
-									This is a simple DRP AI example application{" "}
+									{/* aa{" "} */}
 									<a
 										href="https://github.com/drp-tech/ts-drp"
 										className="font-bold inline-flex flex-1 justify-center gap-1 leading-4 hover:underline"
@@ -154,12 +173,43 @@ export default function Home() {
 						{messages &&
 							messages.map((message, index) => {
 								const isFirstMessage = index === 0;
-								let avatar = "🐱";
+								let avatar = "?";
+
+								// Get the chat object and members
+								const chat = getChat();
+								const members = chat.getMembers();
+								console.log("message.peerId", message.peerId, "members", members);
+
+								// If first message => use human emoji
+								// If message.peerId starts with ai-for- => use animal emoji
 								if (isFirstMessage) {
 									avatar = "👨🏽";
-								} else if (firstMessage?.peerId === message.peerId) {
-									avatar = "🐕";
+								} else if (message.peerId.startsWith("ai-for-")) {
+									const originalPeerId = message.peerId.substring("ai-for-".length);
+									const memberInfo = Array.from(members).find(
+										(member) => member.peerId === originalPeerId
+									);
+									if (memberInfo) {
+										avatar = String.fromCodePoint(
+											parseInt(memberInfo.emojiUnicode.replace("U+", ""), 16)
+										);
+									}
 								}
+
+								// // Find the member info for the current message's sender
+								// const memberInfo = Array.from(members).find(
+								// 	(member) => member.peerId === message.peerId
+								// );
+								// if (memberInfo) {
+								// 	avatar = String.fromCodePoint(
+								// 		parseInt(memberInfo.emojiUnicode.replace("U+", ""), 16)
+								// 	);
+								// } else if (isFirstMessage) {
+								// 	avatar = "👨🏽";
+								// } else if (firstMessage?.peerId === message.peerId) {
+								// 	avatar = "🐶";
+								// }
+
 								return (
 									<ChatBubble
 										key={index}
@@ -183,7 +233,7 @@ export default function Home() {
 												}
 											})}
 
-											{message.role === Role.Assistant && messages.length - 1 === index && (
+											{/* {message.role === Role.Assistant && messages.length - 1 === index && (
 												<div className="flex items-center mt-1.5 gap-1">
 													{!isGenerating && (
 														<>
@@ -202,7 +252,7 @@ export default function Home() {
 														</>
 													)}
 												</div>
-											)}
+											)} */}
 										</ChatBubbleMessage>
 									</ChatBubble>
 								);
@@ -213,7 +263,8 @@ export default function Home() {
 							<ChatBubble variant="received">
 								<ChatBubbleAvatar
 									src=""
-									fallback={firstMessage?.peerId === node.networkNode.peerId ? "🐕" : "🐱"}
+									fallback={myAvatar}
+									// fallback={firstMessage?.peerId === node.networkNode.peerId ? "🐶" : "🐱"}
 								/>
 								<ChatBubbleMessage isLoading />
 							</ChatBubble>
@@ -274,6 +325,21 @@ export default function Home() {
 						</p>
 					</div>
 				</div>
+
+				{/* <div className="text-sm flex items-start gap-1">
+					<span className="text-muted-foreground shrink-0">My Emoji:</span>
+					<div className="font-mono flex flex-col">
+						{(() => {
+							const members = getChat().getMembers();
+							const memberInfo = Array.from(members).find(
+								(member) => member.peerId === node.networkNode.peerId
+							);
+							return memberInfo
+								? String.fromCodePoint(parseInt(memberInfo.emojiUnicode.replace("U+", ""), 16))
+								: "❓";
+						})()}
+					</div>
+				</div> */}
 			</div>
 		</main>
 	);
