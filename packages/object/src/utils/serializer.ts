@@ -1,29 +1,53 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Value } from "../proto/google/protobuf/struct_pb.js";
 
+/**
+ * Represents an item that needs to be finalized after deserialization.
+ * Used for Map and Set reconstruction from temporary arrays.
+ */
 type FinalizerItem = {
-	target: any[];
-	type: "Map" | "Set";
+	target: any[]; // Temporary array holding Map entries or Set values
+	type: "Map" | "Set"; // Type of collection to create
 };
 
+/**
+ * Represents an item in the serialization/deserialization stack.
+ * Used to track parent-child relationships during processing.
+ */
 type StackItem = {
-	parent: any;
-	key: string | number | null;
-	value: any;
+	parent: any; // The parent object/array that will contain this value
+	key: string | number | null; // The key/index where this value belongs in the parent
+	value: any; // The value to be processed
 };
 
+/**
+ * Represents a serialized value in our custom format.
+ * Either an array or an object with type information.
+ */
 type SerializedValue = any[] | { __type: string; value: any };
 
+/**
+ * Interface for type-specific serializers.
+ * Each serializer knows how to check for and serialize a specific type.
+ */
 interface TypeSerializer {
-	check: (obj: any) => boolean;
-	serialize: (obj: any, stack: StackItem[]) => SerializedValue;
+	check: (obj: any) => boolean; // Determines if this serializer can handle the object
+	serialize: (obj: any, stack: StackItem[]) => SerializedValue; // Converts object to serializable form
 }
 
+/**
+ * Main entry point for serialization.
+ * Converts any value into a Uint8Array using Protocol Buffers.
+ */
 export function serializeValue(obj: any): Uint8Array {
 	const serialized = _serializeToJSON(obj);
 	return Value.encode(Value.wrap(serialized)).finish();
 }
 
+/**
+ * Main entry point for deserialization.
+ * Converts a Uint8Array back into the original value structure.
+ */
 export function deserializeValue(value: any): any {
 	const bytes = new Uint8Array(_objectValues(value));
 	const decoded = Value.decode(bytes);
