@@ -174,32 +174,43 @@ test.describe("grid", () => {
 });
 
 test.describe("laggy grid", () => {
-	const NUM_PEERS = 5;
+	const NUM_PEERS = 3;
 	const NUM_OPS = 100;
 	let pages: Page[] = [];
-	let grafts: boolean[] = [];
+	let peerIds: string[] = [];
+	let grafts: boolean[][] = [];
 
 	test.beforeEach(async ({ browser }) => {
 		const { promise, resolve } = Promise.withResolvers<boolean>();
 		await clearLogFile();
+		grafts = new Array(NUM_PEERS).fill(null).map(() => new Array(NUM_PEERS).fill(false));
 
 		for (let i = 0; i < NUM_PEERS; i++) {
 			const page = await browser.newPage();
-			page.on("console", async (msg) => {
-				if (!pages) return;
-				const peerID = await getPeerID(page);
-				if (msg.text().includes(`graft {peerId: ${peerID}`)) {
-					grafts[i] = true;
-				}
-				if (grafts.every((g) => g)) resolve(true);
-			});
-
 			await page.goto("/");
 			await page.waitForSelector("#loadingMessage", { state: "hidden" });
+			peerIds.push(await getPeerID(page));
 			pages.push(page);
 		}
 
+		pages.forEach((page, i) => {
+			page.on("console", async (msg) => {
+				if (!pages) return;
+				peerIds.forEach((peerID, index) => {
+					if (msg.text().includes(`graft {peerId: ${peerID}`)) {
+						grafts[i][index] = true;
+					}
+				});
+			});
+		});
+
+		const id = setInterval(() => {
+			console.log("grafts", grafts);
+			grafts.every((row) => row.every((value) => value)) && resolve(true);
+		}, 1000);
+
 		await promise;
+		clearInterval(id);
 	});
 
 	test("connect to DRP and create many operations", async () => {
