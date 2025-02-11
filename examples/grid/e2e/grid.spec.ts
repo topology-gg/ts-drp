@@ -1,7 +1,6 @@
 import { type Page, expect, test } from "@playwright/test";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import * as readline from "node:readline";
 
 const peersSelector = "#peers";
 const peerIdSelector = "#peerIdExpanded";
@@ -9,43 +8,42 @@ const DRPIdInputSelector = "#gridInput";
 const joinGridButtonSelector = "#joinGrid";
 const objectPeersSelector = "#objectPeers";
 
-function tailFileUntilTwoMatches(
+/**
+ * Monitors a file for matches of a search pattern until the desired number of matches is found
+ *
+ * @example
+ * // Match string pattern
+ * await chackFileUntilMatches("test.log", () => "Server started");
+ *
+ * // Match regex pattern (including multiline)
+ * await chackFileUntilMatches("test.log", () => /Error:\n.*at .*\/s);
+ *
+ * @param filePath - Path to the file to monitor
+ * @param searchPattern - String or RegExp to match against file content
+ * @returns Promise that resolves when the required matches are found
+ */
+function chackFileUntilMatches(
 	filePath: string,
-	searchString: string,
-	matchCount = 2
+	searchPattern: () => string | RegExp
 ): Promise<void> {
 	return new Promise((resolve, reject) => {
-		let count = 0;
-		let filePosition = 0;
-		const intervalMs = 100;
+		const intervalMs = 300;
 
 		const interval = setInterval(() => {
-			fs.stat(filePath, (err, stats) => {
+			fs.readFile(filePath, "utf8", (err, content) => {
 				if (err) {
 					clearInterval(interval);
 					return reject(err);
 				}
 
-				if (stats.size > filePosition) {
-					const stream = fs.createReadStream(filePath, {
-						start: filePosition,
-						end: stats.size,
-						encoding: "utf8",
-					});
+				const matches =
+					typeof searchPattern === "string"
+						? content.match(new RegExp(searchPattern, "g"))
+						: content.match(searchPattern());
 
-					filePosition = stats.size;
-
-					const rl = readline.createInterface({ input: stream });
-					rl.on("line", (line) => {
-						if (line.includes(searchString)) {
-							count++;
-							if (count === matchCount) {
-								clearInterval(interval);
-								rl.close();
-								resolve();
-							}
-						}
-					});
+				if (matches) {
+					clearInterval(interval);
+					resolve();
 				}
 			});
 		}, intervalMs);
@@ -87,42 +85,34 @@ async function getPeerID(page: Page) {
 	return peerID.trim();
 }
 
+function getPeerIDRegex(peerID: string) {
+	return new RegExp(
+		`peerId: PeerId\\(${peerID}\\),.*?signedPeerRecord: {\\n.*?addresses: \\[\\n      Multiaddr\\(/ip4/127\\.0\\.0\\.1/tcp/50000/ws/p2p/12D3KooWC6sm9iwmYbeQJCJipKTRghmABNz1wnpJANvSMabvecwJ/p2p-circuit\\)`,
+		"gms"
+	);
+}
+
 test.describe("grid", () => {
 	let page1: Page;
 	let page2: Page;
 
 	test.beforeEach(async ({ browser }) => {
-		const { promise, resolve } = Promise.withResolvers<boolean>();
-		let hasGraftPage2 = false;
-		let hasGraftPage1 = false;
 		await clearLogFile();
 
 		page1 = await browser.newPage();
-		page1.on("console", async (msg) => {
-			if (!page2) return;
-			const peerID2 = await getPeerID(page2);
-			if (msg.text().includes(`graft {peerId: ${peerID2}`)) {
-				hasGraftPage1 = true;
-			}
-			if (hasGraftPage1 && hasGraftPage2) resolve(true);
-		});
-
-		await page1.goto("/");
-		await page1.waitForSelector("#loadingMessage", { state: "hidden" });
-
-		// wait for the peer to identify so the PX go well
-		await tailFileUntilTwoMatches("test.e2e.log", "::start::peer::identify");
+		let peerID1 = "";
+		await Promise.all([
+			(async () => {
+				await page1.goto("/");
+				await page1.waitForSelector("#loadingMessage", { state: "hidden" });
+				peerID1 = await getPeerID(page1);
+			})(),
+			chackFileUntilMatches("test.e2e.log", () => getPeerIDRegex(peerID1)),
+		]);
 
 		page2 = await browser.newPage();
-		page2.on("console", async (msg) => {
-			if (!page1) return;
-			const peerID1 = await getPeerID(page1);
-			if (msg.text().includes(`graft {peerId: ${peerID1}`)) hasGraftPage2 = true;
-			if (hasGraftPage1 && hasGraftPage2) resolve(true);
-		});
 		await page2.goto("/");
 		await page2.waitForSelector("#loadingMessage", { state: "hidden" });
-		await promise;
 	});
 
 	test("check peerID", async () => {
