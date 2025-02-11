@@ -132,10 +132,7 @@ export class HashGraph {
 		this.arePredecessorsFresh = false;
 	}
 
-	/* Add a vertex to the hashgraph with the given operation and dependencies.
-	 * If the vertex already exists, return the hash of the existing vertex.
-	 * Throws an error if any of the dependencies are not present in the hashgraph.
-	 */
+	// Add a new vertex to the hashgraph.
 	addVertex(vertex: Vertex) {
 		this.vertices.set(vertex.hash, vertex);
 		this.frontier.push(vertex.hash);
