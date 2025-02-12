@@ -1,11 +1,12 @@
-import { ObjectPb, deserializeValue, serializeValue } from "@ts-drp/object";
+import { encode, decode } from "@msgpack/msgpack";
+import { ObjectPb } from "@ts-drp/object";
 
 export function serializeStateMessage(state?: ObjectPb.DRPState): ObjectPb.DRPState {
 	const drpState = ObjectPb.DRPState.create();
 	for (const e of state?.state ?? []) {
 		const entry = ObjectPb.DRPStateEntry.create({
 			key: e.key,
-			value: serializeValue(e.value),
+			value: encode(e.value),
 		});
 		drpState.state.push(entry);
 	}
@@ -17,7 +18,7 @@ export function deserializeStateMessage(state?: ObjectPb.DRPState): ObjectPb.DRP
 	for (const e of state?.state ?? []) {
 		const entry = ObjectPb.DRPStateEntry.create({
 			key: e.key,
-			value: deserializeValue(e.value),
+			value: decode(e.value),
 		});
 		drpState.state.push(entry);
 	}

@@ -24,7 +24,6 @@ import * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "./utils/objectSet.js";
 
 export * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
-export * from "./utils/serializer.js";
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
 export * from "./acl/interface.js";
