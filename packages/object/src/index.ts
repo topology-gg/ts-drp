@@ -180,9 +180,10 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		}
 
 		const isACL = drpType === DrpType.ACL;
-		const computeFn = isACL ? this._computeObjectACL : this._computeDRP;
 		const vertexDependencies = this.hashGraph.getFrontier();
-		const preOperationDRP = computeFn(vertexDependencies);
+		const preOperationDRP = isACL
+			? this._computeObjectACL(vertexDependencies)
+			: this._computeDRP(vertexDependencies);
 
 		const drp = cloneDeep(preOperationDRP);
 		let appliedOperationResult = undefined;
