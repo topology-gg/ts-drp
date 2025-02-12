@@ -7,6 +7,13 @@ import { getColorForPeerId } from "./util/color";
 import { systemPrompt } from './prompt';
 import { animalEmojis } from './util/emojis';
 
+// Add this declaration after imports
+declare const MathJax: {
+	Hub: {
+		Queue: (args: any[]) => void;
+	};
+};
+
 const node = new DRPNode();
 let drpObject: DRPObject;
 let chatDRP: Chat;
@@ -15,6 +22,7 @@ let discoveryPeers: string[] = [];
 let objectPeers: string[] = [];
 let aiAvatar = '';
 const humanAvatar = '👶🏽';
+let counter = 0;
 
 // Initialize Groq agent for this client
 // const groq = new Groq({
@@ -221,15 +229,9 @@ const render = () => {
 	if (!chatDRP) return;
 	const chat = chatDRP.query_messages();
 	const element_chat = <HTMLDivElement>document.getElementById("chat");
-	element_chat.innerHTML = "";
-
-	if (chat.size === 0) {
-		const div = document.createElement("div");
-		div.innerHTML = "No messages yet";
-		div.style.padding = "10px";
-		element_chat.appendChild(div);
-		return;
-	}
+	// element_chat.innerHTML = "";
+	// const numMessages = element_chat.children.length;
+	if (chat.size === counter) return;
 
 	// build peer-to-avatar mapping
 	const memberIdentities: Set<Identity> = chatDRP.getMembers();
@@ -237,57 +239,62 @@ const render = () => {
 	memberIdentities.forEach(member => {
 		peerIdToAvatarMap.set(member.peerId, member.avatar);
 	});
+	
 
-	for (const message of [...chat].sort()) {
-		const [timestamp, content, senderId] = message.slice(1, -1).split('//');
+	const sorted = [...chat].sort();
 
-		// Create a container for the message
-		const messageContainer = document.createElement("div");
-		messageContainer.style.display = "flex";
-		messageContainer.style.alignItems = "center";
-		messageContainer.style.margin = "5px 0";
+	// for (const message of sor) {
+	const message = sorted[counter];
+	const [timestamp, content, senderId] = message.slice(1, -1).split('//');
 
-		// Create a circle div for the emoji
-		const emojiDiv = document.createElement("div");
-		emojiDiv.style.width = "30px";
-		emojiDiv.style.height = "30px";
-		emojiDiv.style.borderRadius = "50%";
-		emojiDiv.style.display = "flex";
-		emojiDiv.style.alignItems = "center";
-		emojiDiv.style.justifyContent = "center";
-		emojiDiv.style.marginRight = "10px";
-		emojiDiv.style.backgroundColor = "#f0f0f0"; // Light background for the bubble
+	// Create a container for the message
+	const messageContainer = document.createElement("div");
+	messageContainer.style.display = "flex";
+	messageContainer.style.alignItems = "center";
+	messageContainer.style.margin = "5px 0";
 
-		// Map the senderId to an emoji
-		if (senderId.startsWith('ai')) {
-			const avatar = peerIdToAvatarMap.get(senderId);
-			if (avatar) {
-				emojiDiv.innerText = String.fromCodePoint(parseInt(avatar.replace("U+", ""), 16)); // Convert Unicode to emoji
-			} else {
-				emojiDiv.innerText = "";
-			}
+	// Create a circle div for the emoji
+	const emojiDiv = document.createElement("div");
+	emojiDiv.style.width = "30px";
+	emojiDiv.style.height = "30px";
+	emojiDiv.style.borderRadius = "50%";
+	emojiDiv.style.display = "flex";
+	emojiDiv.style.alignItems = "center";
+	emojiDiv.style.justifyContent = "center";
+	emojiDiv.style.marginRight = "10px";
+	emojiDiv.style.backgroundColor = "#f0f0f0"; // Light background for the bubble
+
+	// Map the senderId to an emoji
+	if (senderId.startsWith('ai')) {
+		const avatar = peerIdToAvatarMap.get(senderId);
+		if (avatar) {
+			emojiDiv.innerText = String.fromCodePoint(parseInt(avatar.replace("U+", ""), 16)); // Convert Unicode to emoji
 		} else {
-			emojiDiv.innerText = humanAvatar;
+			emojiDiv.innerText = "";
 		}
-
-		// Create the chat bubble div
-		const chatBubbleDiv = document.createElement("div");
-		chatBubbleDiv.style.padding = "10px";
-		chatBubbleDiv.style.borderRadius = "10px";
-		chatBubbleDiv.style.backgroundColor = "#f0f0f0"; // Light background for the bubble
-		chatBubbleDiv.style.color = '#333'; // Dark text color;
-		chatBubbleDiv.style.maxWidth = "80%"; // Limit the width of the chat bubble
-		chatBubbleDiv.style.wordWrap = "break-word"; // Allow word wrapping
-
-		// Set the content of the chat bubble
-		chatBubbleDiv.innerHTML = content;
-
-		// Append the emoji and chat bubble to the message container
-		messageContainer.appendChild(emojiDiv);
-		messageContainer.appendChild(chatBubbleDiv);
-
-		element_chat.appendChild(messageContainer);
+	} else {
+		emojiDiv.innerText = humanAvatar;
 	}
+
+	// Create the chat bubble div
+	const chatBubbleDiv = document.createElement("div");
+	chatBubbleDiv.style.padding = "10px";
+	chatBubbleDiv.style.borderRadius = "10px";
+	chatBubbleDiv.style.backgroundColor = "#f0f0f0"; // Light background for the bubble
+	chatBubbleDiv.style.color = '#333'; // Dark text color;
+	chatBubbleDiv.style.maxWidth = "80%"; // Limit the width of the chat bubble
+	chatBubbleDiv.style.wordWrap = "break-word"; // Allow word wrapping
+
+	// Set the content of the chat bubble
+	chatBubbleDiv.innerHTML = "$$\\frac{1}{2}$$";
+	MathJax.Hub.Queue(["Typeset", MathJax.Hub, chatBubbleDiv]);
+
+	// Append the emoji and chat bubble to the message container
+	messageContainer.appendChild(emojiDiv);
+	messageContainer.appendChild(chatBubbleDiv);
+
+	element_chat.appendChild(messageContainer);
+	counter++;
 };
 
 async function main() {
