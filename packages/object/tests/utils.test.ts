@@ -108,6 +108,14 @@ describe("Serialize & deserialize", () => {
 		map.set("c", { a: 1, b: 2 });
 		map.set("d", new Date());
 		map.set("e", [1, 2, 3]);
+		// Map<String, Map<String, Map<String, Set<Number>>>>
+		const nestedMap = new Map<string, any>();
+		nestedMap.set(
+			"a",
+			new Map<string, any>([["a", new Map<string, any>([["a", new Set([1, 2])]])]])
+		);
+		map.set("f", nestedMap);
+
 		const serialized = serializeValue(map);
 		const deserialized = deserializeValue(serialized);
 		expect(deserialized).toEqual(map);
