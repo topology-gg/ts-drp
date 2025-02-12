@@ -1,6 +1,6 @@
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { DRPObject } from "@ts-drp/object/src/index.js";
-import { beforeAll, describe, test } from "vitest";
+import { beforeAll, describe, expect, test } from "vitest";
 
 import { deserializeStateMessage, serializeStateMessage } from "../src/utils.js";
 
@@ -21,9 +21,7 @@ describe("State message utils", () => {
 	test("Should serialize/deserialize state message", async () => {
 		const state = object["_computeDRPState"].bind(object);
 		const serialized = serializeStateMessage(state(object.hashGraph.getFrontier()));
-		console.log(serialized);
 		const deserialized = deserializeStateMessage(serialized);
-		console.log(deserialized);
-		// expect(deserialized).toBe(state(object.hashGraph.getFrontier()));
+		expect(deserialized).toStrictEqual(state(object.hashGraph.getFrontier()));
 	});
 });
