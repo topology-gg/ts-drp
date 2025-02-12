@@ -39,6 +39,10 @@ export class DRPNode {
 		);
 	}
 
+	async stop(): Promise<void> {
+		await this.networkNode.stop();
+	}
+
 	async restart(config?: DRPNodeConfig): Promise<void> {
 		await this.networkNode.stop();
 		this.networkNode = new DRPNetworkNode(

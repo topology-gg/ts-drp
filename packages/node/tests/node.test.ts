@@ -1,8 +1,10 @@
 import bls from "@chainsafe/bls/herumi";
+import { IdentifyResult, Libp2p } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
-import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { raceEvent } from "race-event";
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
 import {
 	signFinalityVertices,
@@ -229,4 +231,71 @@ describe("DRPNode voting tests", () => {
 			])
 		);
 	});
+});
+
+describe("DRPNode multiple nodes", () => {
+	this.timeout(5000);
+	let btNode: DRPNode;
+	let btLibp2p: Libp2p;
+	const nodes: DRPNode[] = [];
+	const peerIDToNode = new Map<string, string>();
+
+	beforeEach(async () => {
+		btNode = new DRPNode({
+			network_config: {
+				bootstrap: true,
+				listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
+				private_key_seed: "multiple_node_test",
+				log_config: {
+					level: "silent",
+				},
+			},
+		});
+		await btNode.start();
+		btLibp2p = btNode.networkNode["_node"] as Libp2p;
+		btLibp2p.addEventListener("peer:identify", (event) => {
+			return event.detail.signedPeerRecord;
+		});
+		peerIDToNode.set(btNode.networkNode.peerId, "bootstrap");
+	});
+
+	afterEach(async () => {
+		await Promise.all([btNode.stop(), ...nodes.map((node) => node.stop())]);
+	});
+
+	async function makeNodes(count: number) {
+		for (let i = 0; i < count; i++) {
+			const node = new DRPNode({
+				network_config: {
+					bootstrap_peers: btNode.networkNode.getMultiaddrs(),
+					private_key_seed: `node${i}`,
+				},
+			});
+			await Promise.all([
+				raceEvent(btLibp2p, "peer:identify", undefined, {
+					filter: (evt: CustomEvent<IdentifyResult>) => !!evt.detail.signedPeerRecord,
+				}),
+				node.start(),
+			]);
+			nodes.push(node);
+			peerIDToNode.set(node.networkNode.peerId, `node${i}`);
+		}
+	}
+
+	test("10 nodes", async () => {
+		await makeNodes(30);
+		for (const node of nodes) {
+			expect(node.networkNode.peerId).toBeDefined();
+			const peers = node.networkNode.getAllPeers();
+			for (const [peerID, peerName] of peerIDToNode) {
+				if (peerID === node.networkNode.peerId) continue;
+				expect(peers.includes(peerID)).toEqual(
+					expect.toSatisfy(
+						(value: boolean) => value,
+						`Peer ${peerName} was not found in node ${peerIDToNode.get(node.networkNode.peerId)}`
+					)
+				);
+			}
+		}
+	}, 20000);
 });
