@@ -280,7 +280,7 @@ const render = () => {
 		chatBubbleDiv.style.wordWrap = "break-word"; // Allow word wrapping
 
 		// Set the content of the chat bubble
-		chatBubbleDiv.innerHTML = `${content}`;
+		chatBubbleDiv.innerHTML = content;
 
 		// Append the emoji and chat bubble to the message container
 		messageContainer.appendChild(emojiDiv);

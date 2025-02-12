@@ -12,7 +12,9 @@
     "@anthropic-ai/sdk": "^0.36.3",
     "@ts-drp/node": "0.7.0",
     "@ts-drp/object": "0.7.0",
-    "groq-sdk": "^0.15.0"
+    "groq-sdk": "^0.15.0",
+    "mathjax": "3",
+    "mathjax-full": "^3.2.2"
   },
   "devDependencies": {
     "@types/node": "^22.5.4",
