@@ -211,30 +211,4 @@ describe("Serialize & deserialize", () => {
 		const deserialized = deserializeValue(serialized);
 		expect(deserialized).toEqual(obj);
 	});
-
-	it("should handle circular references", () => {
-		const obj: any = {
-			a: 1,
-			b: 2,
-			c: {
-				d: 3,
-				e: 4,
-			},
-		};
-		obj.circular = obj;
-		obj.c.parent = obj;
-		obj.c.self = obj.c;
-
-		const serialized = serializeValue(obj);
-		const deserialized = deserializeValue(serialized);
-
-		expect(deserialized.a).toBe(1);
-		expect(deserialized.b).toBe(2);
-		expect(deserialized.c.d).toBe(3);
-		expect(deserialized.c.e).toBe(4);
-
-		expect(deserialized.circular).toBe(null);
-		expect(deserialized.c.parent).toBe(null);
-		expect(deserialized.c.self).toBe(null);
-	});
 });

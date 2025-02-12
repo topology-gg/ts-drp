@@ -336,6 +336,9 @@ importers:
       '@chainsafe/bls':
         specifier: ^8.1.0
         version: 8.1.0
+      '@msgpack/msgpack':
+        specifier: ^3.0.1
+        version: 3.0.1
       '@ts-drp/logger':
         specifier: ^0.7.0
         version: link:../logger
@@ -1643,6 +1646,10 @@ packages:
 
   '@libp2p/webtransport@5.0.24':
     resolution: {integrity: sha512-JSIa3bPwm5UGLxI8Bd77pnfcVVLvQ6luZNVZUjY0tRDOOi157OxxSWd3WA3yh3P7CKJPkxg58EVWQjILjZQ6Rg==}
+
+  '@msgpack/msgpack@3.0.1':
+    resolution: {integrity: sha512-9qysoVTITLcOFIIJeXbdtUgvvY25ojUp+WWfLc0O4H4KKWeamUNAqkjS5mej/PnVDnH70llWKNa7pzv5U4TqVQ==}
+    engines: {node: '>= 18'}
 
   '@multiformats/dns@1.0.6':
     resolution: {integrity: sha512-nt/5UqjMPtyvkG9BQYdJ4GfLK3nMqGpFZOzf4hAmIa0sJh2LlS9YKXZ4FgwBDsaHvzZqR/rUFIywIc7pkHNNuw==}
@@ -7543,6 +7550,8 @@ snapshots:
       race-signal: 1.1.0
       uint8arraylist: 2.4.8
       uint8arrays: 5.1.0
+
+  '@msgpack/msgpack@3.0.1': {}
 
   '@multiformats/dns@1.0.6':
     dependencies:
