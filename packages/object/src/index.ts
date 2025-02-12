@@ -214,20 +214,6 @@ export class DRPObject implements DRPObjectBase {
 		return appliedOperationResult;
 	}
 
-	/* Merges the vertices into the hashgraph
-	 * Returns a tuple with a boolean indicating if there were
-	 * missing vertices and an array with the missing vertices
-	 */
-	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
-		if (!this.hashGraph) {
-			throw new Error("Hashgraph is undefined");
-		}
-		if (!this.drp) {
-			return this._mergeWithoutDrp(vertices);
-		}
-		return this._mergeWithDrp(vertices);
-	}
-
 	validateVertex(vertex: Vertex) {
 		// Validate hash value
 		if (
@@ -262,9 +248,15 @@ export class DRPObject implements DRPObjectBase {
 		}
 	}
 
-	/* Merges the vertices into the hashgraph using DRP
+	/* Merges the vertices into the hashgraph
+	 * Returns a tuple with a boolean indicating if there were
+	 * missing vertices and an array with the missing vertices
 	 */
-	private _mergeWithDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+	merge(vertices: Vertex[]): [merged: boolean, missing: string[]] {
+		if (!this.hashGraph) {
+			throw new Error("Hashgraph is undefined");
+		}
+
 		const missing: Hash[] = [];
 		const newVertices: Vertex[] = [];
 		for (const vertex of vertices) {
@@ -298,35 +290,8 @@ export class DRPObject implements DRPObjectBase {
 
 		this.vertices = this.hashGraph.getAllVertices();
 		this._updateObjectACLState();
-		this._updateDRPState();
+		if (this.drp) this._updateDRPState();
 		this._notify("merge", newVertices);
-
-		return [missing.length === 0, missing];
-	}
-
-	/* Merges the vertices into the hashgraph without using DRP
-	 */
-	private _mergeWithoutDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
-		const missing = [];
-		for (const vertex of vertices) {
-			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
-				continue;
-			}
-
-			try {
-				this.validateVertex(vertex);
-				this.hashGraph.addVertex({
-					hash: vertex.hash,
-					operation: vertex.operation,
-					dependencies: vertex.dependencies,
-					peerId: vertex.peerId,
-					timestamp: vertex.timestamp,
-					signature: vertex.signature,
-				});
-			} catch (_) {
-				missing.push(vertex.hash);
-			}
-		}
 
 		return [missing.length === 0, missing];
 	}
@@ -348,10 +313,6 @@ export class DRPObject implements DRPObjectBase {
 
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string, deps: Hash[]): boolean {
-		if (!this.drp) {
-			return (this.acl as ACL).query_isWriter(peerId);
-		}
-
 		const acl = this._computeObjectACL(deps);
 		return (acl as ACL).query_isWriter(peerId);
 	}
