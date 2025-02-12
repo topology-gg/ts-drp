@@ -242,11 +242,45 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		return this._mergeWithDrp(vertices);
 	}
 
+	validateVertex(vertex: Vertex) {
+		// Validate hash value
+		if (
+			vertex.hash !==
+			computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp)
+		) {
+			throw new Error(`Invalid hash for vertex ${vertex.hash}`);
+		}
+
+		// Validate vertex dependencies
+		if (vertex.dependencies.length === 0) {
+			throw new Error(`Vertex ${vertex.hash} has no dependencies.`);
+		}
+		for (const dep of vertex.dependencies) {
+			const depVertex = this.hashGraph.vertices.get(dep);
+			if (depVertex === undefined) {
+				throw new Error(`Vertex ${vertex.hash} has invalid dependency ${dep}.`);
+			}
+			if (depVertex.timestamp > vertex.timestamp) {
+				// Vertex's timestamp must not be less than any of its dependencies' timestamps
+				throw new Error(`Vertex ${vertex.hash} has invalid timestamp.`);
+			}
+		}
+		if (vertex.timestamp > Date.now()) {
+			// Vertex created in the future is invalid
+			throw new Error(`Vertex ${vertex.hash} has invalid timestamp.`);
+		}
+
+		// Validate writer permission
+		if (!this._checkWriterPermission(vertex.peerId, vertex.dependencies)) {
+			throw new Error(`Vertex ${vertex.peerId} does not have write permission.`);
+		}
+	}
+
 	/* Merges the vertices into the hashgraph using DRP
 	 */
 	private _mergeWithDrp(vertices: Vertex[]): [merged: boolean, missing: string[]] {
 		const missing: Hash[] = [];
-		const newVertices: Vertex[] = this.vertices;
+		const newVertices: Vertex[] = [];
 		for (const vertex of vertices) {
 			// Check to avoid manually crafted `undefined` operations
 			if (!vertex.operation || this.hashGraph.vertices.has(vertex.hash)) {
@@ -254,34 +288,19 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 
 			try {
-				const acl = this._computeObjectACL(vertex.dependencies);
-				if (!acl.query_isWriter(vertex.peerId)) {
-					throw new Error(`${vertex.peerId} does not have write permission.`);
-				}
-				if (
-					vertex.hash !==
-					computeHash(vertex.peerId, vertex.operation, vertex.dependencies, vertex.timestamp)
-				) {
-					throw new Error(`Invalid hash for vertex ${vertex.hash}`);
-				}
+				this.validateVertex(vertex);
 				const preComputeLca = this.computeLCA(vertex.dependencies);
 
 				if (vertex.operation.drpType === DrpType.DRP) {
-					const drp = this._computeDRP(vertex.dependencies, preComputeLca);
-					this.hashGraph.addVertex(vertex);
-					this._applyOperation(drp, vertex.operation);
-
+					const drp = this._computeDRP(vertex.dependencies, preComputeLca, vertex.operation);
 					this._setObjectACLState(vertex, preComputeLca);
 					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
 				} else {
-					const acl = this._computeObjectACL(vertex.dependencies, preComputeLca);
-
-					this.hashGraph.addVertex(vertex);
-					this._applyOperation(acl, vertex.operation);
-
+					const acl = this._computeObjectACL(vertex.dependencies, preComputeLca, vertex.operation);
 					this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 					this._setDRPState(vertex, preComputeLca);
 				}
+				this.hashGraph.addVertex(vertex);
 				this._initializeFinalityState(vertex.hash);
 				newVertices.push(vertex);
 			} catch (_) {
@@ -289,6 +308,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 		}
 
+		this.vertices = this.hashGraph.getAllVertices();
 		this._updateObjectACLState();
 		this._updateDRPState();
 		this._notify("merge", newVertices);
@@ -306,9 +326,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			}
 
 			try {
-				if (!this._checkWriterPermission(vertex.peerId)) {
-					return [false, [vertex.hash]];
-				}
+				this.validateVertex(vertex);
 				this.hashGraph.addVertex({
 					hash: vertex.hash,
 					operation: vertex.operation,
@@ -354,8 +372,13 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 
 	// check if the given peer has write permission
-	private _checkWriterPermission(peerId: string): boolean {
-		return this.acl ? (this.acl as ACL).query_isWriter(peerId) : true;
+	private _checkWriterPermission(peerId: string, deps: Hash[]): boolean {
+		if (!this.drp) {
+			return (this.acl as ACL).query_isWriter(peerId);
+		}
+
+		const acl = this._computeObjectACL(deps);
+		return (acl as ACL).query_isWriter(peerId);
 	}
 
 	// apply the operation to the DRP
@@ -572,9 +595,9 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 	}
 }
 
-export function computeHash(
+function computeHash(
 	peerId: string,
-	operation: Operation,
+	operation: Operation | undefined,
 	deps: Hash[],
 	timestamp: number
 ): Hash {

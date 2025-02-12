@@ -1,5 +1,5 @@
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { beforeEach, describe, expect, it, test } from "vitest";
+import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
 
@@ -67,5 +67,38 @@ describe("Drp Object should be able to change state value", () => {
 			const stateKeys = state.state.map((x) => x.key);
 			expect(stateKeys).toEqual(expectedDrpKeys);
 		}
+	});
+});
+
+describe("Merging vertices tests", () => {
+	let obj1: DRPObject;
+	let obj2: DRPObject;
+
+	beforeEach(() => {
+		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
+		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+	});
+
+	test("Test: merge should skip unknown dependencies", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
+		const drp1 = obj1.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRP<number>;
+
+		drp1.add(1);
+		drp2.add(2);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		drp1.add(3);
+
+		const vertex = obj1.vertices.find(
+			(v) => v.operation?.opType === "add" && v.operation.value[0] === 3
+		);
+		if (!vertex) {
+			throw new Error("Vertex not found");
+		}
+		expect(obj2.merge([vertex])).toEqual([
+			false,
+			["e5ef52c6186abe51635619df8bc8676c19f5a6519e40f47072683437255f026a"],
+		]);
 	});
 });

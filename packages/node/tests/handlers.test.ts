@@ -1,13 +1,51 @@
-import { Connection, IdentifyResult, Libp2p } from "@libp2p/interface";
+import type { Connection, IdentifyResult, Libp2p, Stream } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
-import { DRPNetworkNode, DRPNetworkNodeConfig, NetworkPb } from "@ts-drp/network";
+import { DRPNetworkNode, type DRPNetworkNodeConfig, NetworkPb } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
-import { DRPObject, ObjectACL } from "@ts-drp/object";
+import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test, afterAll } from "vitest";
+import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
 
-import { signGeneratedVertices } from "../src/handlers.js";
+import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
+
+describe("drpMessagesHandler inputs", () => {
+	let node: DRPNode;
+	const consoleSpy = vi.spyOn(console, "error");
+
+	beforeAll(async () => {
+		node = new DRPNode();
+	});
+
+	test("normal inputs", async () => {
+		await drpMessagesHandler(node);
+		expect(consoleSpy).toHaveBeenLastCalledWith(
+			"drp::node ::messageHandler: Stream and data are undefined"
+		);
+
+		const msg = NetworkPb.Message.create({
+			sender: node.networkNode.peerId,
+			type: -1,
+			data: new Uint8Array(),
+		});
+		await drpMessagesHandler(node, undefined, msg.data);
+		expect(consoleSpy).toHaveBeenLastCalledWith("drp::node ::messageHandler: Invalid operation");
+
+		await drpMessagesHandler(
+			node,
+			{
+				close: async () => {},
+				closeRead: async () => {},
+				closeWrite: async () => {},
+			} as Stream,
+			undefined
+		);
+		expect(consoleSpy).toHaveBeenLastCalledWith(
+			"drp::node ::messageHandler: Error decoding message",
+			new Error("Empty pipeline")
+		);
+	});
+});
 
 describe("Handle message correctly", () => {
 	const controller = new AbortController();

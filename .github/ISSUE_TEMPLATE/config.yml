@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discord
+    url: https://discord.gg/k9Rcc7NuYc
+    about: Have questions? Try asking on our Discord - this issue tracker is for reporting bugs or feature requests only
+  - name: Telegram
+    url: https://t.me/topologyfrens
+    about: Have questions? Try asking on our Telegram - this issue tracker is for reporting bugs or feature requests only

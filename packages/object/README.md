@@ -14,3 +14,23 @@ For starting, you can install it using:
 ```bash
 pnpm install @ts-drp/object
 ```
+
+## Flamegraph
+
+### Prerequisites
+
+- `Golang` and `pprof` install
+
+### How to run
+
+```
+pnpm run flamegraph
+```
+
+### Visualize Profile
+
+```
+pprof -http=:8080 flamegraph.pb.gz
+```
+and preview in browser at `http://localhost:8080`
+

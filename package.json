@@ -26,7 +26,7 @@
   "coverage": "pnpm tsx scripts/coverage.ts",
   "docs": "typedoc",
   "e2e-test": "pnpm exec playwright test --fail-on-flaky-tests",
-  "flamegraph": "./scripts/flamegraph.sh",
+  "flamegraph": "pnpm tsx packages/object/tests/hashgraph.flamegraph.ts",
   "lint": "eslint .",
   "lint:fix": "eslint . --fix",
   "postinstall": "pnpm build:packages",
