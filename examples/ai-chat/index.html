@@ -8,8 +8,8 @@
 	<body>
 		<div style="margin-bottom: 20px;">
 			<h1>AI Talk</h1>
-			<p>My peer ID <span id="peerId"></span></p>
-			<p>Connected to <span id="chatId" style="color: #0066cc;"></span></p>
+			<p>My peer ID <span id="peerId"></span> <span id="aiAvatar" style="font-size: 2rem;"></span></p>
+			<p>Connected to <span id="chatId" style="color: #0066cc; cursor: pointer;" onclick="copyToClipboard()"></span></p>
 			<p>peers: <span id="peers"></span></p>
 			<!-- <p>discovery_peers: <span id="discoveryPeers"></span></p> -->
 			<p>object_peers: <span id="objectPeers"></span></p>
@@ -35,6 +35,19 @@
 					document.getElementById("sendMessage").click();
 				}
 			});
+
+			function copyToClipboard() {
+				const chatIdElement = document.getElementById("chatId");
+				const chatId = chatIdElement.getAttribute("data-id");
+				if (chatId) {
+					navigator.clipboard.writeText(chatId).then(() => {
+						console.log("Chat ID copied to clipboard");
+					}).catch(err => {
+						console.error("Failed to copy: ", err);
+					});
+				}
+			}
+
 		</script>
 
 		<script type="module" src="/src/index.ts"></script>

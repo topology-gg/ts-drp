@@ -86,6 +86,9 @@ importers:
 
   examples/ai-chat:
     dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.36.3
+        version: 0.36.3
       '@ts-drp/node':
         specifier: 0.7.0
         version: link:../../packages/node

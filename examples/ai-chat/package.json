@@ -9,6 +9,7 @@
     "start": "vite preview --host --port 5173"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
     "@ts-drp/node": "0.7.0",
     "@ts-drp/object": "0.7.0",
     "groq-sdk": "^0.15.0"

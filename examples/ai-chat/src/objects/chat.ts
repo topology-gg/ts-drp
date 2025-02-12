@@ -1,20 +1,28 @@
 import { ActionType, type DRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/object";
 
+export type Identity = {
+	peerId: string;
+	avatar: string;
+};
+
 export class Chat implements DRP {
 	semanticsType: SemanticsType = SemanticsType.pair;
 	// store messages as strings in the format (timestamp, message, peerId)
-	members: Set<string>;
+	members: Set<Identity>;
 	messages: Set<string>;
 	constructor() {
 		this.messages = new Set<string>();
-		this.members = new Set<string>();
+		this.members = new Set<Identity>();
 	}
 
-	addMember(memberPeerId: string): void {
-		this.members.add(memberPeerId);
+	addMember(memberPeerId: string, avatar: string): void {
+		this.members.add({
+			peerId: memberPeerId,
+			avatar: avatar,
+		});
 	}
 
-	getMembers(): Set<string> {
+	getMembers(): Set<Identity> {
 		return this.members;
 	}
 
