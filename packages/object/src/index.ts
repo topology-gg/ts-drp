@@ -157,8 +157,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
 							if (!callerName?.startsWith("Proxy.")) {
-								const appliedOperationResult = obj.callFn(fullPropKey, args, vertexType);
-								return appliedOperationResult;
+								return obj.callFn(fullPropKey, args, vertexType);
 							}
 							return Reflect.apply(applyTarget, thisArg, args);
 						},
