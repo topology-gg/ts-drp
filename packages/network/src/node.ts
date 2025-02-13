@@ -192,11 +192,9 @@ export class DRPNetworkNode {
 			transports: [
 				circuitRelayTransport(),
 				webRTC(),
-				webRTCDirect(),
 				webSockets({
 					filter: filters.all,
 				}),
-				webTransport(),
 			],
 		});
 		log.info(
