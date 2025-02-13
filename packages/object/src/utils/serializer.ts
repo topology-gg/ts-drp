@@ -1,141 +1,68 @@
-import { Value } from "../proto/google/protobuf/struct_pb.js";
+import { encode, decode, ExtensionCodec } from "@msgpack/msgpack";
 
-export function serializeValue(obj: any): Uint8Array {
-	const serialized = _serializeToJSON(obj);
-	return Value.encode(Value.wrap(serialized)).finish();
-}
+const extensionCodec = new ExtensionCodec();
 
-export function deserializeValue(value: any): any {
-	const bytes = new Uint8Array(_objectValues(value));
-	const v = Value.decode(bytes);
-	const unwrapped = Value.unwrap(v);
-	return _deserializeFromJSON(unwrapped);
-}
-
-function _objectValues(obj: any): any[] {
-	const tmp: any[] = [];
-	for (const key in obj) {
-		tmp.push(obj[key]);
-	}
-	return tmp;
-}
-
-function _serializeToJSON(obj: any): any {
-	// Handle null/undefined
-	if (obj == null) return null;
-
-	// Handle primitive types
-	if (typeof obj !== "object") return obj;
-
-	// Handle Date objects
-	if (obj instanceof Date) {
-		return {
-			__type: "Date",
-			value: obj.toISOString(),
-		};
-	}
-
-	// Handle Maps
-	if (obj instanceof Map) {
-		return {
-			__type: "Map",
-			value: Array.from(obj.entries()),
-		};
-	}
-
-	// Handle Sets
-	if (obj instanceof Set) {
-		return {
-			__type: "Set",
-			value: Array.from(obj.values()),
-		};
-	}
-
-	// Handle regular arrays
-	if (Array.isArray(obj)) {
-		return obj.map((item) => _serializeToJSON(item));
-	}
-
-	// Handle regular objects
-	const result: any = {};
-	for (const [key, value] of Object.entries(obj)) {
-		// Skip non-enumerable properties and functions
-		if (typeof value === "function") continue;
-
-		// Handle circular references
-		try {
-			result[key] = _serializeToJSON(value);
-		} catch (e) {
-			console.warn(`Circular reference detected for key: ${key}`);
-			result[key] = null;
+const SET_EXT_TYPE = 0; // Any in 0-127
+extensionCodec.register({
+	type: SET_EXT_TYPE,
+	encode: (object: unknown): Uint8Array | null => {
+		if (object instanceof Set) {
+			return encode([...object], { extensionCodec });
+		} else {
+			return null;
 		}
-	}
+	},
+	decode: (data: Uint8Array) => {
+		const array = decode(data, { extensionCodec }) as Array<unknown>;
+		return new Set(array);
+	},
+});
 
-	// Add class name if available
-	if (obj.constructor && obj.constructor.name !== "Object") {
-		result.__type = obj.constructor.name;
-	}
+// Map<K, V>
+const MAP_EXT_TYPE = 1; // Any in 0-127
+extensionCodec.register({
+	type: MAP_EXT_TYPE,
+	encode: (object: unknown): Uint8Array | null => {
+		if (object instanceof Map) {
+			return encode([...object], { extensionCodec });
+		} else {
+			return null;
+		}
+	},
+	decode: (data: Uint8Array) => {
+		const array = decode(data, { extensionCodec }) as Array<[unknown, unknown]>;
+		return new Map(array);
+	},
+});
 
-	return result;
+const FLOAT_32_ARRAY_EXT_TYPE = 2; // Any in 0-127
+extensionCodec.register({
+	type: FLOAT_32_ARRAY_EXT_TYPE,
+	encode: (object: unknown): Uint8Array | null => {
+		if (object instanceof Float32Array) {
+			return encode([...object], { extensionCodec });
+		} else {
+			return null;
+		}
+	},
+	decode: (data: Uint8Array) => {
+		const array = decode(data, { extensionCodec }) as Array<number>;
+		return new Float32Array(array);
+	},
+});
+
+/**
+ * Main entry point for serialization.
+ * Converts any value into a Uint8Array using Protocol Buffers.
+ */
+export function serializeValue(obj: unknown): Uint8Array {
+	return encode(obj, { extensionCodec });
 }
 
-function _deserializeFromJSON(obj: any): any {
-	// Handle null/undefined
-	if (obj == null) return obj;
-
-	// Handle primitive types
-	if (typeof obj !== "object") return obj;
-
-	// Handle arrays
-	if (Array.isArray(obj)) {
-		return obj.map((item) => _deserializeFromJSON(item));
-	}
-
-	// Handle special types
-	if (obj.__type) {
-		switch (obj.__type) {
-			case "Date":
-				return new Date(obj.value);
-
-			case "Map":
-				return new Map(
-					obj.value.map(([k, v]: [any, any]) => [_deserializeFromJSON(k), _deserializeFromJSON(v)])
-				);
-
-			case "Set":
-				return new Set(obj.value.map((v: any) => _deserializeFromJSON(v)));
-
-			case "Uint8Array":
-				return new Uint8Array(obj.value);
-
-			case "Float32Array":
-				return new Float32Array(obj.value);
-
-			// Add other TypedArrays as needed
-
-			default:
-				// Try to reconstruct custom class if available
-				try {
-					const CustomClass = globalThis[obj.__type as keyof typeof globalThis];
-					if (typeof CustomClass === "function") {
-						return Object.assign(
-							new CustomClass(),
-							_deserializeFromJSON({ ...obj, __type: undefined })
-						);
-					}
-				} catch (e) {
-					console.warn(`Could not reconstruct class ${obj.__type}`);
-				}
-		}
-	}
-
-	// Handle regular objects
-	const result: any = {};
-	for (const [key, value] of Object.entries(obj)) {
-		if (key !== "__type") {
-			result[key] = _deserializeFromJSON(value);
-		}
-	}
-
-	return result;
+/**
+ * Main entry point for deserialization.
+ * Converts a Uint8Array back into the original value structure.
+ */
+export function deserializeValue(value: Uint8Array): unknown {
+	return decode(value, { extensionCodec });
 }

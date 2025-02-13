@@ -3,21 +3,13 @@ on:
   issues:
     types:
       - opened
+      - reopened
 jobs:
   add-to-project:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
-      - name: Generate token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ vars.TOPOLOGY_APP_ID }}
-          private-key: ${{ secrets.TOPOLOGY_APP_PEM }}
-
       - uses: actions/add-to-project@v1.0.1
-        env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         with:
-          project-url: https://github.com/orgs/topology-foundation/projects/1
-          github-token: ${{ steps.generate-token.outputs.token }}
+          project-url: https://github.com/orgs/topology-gg/projects/1
+          github-token: ${{ secrets.TOPOLOGY_PAT }}

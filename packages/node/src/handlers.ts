@@ -12,13 +12,18 @@ import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 */
 export async function drpMessagesHandler(node: DRPNode, stream?: Stream, data?: Uint8Array) {
 	let message: NetworkPb.Message;
-	if (stream) {
-		const byteArray = await streamToUint8Array(stream);
-		message = NetworkPb.Message.decode(byteArray);
-	} else if (data) {
-		message = NetworkPb.Message.decode(data);
-	} else {
-		log.error("::messageHandler: Stream and data are undefined");
+	try {
+		if (stream) {
+			const byteArray = await streamToUint8Array(stream);
+			message = NetworkPb.Message.decode(byteArray);
+		} else if (data) {
+			message = NetworkPb.Message.decode(data);
+		} else {
+			log.error("::messageHandler: Stream and data are undefined");
+			return;
+		}
+	} catch (err) {
+		log.error("::messageHandler: Error decoding message", err);
 		return;
 	}
 
