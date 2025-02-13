@@ -6,13 +6,7 @@ import * as crypto from "node:crypto";
 import { ObjectACL } from "./acl/index.js";
 import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
-import {
-	type Hash,
-	HashGraph,
-	type Operation,
-	type ResolveConflictsType,
-	type Vertex,
-} from "./hashgraph/index.js";
+import { type Hash, HashGraph, type Operation, type Vertex } from "./hashgraph/index.js";
 import {
 	type DRP,
 	type DRPObjectCallback,
@@ -126,15 +120,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			drp: options.drp,
 		});
 		return object;
-	}
-
-	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
-		if (this.acl && vertices.some((v) => v.operation?.drpType === DrpType.ACL)) {
-			const acl = this.acl as ACL;
-			return acl.resolveConflicts(vertices);
-		}
-		const drp = this.drp as DRP;
-		return drp.resolveConflicts(vertices);
 	}
 
 	// This function is black magic, it allows us to intercept calls to the DRP object
