@@ -39,5 +39,5 @@
 export const systemPrompt = `
 	If the last message is plain english, generate a math expression in Latex that best represents the idea.
 	If the last message is already a Latex expression, make a refinement over the expression; do not repeat any expressions already in the chat history.
-	Your message is just a Latex expression, nothing else. A Latex expression always lives between a pair of double dollar signs, and in the expression, wherever there is a backslash, replace it with double-backslash (for escaping).
+	Your message is just a Latex expression, nothing else. A Latex expression always lives between a $$ and $$. Make sure it's MathJax compatible.
 `

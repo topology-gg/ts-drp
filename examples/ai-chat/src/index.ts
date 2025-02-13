@@ -229,9 +229,12 @@ const render = () => {
 	if (!chatDRP) return;
 	const chat = chatDRP.query_messages();
 	const element_chat = <HTMLDivElement>document.getElementById("chat");
-	// element_chat.innerHTML = "";
+	
 	// const numMessages = element_chat.children.length;
 	if (chat.size === counter) return;
+	if (chat.size === 1) {
+		element_chat.innerHTML = "";
+	}
 
 	// build peer-to-avatar mapping
 	const memberIdentities: Set<Identity> = chatDRP.getMembers();
@@ -286,7 +289,8 @@ const render = () => {
 	chatBubbleDiv.style.wordWrap = "break-word"; // Allow word wrapping
 
 	// Set the content of the chat bubble
-	chatBubbleDiv.innerHTML = "$$\\frac{1}{2}$$";
+	chatBubbleDiv.innerHTML = content;
+	console.log(`>>> content "${content}"`);
 	MathJax.Hub.Queue(["Typeset", MathJax.Hub, chatBubbleDiv]);
 
 	// Append the emoji and chat bubble to the message container
