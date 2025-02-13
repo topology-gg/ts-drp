@@ -32,7 +32,10 @@ message AggregatedAttestation {
 
 message DRPStateEntry {
   string key = 1;
-  google.protobuf.Value value = 2;
+  oneof value {
+    google.protobuf.Value object = 2;
+    bytes data = 3;
+  }
 }
 
 message DRPState {

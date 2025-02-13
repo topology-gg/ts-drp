@@ -111,8 +111,8 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 		const state = aclState;
 		object.aclStates.set(fetchStateResponse.vertexHash, state);
 		for (const e of state.state) {
-			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
-			(object.acl as ACL)[e.key] = e.value;
+			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value?.value;
+			(object.acl as ACL)[e.key] = e.value?.value;
 		}
 		node.objectStore.put(object.id, object);
 		return;

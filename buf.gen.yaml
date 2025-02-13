@@ -7,7 +7,9 @@ plugins:
     opt:
       - esModuleInterop=true
       - fileSuffix=_pb
-      - ts_proto_opt=outputServices=grpc-js
+      - importSuffix=.js
+      - oneof=unions-value
+      - outputServices=grpc-js
   - remote: buf.build/grpc/node
     out: .
     opt:

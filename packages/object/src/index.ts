@@ -364,7 +364,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			const acl = cloneDeep(this.originalObjectACL);
 
 			for (const entry of state.state) {
-				acl[entry.key] = entry.value;
+				acl[entry.key] = entry.value?.value;
 			}
 			// signer set equals writer set
 			this.finalityStore.initializeState(hash, acl.query_getFinalitySigners());
@@ -429,7 +429,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const state = cloneDeep(fetchedState);
 
 		for (const entry of state.state) {
-			drp[entry.key] = entry.value;
+			drp[entry.key] = entry.value?.value;
 		}
 
 		for (const op of linearizedOperations) {
@@ -465,7 +465,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const state = cloneDeep(fetchedState);
 
 		for (const entry of state.state) {
-			acl[entry.key] = entry.value;
+			acl[entry.key] = entry.value?.value;
 		}
 		for (const op of linearizedOperations) {
 			if (op.drpType === DrpType.ACL) {
@@ -501,7 +501,12 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			state: [],
 		};
 		for (const varName of varNames) {
-			drpState.state.push(ObjectPb.DRPStateEntry.create({ key: varName, value: drp[varName] }));
+			drpState.state.push(
+				ObjectPb.DRPStateEntry.create({
+					key: varName,
+					value: { $case: "object", value: drp[varName] },
+				})
+			);
 		}
 		return drpState;
 	}
@@ -557,7 +562,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const newState = this._computeDRPState(this.hashGraph.getFrontier());
 		for (const entry of newState.state) {
 			if (entry.key in currentDRP && typeof currentDRP[entry.key] !== "function") {
-				currentDRP[entry.key] = entry.value;
+				currentDRP[entry.key] = entry.value?.value;
 			}
 		}
 	}
@@ -570,7 +575,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
 		for (const entry of newState.state) {
 			if (entry.key in currentObjectACL && typeof currentObjectACL[entry.key] !== "function") {
-				currentObjectACL[entry.key] = entry.value;
+				currentObjectACL[entry.key] = entry.value?.value;
 			}
 		}
 	}
@@ -580,14 +585,30 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		const aclState = [];
 		for (const key of Object.keys(acl)) {
 			if (typeof acl[key] !== "function") {
-				aclState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(acl[key]) }));
+				aclState.push(
+					ObjectPb.DRPStateEntry.create({
+						key,
+						value: {
+							$case: "object",
+							value: cloneDeep(acl[key]),
+						},
+					})
+				);
 			}
 		}
 		const drp = (this.drp as DRP) ?? {};
 		const drpState = [];
 		for (const key of Object.keys(drp)) {
 			if (typeof drp[key] !== "function") {
-				drpState.push(ObjectPb.DRPStateEntry.create({ key, value: cloneDeep(drp[key]) }));
+				drpState.push(
+					ObjectPb.DRPStateEntry.create({
+						key,
+						value: {
+							$case: "object",
+							value: cloneDeep(drp[key]),
+						},
+					})
+				);
 			}
 		}
 		this.aclStates.set(HashGraph.rootHash, { state: aclState });

@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { NetworkPb } from "@ts-drp/network/src/index.js";
+import {
+	serializeStateMessage,
+	deserializeStateMessage,
+	getDRPStateEntryValue,
+} from "@ts-drp/node/src/utils.js";
 import { expect, describe, it } from "vitest";
 
-import { deserializeValue, serializeValue } from "../src/index.js";
+import { getDeserializedValue, DRPObject, HashGraph, getSerializedValue } from "../src/index.js";
 
 class TestCustomClass {
 	constructor(
@@ -16,23 +23,26 @@ class TestCustomClass {
 describe("Serialize & deserialize", () => {
 	it("should serialize & deserialize correctly simple object", () => {
 		const obj = { a: 1, b: 2 };
-		const serialized = serializeValue(obj);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(obj);
+		const serialized = getSerializedValue({ $case: "object", value: obj });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(obj);
 	});
 
 	it("should serialize & deserialize correctly Array", () => {
 		const array = [1, 2, 3];
-		const serialized = serializeValue(array);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(array);
+		const serialized = getSerializedValue({ $case: "object", value: array });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(array);
 	});
 
 	it("should serialize & deserialize correctly array of objects", () => {
 		const array = [{ a: 1 }, { b: 2 }, { c: 3 }];
-		const serialized = serializeValue(array);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(array);
+		const serialized = getSerializedValue({ $case: "object", value: array });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(array);
 	});
 
 	it("should serialize & deserialize correctly array of arrays", () => {
@@ -41,30 +51,34 @@ describe("Serialize & deserialize", () => {
 			[3, 4],
 			[5, 6],
 		];
-		const serialized = serializeValue(array);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(array);
+		const serialized = getSerializedValue({ $case: "object", value: array });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(array);
 	});
 
 	it("should serialize & deserialize correctly object with array", () => {
 		const obj = { a: [1, 2, 3] };
-		const serialized = serializeValue(obj);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(obj);
+		const serialized = getSerializedValue({ $case: "object", value: obj });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(obj);
 	});
 
 	it("should serialize & deserialize correctly object with array of objects", () => {
 		const obj = { a: [{ b: 1 }, { c: 2 }] };
-		const serialized = serializeValue(obj);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(obj);
+		const serialized = getSerializedValue({ $case: "object", value: obj });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(obj);
 	});
 
 	it("should serialize & deserialize correctly simple Date", () => {
 		const date = new Date();
-		const serialized = serializeValue(date);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(date);
+		const serialized = getSerializedValue({ $case: "object", value: date });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(date);
 	});
 
 	it("should serialize & deserialize correctly simple Map", () => {
@@ -72,9 +86,10 @@ describe("Serialize & deserialize", () => {
 			["a", 1],
 			["b", 2],
 		]);
-		const serialized = serializeValue(map);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(map);
+		const serialized = getSerializedValue({ $case: "object", value: map });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(map);
 	});
 
 	it("should serialize & deserialize correctly simple Map with nested Map", () => {
@@ -89,16 +104,18 @@ describe("Serialize & deserialize", () => {
 				]),
 			],
 		]);
-		const serialized = serializeValue(map);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(map);
+		const serialized = getSerializedValue({ $case: "object", value: map });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(map);
 	});
 
 	it("should serialize & deserialize correctly simple Set", () => {
 		const set = new Set([1, 2]);
-		const serialized = serializeValue(set);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(set);
+		const serialized = getSerializedValue({ $case: "object", value: set });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(set);
 	});
 
 	it("should serialize & deserialize correctly complex map", () => {
@@ -116,9 +133,10 @@ describe("Serialize & deserialize", () => {
 		);
 		map.set("f", nestedMap);
 
-		const serialized = serializeValue(map);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(map);
+		const serialized = getSerializedValue({ $case: "object", value: map });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(map);
 	});
 
 	it("should serialize & deserialize correctly complex set", () => {
@@ -128,32 +146,36 @@ describe("Serialize & deserialize", () => {
 		set.add({ a: 1, b: 2 });
 		set.add(new Date());
 		set.add([1, 2, 3]);
-		const serialized = serializeValue(set);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(set);
+		const serialized = getSerializedValue({ $case: "object", value: set });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(set);
 	});
 
 	it("should serialize & deserialize correctly Uint8Array", () => {
 		const uint8Array = new Uint8Array([1, 2, 3, 4]);
-		const serialized = serializeValue(uint8Array);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(uint8Array);
+		const serialized = getSerializedValue({ $case: "object", value: uint8Array });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(uint8Array);
 	});
 
 	it("should serialize & deserialize correctly Float32Array", () => {
 		const float32Array = new Float32Array([1.1, 2.2, 3.3, 4.4]);
-		const serialized = serializeValue(float32Array);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(float32Array);
+		const serialized = getSerializedValue({ $case: "object", value: float32Array });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(float32Array);
 	});
 
 	it("should serialize & deserialize correctly CustomClass", () => {
 		const customObj = { a: new TestCustomClass("test", 42) };
-		const serialized = serializeValue(customObj);
-		const deserialized = deserializeValue(serialized);
+		const serialized = getSerializedValue({ $case: "object", value: customObj });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
 		console.log("deserialized", deserialized);
 		console.log("customObj", customObj);
-		expect(deserialized).toEqual(customObj);
+		expect(getDRPStateEntryValue(deserialized)).toEqual(customObj);
 	});
 
 	it("should serialize & deserialize correctly complex array", () => {
@@ -175,9 +197,10 @@ describe("Serialize & deserialize", () => {
 			new TestCustomClass("test", 42),
 			[new TestCustomClass("test", 42)],
 		];
-		const serialized = serializeValue(array);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(array);
+		const serialized = getSerializedValue({ $case: "object", value: array });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(array);
 	});
 
 	it("should serialize & deserialize correctly complex nested object", () => {
@@ -215,8 +238,30 @@ describe("Serialize & deserialize", () => {
 				]),
 			],
 		};
-		const serialized = serializeValue(obj);
-		const deserialized = deserializeValue(serialized);
-		expect(deserialized).toEqual(obj);
+		const serialized = getSerializedValue({ $case: "object", value: obj });
+		const deserialized = getDeserializedValue(serialized);
+		if (!deserialized) throw new Error("deserialized value is undef");
+		expect(getDRPStateEntryValue(deserialized)).toEqual(obj);
+	});
+
+	it("should serialize & deserialize SetDRP", () => {
+		const drpObject = DRPObject.createObject({
+			peerId: "test",
+			drp: new SetDRP(),
+		});
+		const aclState = drpObject.aclStates.get(HashGraph.rootHash);
+		const drpState = drpObject.drpStates.get(HashGraph.rootHash);
+		const response = NetworkPb.FetchStateResponse.create({
+			objectId: "test",
+			vertexHash: "test",
+			aclState: serializeStateMessage(aclState),
+			drpState: serializeStateMessage(drpState),
+		});
+		const data = NetworkPb.FetchStateResponse.encode(response).finish();
+		const decoded = NetworkPb.FetchStateResponse.decode(data);
+		const aclStateDecoded = deserializeStateMessage(decoded.aclState);
+		const drpStateDecoded = deserializeStateMessage(decoded.drpState);
+		expect(aclStateDecoded).toStrictEqual(aclState);
+		expect(drpStateDecoded).toStrictEqual(drpState);
 	});
 });
