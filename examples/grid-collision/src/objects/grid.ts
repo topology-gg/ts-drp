@@ -1,15 +1,13 @@
 import {
 	ActionType,
 	type DRP,
-	Hash,
-	newVertex,
 	type ResolveConflictsType,
 	SemanticsType,
 	type Vertex,
 } from "@ts-drp/object";
 
 export class Grid implements DRP {
-	semanticsType: SemanticsType = SemanticsType.multiple;
+	semanticsType: SemanticsType = SemanticsType.pair;
 	positions: Map<string, { x: number; y: number }>;
 
 	constructor() {
@@ -89,48 +87,47 @@ export class Grid implements DRP {
 		return isColliding;
 	}
 
+	reverseAction(vertex: Vertex) {
+		if (vertex.operation?.opType === "addUser") {
+			this.positions.delete(`${vertex.operation?.value[0]}:${vertex.operation?.value[1]}`);
+		} else if (vertex.operation?.opType === "moveUser") {
+			const userId = vertex.operation?.value[0];
+			let oldDirection = "U";
+			switch (vertex.operation?.value[1]) {
+				case "U":
+					oldDirection = "D";
+					break;
+				case "D":
+					oldDirection = "U";
+					break;
+				case "L":
+					oldDirection = "R";
+					break;
+				case "R":
+					oldDirection = "L";
+					break;
+			}
+			this.moveUser(userId, oldDirection);
+		}
+	}
+
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		console.log("resolveConflicts vertices:", vertices);
-		// debugger;
 
-		// Check vertices actions, if there's conflicts between add, we can safely add those
-		// as new vertices.
-		// If its conflicts between 2 move action, we'll have to check which one to keep.
-		// If its conflicts between a move and an add, we have to put the move after the add.
+		// We know this is going to be only 2 vertices.
+		const verticesPair: [Vertex, Vertex] = vertices as [Vertex, Vertex];
 
-		const updatedVertices: Vertex[] = [];
-		const droppedVertices: Hash[] = [];
-		let j = 1;
-		for (let i = 0; i < vertices.length - 1; i++) {
-			const current = vertices[i];
-			const next = vertices[j];
-
-			if (
-				current.operation?.opType === "addUser" &&
-				current.operation?.opType === next.operation?.opType
-			) {
-				// Dropped those first.
-				droppedVertices.push(next.hash);
-
-				const newNext = newVertex(
-					next.peerId,
-					next.operation,
-					[current.hash],
-					Date.now(),
-					new Uint8Array()
-				);
-				updatedVertices.push(newNext);
-			}
-			i = i + 1;
-			j = j + 1;
-			return {
-				action: ActionType.Reorder,
-				vertices: droppedVertices,
-				newVertices: updatedVertices,
-			};
+		// Simple timestamp based resolution.
+		// Dropping the latest vertex.
+		if (verticesPair[0].timestamp > verticesPair[1].timestamp) {
+			this.reverseAction(verticesPair[0]);
+			return { action: ActionType.DropLeft };
+		} else {
+			this.reverseAction(verticesPair[1]);
+			return { action: ActionType.DropRight };
 		}
 
-		return { action: ActionType.Nop };
+		// This does mean that operations have to be repeated if not successful.
 	}
 }
 

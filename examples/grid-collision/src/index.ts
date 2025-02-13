@@ -1,10 +1,10 @@
 import { DRPNode } from "@ts-drp/node";
+import { ObjectACL } from "@ts-drp/object";
 
 import { Grid } from "./objects/grid";
 import { render, enableUIControls, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
-import { ObjectACL } from "@ts-drp/object";
 
 export function getNetworkConfigFromEnv() {
 	const hasBootstrapPeers = Boolean(import.meta.env.VITE_BOOTSTRAP_PEERS);
@@ -64,6 +64,22 @@ async function addUser() {
 		gridState.node.networkNode.peerId,
 		getColorForPeerId(gridState.node.networkNode.peerId)
 	);
+
+	// This is here to check disqualification of new nodes.
+	setInterval(() => {
+		if (gridState.gridDRP) {
+			const userExist = gridState.gridDRP
+				.query_users()
+				.find((u) => u.startsWith(`${gridState.node.networkNode.peerId}:`));
+			if (!userExist) {
+				gridState.gridDRP.addUser(
+					gridState.node.networkNode.peerId,
+					getColorForPeerId(gridState.node.networkNode.peerId)
+				);
+				render();
+			}
+		}
+	}, 1000);
 	render();
 }
 
@@ -163,10 +179,6 @@ async function main() {
 	});
 
 	setInterval(renderInfo, import.meta.env.VITE_RENDER_INFO_INTERVAL);
-
-	setInterval(() => {
-		console.log("hashgraph vertex", gridState.drpObject?.hashGraph.vertices);
-	}, 1000);
 }
 
 void main();
