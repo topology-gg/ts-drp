@@ -128,15 +128,6 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		return object;
 	}
 
-	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
-		if (this.acl && vertices.some((v) => v.operation?.drpType === DrpType.ACL)) {
-			const acl = this.acl as ACL;
-			return acl.resolveConflicts(vertices);
-		}
-		const drp = this.drp as DRP;
-		return drp.resolveConflicts(vertices);
-	}
-
 	// This function is black magic, it allows us to intercept calls to the DRP object
 	proxyDRPHandler(vertexType: DrpType): ProxyHandler<object> {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
