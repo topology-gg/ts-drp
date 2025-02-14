@@ -1,5 +1,11 @@
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { DRPObjectBase, DRPState, DRPStateEntry, ObjectPb } from "@ts-drp/types";
+import {
+	DRPObjectBase,
+	DRPState,
+	DRPStateEntry,
+	type Vertex_Operation as Operation,
+	type Vertex,
+} from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
@@ -7,7 +13,7 @@ import * as crypto from "node:crypto";
 import { ObjectACL } from "./acl/index.js";
 import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
-import { type Hash, HashGraph, type Operation, type Vertex } from "./hashgraph/index.js";
+import { type Hash, HashGraph } from "./hashgraph/index.js";
 import {
 	type DRP,
 	type DRPObjectCallback,
@@ -15,6 +21,7 @@ import {
 	DrpType,
 	type LcaAndOperations,
 } from "./interface.js";
+import { computeHash } from "./utils/computeHash.js";
 import { ObjectSet } from "./utils/objectSet.js";
 
 export * from "./utils/serializer.js";
@@ -33,7 +40,6 @@ export let log: Logger;
 
 export class DRPObject implements DRPObjectBase {
 	id: string;
-	peerId: string;
 	vertices: Vertex[] = [];
 	acl?: ProxyHandler<ACL>;
 	drp?: ProxyHandler<DRP>;
@@ -59,7 +65,6 @@ export class DRPObject implements DRPObjectBase {
 			throw new Error("Either publicCredential or acl must be provided to create a DRPObject");
 		}
 
-		this.peerId = options.peerId;
 		log = new Logger("drp::object", options.config?.log_config);
 		this.id =
 			options.id ??
@@ -77,9 +82,9 @@ export class DRPObject implements DRPObjectBase {
 			});
 		this.acl = new Proxy(objAcl, this.proxyDRPHandler(DrpType.ACL));
 		if (options.drp) {
-			this._initLocalDrpInstance(options.drp, objAcl);
+			this._initLocalDrpInstance(options.peerId, options.drp, objAcl);
 		} else {
-			this._initNonLocalDrpInstance(objAcl);
+			this._initNonLocalDrpInstance(options.peerId, objAcl);
 		}
 
 		this.aclStates = new Map([[HashGraph.rootHash, DRPState.create()]]);
@@ -91,10 +96,10 @@ export class DRPObject implements DRPObjectBase {
 		this.originalDRP = cloneDeep(options.drp);
 	}
 
-	private _initLocalDrpInstance(drp: DRP, acl: DRP) {
+	private _initLocalDrpInstance(peerId: string, drp: DRP, acl: DRP) {
 		this.drp = new Proxy(drp, this.proxyDRPHandler(DrpType.DRP));
 		this.hashGraph = new HashGraph(
-			this.peerId,
+			peerId,
 			acl.resolveConflicts.bind(acl),
 			drp.resolveConflicts.bind(drp),
 			drp.semanticsType
@@ -102,8 +107,8 @@ export class DRPObject implements DRPObjectBase {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	private _initNonLocalDrpInstance(acl: DRP) {
-		this.hashGraph = new HashGraph(this.peerId, acl.resolveConflicts.bind(this.acl));
+	private _initNonLocalDrpInstance(peerId: string, acl: DRP) {
+		this.hashGraph = new HashGraph(peerId, acl.resolveConflicts.bind(this.acl));
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
@@ -167,7 +172,6 @@ export class DRPObject implements DRPObjectBase {
 		const vertexDependencies = this.hashGraph.getFrontier();
 		const vertexOperation = { drpType, opType: fn, value: args };
 		const preComputeLca = this.computeLCA(vertexDependencies);
-		const now = Date.now();
 		const preOperationDRP = isACL
 			? this._computeObjectACL(vertexDependencies)
 			: this._computeDRP(vertexDependencies);
@@ -192,13 +196,8 @@ export class DRPObject implements DRPObjectBase {
 			? [this._computeDRP(vertexDependencies, preComputeLca), clonedDRP as ACL]
 			: [clonedDRP as DRP, this._computeObjectACL(vertexDependencies, preComputeLca)];
 
-		const vertex = ObjectPb.Vertex.create({
-			hash: computeHash(this.peerId, vertexOperation, vertexDependencies, now),
-			peerId: this.peerId,
-			operation: vertexOperation,
-			dependencies: vertexDependencies,
-			timestamp: now,
-		});
+		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies);
+		this.hashGraph.addToFrontier(vertex);
 
 		this.hashGraph.addToFrontier(vertex);
 		this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
@@ -541,17 +540,6 @@ export class DRPObject implements DRPObjectBase {
 		this.aclStates.set(HashGraph.rootHash, { state: aclState });
 		this.drpStates.set(HashGraph.rootHash, { state: drpState });
 	}
-}
-
-function computeHash(
-	peerId: string,
-	operation: Operation | undefined,
-	deps: Hash[],
-	timestamp: number
-): Hash {
-	const serialized = JSON.stringify({ operation, deps, peerId, timestamp });
-	const hash = crypto.createHash("sha256").update(serialized).digest("hex");
-	return hash;
 }
 
 export function newVertex(
