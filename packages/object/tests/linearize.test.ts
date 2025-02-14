@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 
 import { ActionType } from "../dist/src/hashgraph/index.js";
 import { SemanticsType } from "../dist/src/hashgraph/index.js";
@@ -9,6 +9,8 @@ import { ObjectSet } from "../src/utils/objectSet.js";
 
 describe("Linearize correctly", () => {
 	test("should linearize correctly with multiple semantics", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 		const hashgraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
@@ -57,12 +59,16 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
+		console.log(order);
+		const expectedOrder = [1, 0, 3, 2, 4, 5, 7, 6, 8, 9];
 		for (let i = 0; i < 10; i++) {
-			expect(order[i].value).toStrictEqual([i]);
+			expect(order[i].value).toStrictEqual([expectedOrder[i]]);
 		}
 	});
 
 	test("should linearize correctly with pair semantics", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 		const hashgraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
@@ -123,8 +129,9 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
+		const expectedOrder = [4, 0, 8, 2, 6];
 		for (let i = 0; i < 5; i++) {
-			expect(order[i].value).toStrictEqual([i * 2]);
+			expect(order[i].value).toStrictEqual([expectedOrder[i]]);
 		}
 	});
 });
