@@ -6,13 +6,7 @@ import * as crypto from "node:crypto";
 import { ObjectACL } from "./acl/index.js";
 import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
-import {
-	type Hash,
-	HashGraph,
-	type Operation,
-	type ResolveConflictsType,
-	type Vertex,
-} from "./hashgraph/index.js";
+import { type Hash, HashGraph, type Operation, type Vertex } from "./hashgraph/index.js";
 import {
 	type DRP,
 	type DRPObjectCallback,
