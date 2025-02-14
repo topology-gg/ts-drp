@@ -16,7 +16,7 @@
 
 ## What type of PR is this?
 
-Please delete options that are not relevant.
+<!-- Please delete options that are not relevant. -->
 
 - [ ] Refactor
 - [ ] Feature
@@ -33,7 +33,7 @@ Please delete options that are not relevant.
 
 ## Added/updated tests?
 
-Please delete options that are not relevant.
+<!-- Please delete options that are not relevant. -->
 
 - [ ] Yes
 - [ ] No, because why: _justify why you didn't add tests_
