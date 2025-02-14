@@ -207,6 +207,66 @@ export class HashGraph {
 		return result;
 	}
 
+	dfsTopologicalSort(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+        const visited = new Set<Hash>();
+        const result: Hash[] = [];
+        const tempStack = new Set<Hash>();
+
+        const dfs = (node: Hash) => {
+            if (tempStack.has(node)) throw new Error("Graph contains a cycle!");
+            if (visited.has(node)) return;
+
+            tempStack.add(node);
+            visited.add(node);
+
+            for (const neighbor of this.forwardEdges.get(node) || []) {
+                if (subgraph.has(neighbor)) {
+                    dfs(neighbor);
+                }
+            }
+
+            tempStack.delete(node);
+            result.push(node);
+        };
+
+        dfs(origin);
+
+        return result.reverse();
+    }
+
+    dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+        const visited = new Set<Hash>();
+        const result: Hash[] = [];
+        const stack: Hash[] = [origin];
+        const processing = new Set<Hash>();
+
+        while (stack.length > 0) {
+            const node = stack[stack.length - 1];
+
+            if (processing.has(node)) throw new Error("Graph contains a cycle!");
+            if (visited.has(node)) {
+                stack.pop();
+                result.push(node);
+                continue;
+            }
+
+            processing.add(node);
+            visited.add(node);
+
+            const neighbors = this.forwardEdges.get(node);
+            if (neighbors) {
+                for (const neighbor of neighbors) {
+                    if (subgraph.has(neighbor) && !visited.has(neighbor)) {
+                        stack.push(neighbor);
+                    }
+                }
+            }
+            processing.delete(node);
+        }
+
+        return result.reverse();
+    }
+
 	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */
 	topologicalSort(
 		updateBitsets = false,
