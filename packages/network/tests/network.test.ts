@@ -1,10 +1,10 @@
 import { GossipSub, MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { Connection, IdentifyResult, Libp2p, SubscriptionChangeData } from "@libp2p/interface";
 import { loadConfig } from "@ts-drp/node/src/config.js";
+import { MessagesPb as NetworkPb } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll } from "vitest";
 
-import { NetworkPb } from "../src/index.js";
 import { DRPNetworkNode, DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {

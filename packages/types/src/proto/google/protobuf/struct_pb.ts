@@ -7,8 +7,6 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
-export const protobufPackage = "google.protobuf";
-
 /**
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
@@ -560,7 +558,7 @@ export const ListValue: MessageFns<ListValue> & ListValueWrapperFns = {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string; value: unknown } ? { $case: T["$case"]; value?: DeepPartial<T["value"]> }
@@ -568,7 +566,7 @@ export type DeepPartial<T> = T extends Builtin ? T
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {
@@ -579,7 +577,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;
@@ -588,17 +586,17 @@ export interface MessageFns<T> {
   fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }
 
-export interface StructWrapperFns {
+interface StructWrapperFns {
   wrap(object: { [key: string]: any } | undefined): Struct;
   unwrap(message: Struct): { [key: string]: any };
 }
 
-export interface AnyValueWrapperFns {
+interface AnyValueWrapperFns {
   wrap(value: any): Value;
   unwrap(message: any): string | number | boolean | Object | null | Array<any> | undefined;
 }
 
-export interface ListValueWrapperFns {
+interface ListValueWrapperFns {
   wrap(array: Array<any> | undefined): ListValue;
   unwrap(message: ListValue): Array<any>;
 }

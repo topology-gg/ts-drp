@@ -209,10 +209,10 @@ describe("HashGraph construction tests", () => {
 		drp1.add(1);
 		drp1.add(2);
 		const rootDRPState = obj1.drpStates.get(HashGraph.rootHash);
-		expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value?.value.size).toBe(0);
+		expect(rootDRPState?.state.filter((e) => e.key === "_set")[0].value.size).toBe(0);
 		const frontierState = obj1.drpStates.get(obj1.hashGraph.getFrontier()[0]);
-		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value?.value.has(1)).toBe(true);
-		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value?.value.has(2)).toBe(true);
+		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(frontierState?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
 	});
 
 	test("Root vertex acl state should not be modified", () => {
@@ -223,8 +223,8 @@ describe("HashGraph construction tests", () => {
 		});
 		expect(acl1.query_isWriter("peer2")).toBe(true);
 		const rootACLState = obj1.aclStates.get(HashGraph.rootHash);
-		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0].value
-			?.value;
+		const authorizedPeers = rootACLState?.state.filter((e) => e.key === "_authorizedPeers")[0]
+			.value;
 		expect(authorizedPeers.get("peer1")?.permissions.has(ACLGroup.Admin)).toBe(true);
 		expect(authorizedPeers.get("peer2")).toBe(undefined);
 	});
@@ -536,19 +536,19 @@ describe("Vertex state tests", () => {
 		const vertices = obj1.hashGraph.topologicalSort();
 
 		const drpState1 = obj1.drpStates.get(vertices[1]);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(1)).toBe(true);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(2)).toBe(false);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(3)).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
 		const drpState2 = obj1.drpStates.get(vertices[2]);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(1)).toBe(true);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(2)).toBe(true);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(3)).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
 
 		const drpState3 = obj1.drpStates.get(vertices[3]);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(1)).toBe(true);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(2)).toBe(true);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(3)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
 	});
 
 	test("Test: Tricky merging", () => {
@@ -584,26 +584,26 @@ describe("Vertex state tests", () => {
 		const hashA6 = obj1.hashGraph.getFrontier()[0];
 
 		const drpState1 = obj1.drpStates.get(hashA4);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(1)).toBe(true);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(2)).toBe(true);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(3)).toBe(false);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(4)).toBe(true);
-		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value?.value.has(5)).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(false);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
+		expect(drpState1?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(false);
 
 		const drpState2 = obj1.drpStates.get(hashC5);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(1)).toBe(false);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(2)).toBe(true);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(3)).toBe(true);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(4)).toBe(false);
-		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value?.value.has(5)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(false);
+		expect(drpState2?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
 
 		const drpState3 = obj1.drpStates.get(hashA6);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(1)).toBe(true);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(2)).toBe(true);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(3)).toBe(true);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(4)).toBe(true);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(5)).toBe(true);
-		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value?.value.has(6)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(1)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(2)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(3)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(4)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(5)).toBe(true);
+		expect(drpState3?.state.filter((e) => e.key === "_set")[0].value.has(6)).toBe(true);
 	});
 });
 

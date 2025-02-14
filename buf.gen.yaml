@@ -10,6 +10,7 @@ plugins:
       - importSuffix=.js
       - oneof=unions-value
       - outputServices=grpc-js
+      - exportCommonSymbols=false
   - remote: buf.build/grpc/node
     out: .
     opt:

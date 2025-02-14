@@ -1,8 +1,9 @@
+import type { Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
+
 import { log } from "../index.js";
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
-import type { Vertex_Operation as Operation, Vertex } from "../proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
 // Reexporting the Vertex and Operation types from the protobuf file

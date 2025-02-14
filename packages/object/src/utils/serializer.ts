@@ -1,7 +1,5 @@
 import { encode, decode, ExtensionCodec } from "@msgpack/msgpack";
 
-import { DRPStateEntry } from "../proto/drp/object/v1/object_pb.js";
-
 const extensionCodec = new ExtensionCodec();
 
 const SET_EXT_TYPE = 0; // Any in 0-127
@@ -53,44 +51,11 @@ extensionCodec.register({
 	},
 });
 
-/** Extracts all the case names from a oneOf field. */
-type OneOfCases<T> = T extends { $case: infer U extends string } ? U : never;
-
-/** Extracts the specific type of a oneOf case based on its field name */
-type OneOfCase<T, K extends OneOfCases<T>> = T extends {
-	$case: K;
-	[key: string]: unknown;
-}
-	? T
-	: never;
-
-export function getSerializedValue(
-	value: DRPStateEntry["value"]
-): OneOfCase<NonNullable<DRPStateEntry["value"]>, "data"> | undefined {
-	if (!value) return undefined;
-
-	if (value.$case === "data") return value;
-	if (value.$case === "object") return { $case: "data", value: serializeValue(value.value) };
-
-	return undefined;
-}
-
-export function getDeserializedValue(
-	value: DRPStateEntry["value"]
-): OneOfCase<NonNullable<DRPStateEntry["value"]>, "object"> | undefined {
-	if (!value) return undefined;
-
-	if (value.$case === "data") return { $case: "object", value: deserializeValue(value.value) };
-	if (value.$case === "object") return value;
-
-	return undefined;
-}
-
 /**
  * Main entry point for serialization.
  * Converts any value into a Uint8Array using Protocol Buffers.
  */
-function serializeValue(obj: unknown): Uint8Array {
+export function serializeValue(obj: unknown): Uint8Array {
 	return encode(obj, { extensionCodec });
 }
 
@@ -98,6 +63,6 @@ function serializeValue(obj: unknown): Uint8Array {
  * Main entry point for deserialization.
  * Converts a Uint8Array back into the original value structure.
  */
-function deserializeValue(value: Uint8Array): unknown {
+export function deserializeValue(value: Uint8Array): unknown {
 	return decode(value, { extensionCodec });
 }

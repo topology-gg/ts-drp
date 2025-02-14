@@ -2,13 +2,11 @@
 // versions:
 //   protoc-gen-ts_proto  v2.6.1
 //   protoc               unknown
-// source: drp/object/v1/object.proto
+// source: drp/v1/object.proto
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Value } from "../../../google/protobuf/struct_pb.js";
-
-export const protobufPackage = "drp.object.v1";
+import { Value } from "../../google/protobuf/struct_pb.js";
 
 /** Supposed to be the RIBLT stuff */
 export interface Vertex {
@@ -39,11 +37,20 @@ export interface AggregatedAttestation {
 
 export interface DRPStateEntry {
   key: string;
-  value?: { $case: "object"; value: any | undefined } | { $case: "data"; value: Uint8Array } | undefined;
+  value: any | undefined;
 }
 
 export interface DRPState {
   state: DRPStateEntry[];
+}
+
+export interface DRPStateEntryOtherTheWire {
+  key: string;
+  data: Uint8Array;
+}
+
+export interface DRPStateOtherTheWire {
+  state: DRPStateEntryOtherTheWire[];
 }
 
 export interface DRPObjectBase {
@@ -464,13 +471,8 @@ export const DRPStateEntry: MessageFns<DRPStateEntry> = {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
-    switch (message.value?.$case) {
-      case "object":
-        Value.encode(Value.wrap(message.value.value), writer.uint32(18).fork()).join();
-        break;
-      case "data":
-        writer.uint32(26).bytes(message.value.value);
-        break;
+    if (message.value !== undefined) {
+      Value.encode(Value.wrap(message.value), writer.uint32(18).fork()).join();
     }
     return writer;
   },
@@ -495,15 +497,7 @@ export const DRPStateEntry: MessageFns<DRPStateEntry> = {
             break;
           }
 
-          message.value = { $case: "object", value: Value.unwrap(Value.decode(reader, reader.uint32())) };
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.value = { $case: "data", value: reader.bytes() };
+          message.value = Value.unwrap(Value.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -518,11 +512,7 @@ export const DRPStateEntry: MessageFns<DRPStateEntry> = {
   fromJSON(object: any): DRPStateEntry {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : "",
-      value: isSet(object.object)
-        ? { $case: "object", value: object.object }
-        : isSet(object.data)
-        ? { $case: "data", value: bytesFromBase64(object.data) }
-        : undefined,
+      value: isSet(object?.value) ? object.value : undefined,
     };
   },
 
@@ -531,10 +521,8 @@ export const DRPStateEntry: MessageFns<DRPStateEntry> = {
     if (message.key !== "") {
       obj.key = message.key;
     }
-    if (message.value?.$case === "object") {
-      obj.object = message.value.value;
-    } else if (message.value?.$case === "data") {
-      obj.data = base64FromBytes(message.value.value);
+    if (message.value !== undefined) {
+      obj.value = message.value;
     }
     return obj;
   },
@@ -545,20 +533,7 @@ export const DRPStateEntry: MessageFns<DRPStateEntry> = {
   fromPartial<I extends Exact<DeepPartial<DRPStateEntry>, I>>(object: I): DRPStateEntry {
     const message = createBaseDRPStateEntry();
     message.key = object.key ?? "";
-    switch (object.value?.$case) {
-      case "object": {
-        if (object.value?.value !== undefined && object.value?.value !== null) {
-          message.value = { $case: "object", value: object.value.value };
-        }
-        break;
-      }
-      case "data": {
-        if (object.value?.value !== undefined && object.value?.value !== null) {
-          message.value = { $case: "data", value: object.value.value };
-        }
-        break;
-      }
-    }
+    message.value = object.value ?? undefined;
     return message;
   },
 };
@@ -619,6 +594,144 @@ export const DRPState: MessageFns<DRPState> = {
   fromPartial<I extends Exact<DeepPartial<DRPState>, I>>(object: I): DRPState {
     const message = createBaseDRPState();
     message.state = object.state?.map((e) => DRPStateEntry.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDRPStateEntryOtherTheWire(): DRPStateEntryOtherTheWire {
+  return { key: "", data: new Uint8Array(0) };
+}
+
+export const DRPStateEntryOtherTheWire: MessageFns<DRPStateEntryOtherTheWire> = {
+  encode(message: DRPStateEntryOtherTheWire, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.data.length !== 0) {
+      writer.uint32(18).bytes(message.data);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPStateEntryOtherTheWire {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPStateEntryOtherTheWire();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.data = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPStateEntryOtherTheWire {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      data: isSet(object.data) ? bytesFromBase64(object.data) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: DRPStateEntryOtherTheWire): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.data.length !== 0) {
+      obj.data = base64FromBytes(message.data);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPStateEntryOtherTheWire>, I>>(base?: I): DRPStateEntryOtherTheWire {
+    return DRPStateEntryOtherTheWire.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPStateEntryOtherTheWire>, I>>(object: I): DRPStateEntryOtherTheWire {
+    const message = createBaseDRPStateEntryOtherTheWire();
+    message.key = object.key ?? "";
+    message.data = object.data ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseDRPStateOtherTheWire(): DRPStateOtherTheWire {
+  return { state: [] };
+}
+
+export const DRPStateOtherTheWire: MessageFns<DRPStateOtherTheWire> = {
+  encode(message: DRPStateOtherTheWire, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.state) {
+      DRPStateEntryOtherTheWire.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DRPStateOtherTheWire {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDRPStateOtherTheWire();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.state.push(DRPStateEntryOtherTheWire.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DRPStateOtherTheWire {
+    return {
+      state: globalThis.Array.isArray(object?.state)
+        ? object.state.map((e: any) => DRPStateEntryOtherTheWire.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: DRPStateOtherTheWire): unknown {
+    const obj: any = {};
+    if (message.state?.length) {
+      obj.state = message.state.map((e) => DRPStateEntryOtherTheWire.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DRPStateOtherTheWire>, I>>(base?: I): DRPStateOtherTheWire {
+    return DRPStateOtherTheWire.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DRPStateOtherTheWire>, I>>(object: I): DRPStateOtherTheWire {
+    const message = createBaseDRPStateOtherTheWire();
+    message.state = object.state?.map((e) => DRPStateEntryOtherTheWire.fromPartial(e)) || [];
     return message;
   },
 };
@@ -726,7 +839,7 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
+type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
   : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string; value: unknown } ? { $case: T["$case"]; value?: DeepPartial<T["value"]> }
@@ -734,7 +847,7 @@ export type DeepPartial<T> = T extends Builtin ? T
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(int64: { toString(): string }): number {
@@ -752,7 +865,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export interface MessageFns<T> {
+interface MessageFns<T> {
   encode(message: T, writer?: BinaryWriter): BinaryWriter;
   decode(input: BinaryReader | Uint8Array, length?: number): T;
   fromJSON(object: any): T;

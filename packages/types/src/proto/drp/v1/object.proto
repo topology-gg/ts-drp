@@ -1,6 +1,5 @@
 syntax = "proto3";
-
-package drp.object.v1;
+package drp.v1;
 
 import "google/protobuf/struct.proto";
 
@@ -32,14 +31,20 @@ message AggregatedAttestation {
 
 message DRPStateEntry {
   string key = 1;
-  oneof value {
-    google.protobuf.Value object = 2;
-    bytes data = 3;
-  }
+  google.protobuf.Value value = 2;
 }
 
 message DRPState {
   repeated DRPStateEntry state = 1;
+}
+
+message DRPStateEntryOtherTheWire {
+  string key = 1;
+  bytes data = 2;
+}
+
+message DRPStateOtherTheWire {
+  repeated DRPStateEntryOtherTheWire state = 1;
 }
 
 message DRPObjectBase {
