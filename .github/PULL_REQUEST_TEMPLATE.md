@@ -14,7 +14,9 @@
      - Update any related documentation.
 -->
 
-## What type of PR is this? (check all applicable)
+## What type of PR is this?
+
+<!-- Please delete options that are not relevant. -->
 
 - [ ] Refactor
 - [ ] Feature
@@ -30,6 +32,8 @@
 - Closes: #
 
 ## Added/updated tests?
+
+<!-- Please delete options that are not relevant. -->
 
 - [ ] Yes
 - [ ] No, because why: _justify why you didn't add tests_
