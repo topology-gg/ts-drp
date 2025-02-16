@@ -274,16 +274,18 @@ export class DRPObject implements DRPObjectBase {
 			try {
 				this.validateVertex(vertex);
 				const preComputeLca = this.computeLCA(vertex.dependencies);
-
-				if (vertex.operation.drpType === DrpType.DRP) {
-					const drp = this._computeDRP(vertex.dependencies, preComputeLca, vertex.operation);
-					this._setObjectACLState(vertex, preComputeLca);
-					this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
-				} else {
-					const acl = this._computeObjectACL(vertex.dependencies, preComputeLca, vertex.operation);
-					this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
-					this._setDRPState(vertex, preComputeLca);
-				}
+				const drp = this._computeDRP(
+					vertex.dependencies,
+					preComputeLca,
+					vertex.operation.drpType === DrpType.DRP ? vertex.operation : undefined
+				);
+				const acl = this._computeObjectACL(
+					vertex.dependencies,
+					preComputeLca,
+					vertex.operation.drpType === DrpType.ACL ? vertex.operation : undefined
+				);
+				this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
+				this._setObjectACLState(vertex, preComputeLca, this._getDRPState(acl));
 				this.hashGraph.addVertex(vertex);
 				this._initializeFinalityState(vertex.hash);
 				newVertices.push(vertex);
