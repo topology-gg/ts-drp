@@ -25,10 +25,9 @@ import {
 	type PubSubPeerDiscoveryComponents,
 	pubsubPeerDiscovery,
 } from "@libp2p/pubsub-peer-discovery";
-import { webRTC, webRTCDirect } from "@libp2p/webrtc";
+import { webRTC } from "@libp2p/webrtc";
 import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
-import { webTransport } from "@libp2p/webtransport";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
@@ -192,11 +191,9 @@ export class DRPNetworkNode {
 			transports: [
 				circuitRelayTransport(),
 				webRTC(),
-				webRTCDirect(),
 				webSockets({
 					filter: filters.all,
 				}),
-				webTransport(),
 			],
 		});
 		log.info(
