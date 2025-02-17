@@ -6,44 +6,39 @@ export function linearizePairSemantics(
 	origin: Hash,
 	subgraph: ObjectSet<string>
 ): Operation[] {
-	const order: Hash[] = hashGraph.topologicalSort(true, origin, subgraph);
-	const dropped = new Array(order.length).fill(false);
-	const result = [];
-	// alway remove the first operation
-	let i = 1;
+	const order = hashGraph.topologicalSort(true, origin, subgraph);
+	const dropped = new Array<boolean>(order.length).fill(false);
+	const result: Operation[] = [];
 
-	while (i < order.length) {
-		if (dropped[i]) {
-			i++;
-			continue;
-		}
+	// Skip root operation
+	for (let i = 1; i < order.length; i++) {
+		if (dropped[i]) continue;
+
 		let anchor = order[i];
-		let j = i + 1;
+		let modified = false;
 
-		while (j < order.length) {
-			if (hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j]) || dropped[j]) {
-				j++;
+		// Compare with all later operations
+		for (let j = i + 1; j < order.length; j++) {
+			if (dropped[j] || hashGraph.areCausallyRelatedUsingBitsets(anchor, order[j])) {
 				continue;
 			}
-			const moving = order[j];
 
 			const v1 = hashGraph.vertices.get(anchor);
-			const v2 = hashGraph.vertices.get(moving);
-			let action: ActionType;
+			const v2 = hashGraph.vertices.get(order[j]);
+
 			if (!v1 || !v2) {
-				action = ActionType.Nop;
-			} else {
-				action = hashGraph.resolveConflicts([v1, v2]).action;
+				continue;
 			}
+
+			const { action } = hashGraph.resolveConflicts([v1, v2]);
 
 			switch (action) {
 				case ActionType.DropLeft:
 					dropped[i] = true;
-					j = order.length;
+					modified = true;
 					break;
 				case ActionType.DropRight:
 					dropped[j] = true;
-					j++;
 					break;
 				case ActionType.Swap:
 					hashGraph.swapReachablePredecessors(order[i], order[j]);
@@ -51,17 +46,17 @@ export function linearizePairSemantics(
 					j = i + 1;
 					anchor = order[i];
 					break;
-				case ActionType.Nop:
-					j++;
-					break;
 			}
+
+			if (modified) break;
 		}
 
 		if (!dropped[i]) {
-			const op = hashGraph.vertices.get(order[i])?.operation;
-			if (op && op.value !== null) result.push(op);
+			const vertex = hashGraph.vertices.get(order[i]);
+			if (vertex?.operation && vertex.operation.value !== null) {
+				result.push(vertex.operation);
+			}
 		}
-		i++;
 	}
 
 	return result;
