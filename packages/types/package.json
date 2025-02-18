@@ -27,8 +27,7 @@
         "watch": "tsc -b -w"
     },
     "dependencies": {
-        "@bufbuild/protobuf": "^2.0.0",
-        "@grpc/grpc-js": "^1.12.2"
+        "@bufbuild/protobuf": "^2.0.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.18.0",

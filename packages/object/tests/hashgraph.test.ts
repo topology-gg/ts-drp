@@ -1072,7 +1072,6 @@ describe("HashGraph hook tests", () => {
 		});
 		for (let i = 1; i < 100; i++) {
 			drp1.add(i);
-			console.log(newVertices);
 			expect(newVertices.length).toBe(i);
 			expect(newVertices[i - 1].operation?.opType).toBe("add");
 			expect(newVertices[i - 1].operation?.value[0]).toBe(i);

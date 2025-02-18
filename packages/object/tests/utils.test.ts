@@ -21,7 +21,6 @@ describe("Serialize & deserialize", () => {
 		const obj = { a: 1, b: 2 };
 		const serialized = serializeValue(obj);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(obj);
 	});
 
@@ -29,7 +28,6 @@ describe("Serialize & deserialize", () => {
 		const array = [1, 2, 3];
 		const serialized = serializeValue(array);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(array);
 	});
 
@@ -37,7 +35,6 @@ describe("Serialize & deserialize", () => {
 		const array = [{ a: 1 }, { b: 2 }, { c: 3 }];
 		const serialized = serializeValue(array);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(array);
 	});
 
@@ -49,7 +46,6 @@ describe("Serialize & deserialize", () => {
 		];
 		const serialized = serializeValue(array);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(array);
 	});
 
@@ -57,7 +53,6 @@ describe("Serialize & deserialize", () => {
 		const obj = { a: [1, 2, 3] };
 		const serialized = serializeValue(obj);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(obj);
 	});
 
@@ -65,7 +60,6 @@ describe("Serialize & deserialize", () => {
 		const obj = { a: [{ b: 1 }, { c: 2 }] };
 		const serialized = serializeValue(obj);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(obj);
 	});
 
@@ -73,7 +67,6 @@ describe("Serialize & deserialize", () => {
 		const date = new Date();
 		const serialized = serializeValue(date);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(date);
 	});
 
@@ -84,7 +77,6 @@ describe("Serialize & deserialize", () => {
 		]);
 		const serialized = serializeValue(map);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(map);
 	});
 
@@ -102,7 +94,6 @@ describe("Serialize & deserialize", () => {
 		]);
 		const serialized = serializeValue(map);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(map);
 	});
 
@@ -110,7 +101,6 @@ describe("Serialize & deserialize", () => {
 		const set = new Set([1, 2]);
 		const serialized = serializeValue(set);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(set);
 	});
 
@@ -131,7 +121,6 @@ describe("Serialize & deserialize", () => {
 
 		const serialized = serializeValue(map);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(map);
 	});
 
@@ -144,7 +133,6 @@ describe("Serialize & deserialize", () => {
 		set.add([1, 2, 3]);
 		const serialized = serializeValue(set);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(set);
 	});
 
@@ -152,7 +140,6 @@ describe("Serialize & deserialize", () => {
 		const uint8Array = new Uint8Array([1, 2, 3, 4]);
 		const serialized = serializeValue(uint8Array);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(uint8Array);
 	});
 
@@ -160,7 +147,6 @@ describe("Serialize & deserialize", () => {
 		const float32Array = new Float32Array([1.1, 2.2, 3.3, 4.4]);
 		const serialized = serializeValue(float32Array);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(float32Array);
 	});
 
@@ -168,9 +154,6 @@ describe("Serialize & deserialize", () => {
 		const customObj = { a: new TestCustomClass("test", 42) };
 		const serialized = serializeValue(customObj);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
-		console.log("deserialized", deserialized);
-		console.log("customObj", customObj);
 		expect(deserialized).toEqual(customObj);
 	});
 
@@ -195,7 +178,6 @@ describe("Serialize & deserialize", () => {
 		];
 		const serialized = serializeValue(array);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(array);
 	});
 
@@ -236,7 +218,6 @@ describe("Serialize & deserialize", () => {
 		};
 		const serialized = serializeValue(obj);
 		const deserialized = deserializeValue(serialized);
-		if (!deserialized) throw new Error("deserialized value is undef");
 		expect(deserialized).toEqual(obj);
 	});
 
