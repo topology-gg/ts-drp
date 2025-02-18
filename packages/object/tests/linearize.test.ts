@@ -269,7 +269,6 @@ describe("linearizeMultipleSemantics", () => {
 				new Uint8Array()
 			)
 		);
-		console.log(`frontier: ${frontier}`);
 		hashGraph.addVertex(
 			newVertex(
 				"",
