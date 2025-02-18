@@ -175,6 +175,7 @@ export class HashGraph {
 			if (visited.has(node)) {
 				stack.pop();
 				result.push(node);
+				processing.delete(node);
 				continue;
 			}
 
@@ -190,7 +191,6 @@ export class HashGraph {
 					}
 				}
 			}
-			processing.delete(node);
 		}
 
 		return result.reverse();

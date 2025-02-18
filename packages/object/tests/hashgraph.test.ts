@@ -3,7 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { Vertex } from "../src/hashgraph/index.js";
+import { ActionType, SemanticsType, Vertex } from "../src/hashgraph/index.js";
 import {
 	ACLGroup,
 	DRP,
@@ -114,6 +114,59 @@ describe("HashGraph construction tests", () => {
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		] as Operation[]);
+	});
+
+	test("Test: Should detect cycle in topological sort", () => {
+		const hashgraph = new HashGraph(
+			"",
+			(_vertices: Vertex[]) => {
+				return {
+					action: ActionType.Nop,
+				};
+			},
+			(_vertices: Vertex[]) => {
+				return {
+					action: ActionType.Nop,
+				};
+			},
+			SemanticsType.pair
+		);
+		const frontier = hashgraph.getFrontier();
+		const v1 = newVertex(
+			"",
+			{
+				opType: "test",
+				value: [1],
+				drpType: DrpType.DRP,
+			},
+			frontier,
+			Date.now(),
+			new Uint8Array()
+		);
+		hashgraph.addVertex(v1);
+
+		const v2 = newVertex(
+			"",
+			{
+				opType: "test",
+				value: [2],
+				drpType: DrpType.DRP,
+			},
+			[v1.hash],
+			Date.now(),
+			new Uint8Array()
+		);
+		hashgraph.addVertex(v2);
+
+		// create a cycle
+		hashgraph.forwardEdges.set(v2.hash, [HashGraph.rootHash]);
+
+		expect(() => {
+			hashgraph.dfsTopologicalSortIterative(
+				HashGraph.rootHash,
+				new ObjectSet(hashgraph.vertices.keys())
+			);
+		}).toThrowError("Graph contains a cycle!");
 	});
 
 	test("Test: HashGraph with 2 root vertices", () => {
