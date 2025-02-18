@@ -234,11 +234,11 @@ describe("tracing lifecycle", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		metrics = new OpentelemetryMetrics();
+		metrics = new OpentelemetryMetrics("metric");
 	});
 
 	test("should enable and disable tracing", async () => {
-		enableTracing("test-service", {
+		enableTracing({
 			provider: {
 				serviceName: "test",
 				exporterUrl: "http://localhost:9999",
@@ -263,7 +263,7 @@ describe("tracing lifecycle", () => {
 	});
 
 	test("should allow flushing traces", async () => {
-		enableTracing("test-service");
+		enableTracing();
 
 		expect(WebTracerProvider).toHaveBeenCalled();
 		const mockProvider = vi.mocked(WebTracerProvider).mock.results[0].value;
@@ -276,7 +276,7 @@ describe("tracing lifecycle", () => {
 	describe("wrapping functions", () => {
 		beforeEach(() => {
 			vi.clearAllMocks();
-			enableTracing("test-service");
+			enableTracing();
 		});
 
 		test("should wrap synchronous functions", () => {
