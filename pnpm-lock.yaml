@@ -311,6 +311,9 @@ importers:
       commander:
         specifier: ^13.0.0
         version: 13.1.0
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.7
       uint8arrays:
         specifier: ^5.1.0
         version: 5.1.0
@@ -3165,6 +3168,10 @@ packages:
   dot-prop@9.0.0:
     resolution: {integrity: sha512-1gxPBJpI/pcjQhKgIU91II6Wkay+dLcN3M6rf2uwP8hRur3HtQXjVrdAK3sjC0piaEuxzMwjXChcETiJl47lAQ==}
     engines: {node: '>=18'}
+
+  dotenv@16.4.7:
+    resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
+    engines: {node: '>=12'}
 
   dprint-node@1.0.8:
     resolution: {integrity: sha512-iVKnUtYfGrYcW1ZAlfR/F59cUVL8QIhWoBJoSjkkdua/dkWIgjZfiLMeTjiB06X0ZLkQ0M2C1VbUj/CxkIf1zg==}
@@ -9765,6 +9772,8 @@ snapshots:
   dot-prop@9.0.0:
     dependencies:
       type-fest: 4.35.0
+
+  dotenv@16.4.7: {}
 
   dprint-node@1.0.8:
     dependencies:
