@@ -176,6 +176,7 @@ export class DRPNetworkNode {
 				...(this._config?.announce_addresses ? { announce: this._config.announce_addresses } : {}),
 			},
 			connectionManager: {
+				dialTimeout: 60_000,
 				addressSorter: this._sortAddresses,
 			},
 			connectionEncrypters: [noise()],
