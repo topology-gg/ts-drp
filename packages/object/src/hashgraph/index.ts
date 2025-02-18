@@ -164,15 +164,14 @@ export class HashGraph {
 	}
 
 	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
-		const visited = new Set<Hash>();
+		const visited = new ObjectSet<Hash>();
 		const result: Hash[] = [];
 		const stack: Hash[] = [origin];
-		const processing = new Set<Hash>();
+		const processing = new ObjectSet<Hash>();
 
 		while (stack.length > 0) {
 			const node = stack[stack.length - 1];
 
-			if (processing.has(node)) throw new Error("Graph contains a cycle!");
 			if (visited.has(node)) {
 				stack.pop();
 				result.push(node);
@@ -185,6 +184,7 @@ export class HashGraph {
 			const neighbors = this.forwardEdges.get(node);
 			if (neighbors) {
 				for (const neighbor of neighbors.sort()) {
+					if (processing.has(neighbor)) throw new Error("Graph contains a cycle!");
 					if (subgraph.has(neighbor) && !visited.has(neighbor)) {
 						stack.push(neighbor);
 					}

@@ -59,7 +59,6 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
-		console.log(order);
 		const expectedOrder = [1, 0, 3, 2, 4, 5, 7, 6, 8, 9];
 		for (let i = 0; i < 10; i++) {
 			expect(order[i].value).toStrictEqual([expectedOrder[i]]);
