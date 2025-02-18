@@ -6,10 +6,8 @@ import { drpMessagesHandler, drpObjectChangesHandler } from "./handlers.js";
 import { type DRPNode, log } from "./index.js";
 
 export function createObject(node: DRPNode, object: DRPObject) {
-	console.log("Creating object", object.id);
 	node.objectStore.put(object.id, object);
 	object.subscribe((obj, originFn, vertices) => {
-		console.log("Perform", Date.now());
 		drpObjectChangesHandler(node, obj, originFn, vertices);
 	});
 }
@@ -46,7 +44,6 @@ export async function connectObject(
 
 /* data: { id: string } */
 export async function subscribeObject(node: DRPNode, objectId: string) {
-	console.log("Subscribing to object", objectId);
 	node.networkNode.subscribe(objectId);
 	node.networkNode.addGroupMessageHandler(
 		objectId,
@@ -60,7 +57,6 @@ export function unsubscribeObject(node: DRPNode, objectId: string, purge?: boole
 }
 
 export async function fetchState(node: DRPNode, objectId: string, peerId?: string) {
-	console.log("fetching state", objectId);
 	const data = NetworkPb.FetchState.create({
 		objectId,
 		vertexHash: HashGraph.rootHash,
@@ -82,7 +78,6 @@ export async function fetchState(node: DRPNode, objectId: string, peerId?: strin
   data: { vertex_hashes: string[] }
 */
 export async function syncObject(node: DRPNode, objectId: string, peerId?: string) {
-	console.log("Syncing object", objectId);
 	const object: DRPObject | undefined = node.objectStore.get(objectId);
 	if (!object) {
 		log.error("::syncObject: Object not found");
