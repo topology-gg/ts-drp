@@ -166,16 +166,20 @@ export class HashGraph {
 
 	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const visited = new ObjectSet<Hash>();
-		const result: Hash[] = [];
-		const stack: Hash[] = [origin];
+		const result: Hash[] = Array(subgraph.size);
+		const stack: Hash[] = Array(subgraph.size);
 		const processing = new ObjectSet<Hash>();
+		let resultIndex = subgraph.size - 1;
+		let stackIndex = 0;
+		stack[stackIndex] = origin;
 
-		while (stack.length > 0) {
-			const node = stack[stack.length - 1];
+		while (resultIndex >= 0) {
+			const node = stack[stackIndex];
 
 			if (visited.has(node)) {
-				stack.pop();
-				result.push(node);
+				result[resultIndex] = node;
+				stackIndex--;
+				resultIndex--;
 				processing.delete(node);
 				continue;
 			}
@@ -188,13 +192,14 @@ export class HashGraph {
 				for (const neighbor of neighbors.sort()) {
 					if (processing.has(neighbor)) throw new Error("Graph contains a cycle!");
 					if (subgraph.has(neighbor) && !visited.has(neighbor)) {
-						stack.push(neighbor);
+						stackIndex++;
+						stack[stackIndex] = neighbor;
 					}
 				}
 			}
 		}
 
-		return result.reverse();
+		return result;
 	}
 
 	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */
