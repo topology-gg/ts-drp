@@ -1,4 +1,5 @@
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { IMetrics } from "@ts-drp/tracer";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
@@ -55,6 +56,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		drp?: DRP;
 		id?: string;
 		config?: DRPObjectConfig;
+		metrics?: IMetrics;
 	}) {
 		if (!options.acl && !options.publicCredential) {
 			throw new Error("Either publicCredential or acl must be provided to create a DRPObject");
@@ -90,6 +92,14 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this.finalityStore = new FinalityStore(options.config?.finality_config);
 		this.originalObjectACL = cloneDeep(objAcl);
 		this.originalDRP = cloneDeep(options.drp);
+		this.callFn =
+			options.metrics?.traceFunc("drpObject.callFn", this.callFn.bind(this)) ?? this.callFn;
+		this._computeObjectACL =
+			options.metrics?.traceFunc("drpObject.computeObjectACL", this._computeObjectACL.bind(this)) ??
+			this._computeObjectACL;
+		this._computeDRP =
+			options.metrics?.traceFunc("drpObject.computeDRP", this._computeDRP.bind(this)) ??
+			this._computeDRP;
 	}
 
 	private _initLocalDrpInstance(drp: DRP, acl: DRP) {
@@ -108,7 +118,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: { peerId: string; id?: string; drp?: DRP }) {
+	static createObject(options: { peerId: string; id?: string; drp?: DRP; metrics?: IMetrics }) {
 		const aclObj = new ObjectACL({
 			admins: new Map(),
 			permissionless: true,
@@ -118,6 +128,7 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 			id: options.id,
 			acl: aclObj,
 			drp: options.drp,
+			metrics: options.metrics,
 		});
 		return object;
 	}

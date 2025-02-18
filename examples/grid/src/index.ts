@@ -1,4 +1,5 @@
 import { DRPNode } from "@ts-drp/node";
+import { enableTracing, OpentelemetryMetrics } from "@ts-drp/tracer";
 
 import { Grid } from "./objects/grid";
 import { render, enableUIControls, renderInfo } from "./render";
@@ -77,10 +78,14 @@ async function createConnectHandlers() {
 async function run() {
 	enableUIControls();
 	renderInfo();
+	const metrics = new OpentelemetryMetrics("grid-service-2");
 
 	const button_create = <HTMLButtonElement>document.getElementById("createGrid");
 	button_create.addEventListener("click", async () => {
-		gridState.drpObject = await gridState.node.createObject({ drp: new Grid() });
+		gridState.drpObject = await gridState.node.createObject({
+			drp: new Grid(),
+			metrics,
+		});
 		gridState.gridDRP = gridState.drpObject.drp as Grid;
 		await createConnectHandlers();
 		await addUser();
@@ -94,6 +99,7 @@ async function run() {
 			gridState.drpObject = await gridState.node.connectObject({
 				id: drpId,
 				drp: new Grid(),
+				metrics,
 			});
 			gridState.gridDRP = gridState.drpObject.drp as Grid;
 			await createConnectHandlers();
@@ -127,6 +133,12 @@ async function run() {
 }
 
 async function main() {
+	enableTracing({
+		provider: {
+			serviceName: "grid-service-tracer",
+		},
+	});
+
 	const networkConfig = getNetworkConfigFromEnv();
 	gridState.node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);
 	await gridState.node.start();

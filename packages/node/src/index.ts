@@ -3,6 +3,7 @@ import type { EventCallback, StreamHandler } from "@libp2p/interface";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig, NetworkPb } from "@ts-drp/network";
 import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
+import { IMetrics } from "@ts-drp/tracer";
 
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
@@ -88,6 +89,7 @@ export class DRPNode {
 			enabled: boolean;
 			peerId?: string;
 		};
+		metrics?: IMetrics;
 	}) {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
@@ -95,6 +97,7 @@ export class DRPNode {
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,
+			metrics: options.metrics,
 		});
 		operations.createObject(this, object);
 		await operations.subscribeObject(this, object.id);
@@ -117,8 +120,15 @@ export class DRPNode {
 		sync?: {
 			peerId?: string;
 		};
+		metrics?: IMetrics;
 	}) {
-		const object = operations.connectObject(this, options.id, options.drp, options.sync?.peerId);
+		const object = operations.connectObject(
+			this,
+			options.id,
+			options.drp,
+			options.sync?.peerId,
+			options.metrics
+		);
 		return object;
 	}
 
