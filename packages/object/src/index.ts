@@ -134,17 +134,17 @@ export class DRPObject implements ObjectPb.DRPObjectBase {
 					const fullPropKey = String(propKey);
 					return new Proxy(target[propKey as keyof object], {
 						apply(applyTarget, thisArg, args) {
-							const callerName = new Error().stack?.split("\n")[2]?.trim().split(" ")[1];
-							const startWithQuery = (propKey as string).startsWith("query_");
-							const startWithResolveConflicts = callerName?.startsWith(
-								"DRPObject.resolveConflicts"
-							);
-							const startWithProxy = callerName?.startsWith("Proxy.");
-							const needReflect = startWithQuery || startWithResolveConflicts || startWithProxy;
-							if (needReflect) {
+							if ((propKey as string).startsWith("query_")) {
 								return Reflect.apply(applyTarget, thisArg, args);
 							}
-							return obj.callFn(fullPropKey, args, vertexType);
+							const callerName = new Error().stack?.split("\n")[2]?.trim().split(" ")[1];
+							if (callerName?.startsWith("DRPObject.resolveConflicts")) {
+								return Reflect.apply(applyTarget, thisArg, args);
+							}
+							if (!callerName?.startsWith("Proxy.")) {
+								return obj.callFn(fullPropKey, args, vertexType);
+							}
+							return Reflect.apply(applyTarget, thisArg, args);
 						},
 					});
 				}
