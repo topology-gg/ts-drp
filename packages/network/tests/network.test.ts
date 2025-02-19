@@ -1,7 +1,7 @@
 import { GossipSub, MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { Connection, IdentifyResult, Libp2p, SubscriptionChangeData } from "@libp2p/interface";
 import { loadConfig } from "@ts-drp/node/src/config.js";
-import { MessagesPb as NetworkPb } from "@ts-drp/types";
+import { Message } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll } from "vitest";
 
@@ -89,7 +89,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 			node2
 				.addMessageHandler(async ({ stream }) => {
 					const byteArray = await streamToUint8Array(stream);
-					const message = NetworkPb.Message.decode(byteArray);
+					const message = Message.decode(byteArray);
 					expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
 					boolean = true;
 					resolve(true);
@@ -131,7 +131,7 @@ describe("DRPNetworkNode can connect & send messages", () => {
 		node2.subscribe(group);
 		const messageProcessed = new Promise((resolve) => {
 			node2.addGroupMessageHandler(group, async (e) => {
-				const message = NetworkPb.Message.decode(e.detail.msg.data);
+				const message = Message.decode(e.detail.msg.data);
 				expect(Buffer.from(message.data).toString("utf-8")).toBe(data);
 				boolean = true;
 				resolve(true);
