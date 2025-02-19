@@ -198,7 +198,6 @@ export class DRPObject implements DRPObjectBase {
 			: [clonedDRP as DRP, this._computeObjectACL(vertexDependencies, preComputeLca)];
 
 		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
-		this.hashGraph.addToFrontier(vertex);
 
 		this.hashGraph.addToFrontier(vertex);
 		this._setDRPState(vertex, preComputeLca, this._getDRPState(drp));
