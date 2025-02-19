@@ -172,6 +172,7 @@ export class DRPObject implements DRPObjectBase {
 		const vertexDependencies = this.hashGraph.getFrontier();
 		const vertexOperation = { drpType, opType: fn, value: args };
 		const preComputeLca = this.computeLCA(vertexDependencies);
+		const now = Date.now();
 		const preOperationDRP = isACL
 			? this._computeObjectACL(vertexDependencies)
 			: this._computeDRP(vertexDependencies);
@@ -196,7 +197,7 @@ export class DRPObject implements DRPObjectBase {
 			? [this._computeDRP(vertexDependencies, preComputeLca), clonedDRP as ACL]
 			: [clonedDRP as DRP, this._computeObjectACL(vertexDependencies, preComputeLca)];
 
-		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies);
+		const vertex = this.hashGraph.createVertex(vertexOperation, vertexDependencies, now);
 		this.hashGraph.addToFrontier(vertex);
 
 		this.hashGraph.addToFrontier(vertex);

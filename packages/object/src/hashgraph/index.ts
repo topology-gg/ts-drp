@@ -106,8 +106,7 @@ export class HashGraph {
 			: { action: ActionType.Nop };
 	}
 
-	createVertex(operation: Operation, dependencies: Hash[]): Vertex {
-		const timestamp = Date.now();
+	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
 		return Vertex.create({
 			hash: computeHash(this.peerId, operation, dependencies, timestamp),
 			peerId: this.peerId,
