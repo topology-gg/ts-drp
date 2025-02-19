@@ -1,6 +1,7 @@
 import { ObjectPb } from "@ts-drp/types";
+import { type Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
 
-import type { Operation, ResolveConflictsType, SemanticsType, Vertex } from "./hashgraph/index.js";
+import type { ResolveConflictsType, SemanticsType } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";
 
 export enum DrpType {
