@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 
 import { ActionType } from "../dist/src/hashgraph/index.js";
 import { SemanticsType } from "../dist/src/hashgraph/index.js";
@@ -9,6 +9,8 @@ import { ObjectSet } from "../src/utils/objectSet.js";
 
 describe("Linearize correctly", () => {
 	test("should linearize correctly with multiple semantics", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 		const hashgraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
@@ -57,12 +59,15 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
+		const expectedOrder = [1, 0, 3, 2, 4, 5, 7, 6, 8, 9];
 		for (let i = 0; i < 10; i++) {
-			expect(order[i].value).toStrictEqual([i]);
+			expect(order[i].value).toStrictEqual([expectedOrder[i]]);
 		}
 	});
 
 	test("should linearize correctly with pair semantics", () => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 		const hashgraph = new HashGraph(
 			"",
 			(_vertices: Vertex[]) => {
@@ -123,8 +128,250 @@ describe("Linearize correctly", () => {
 			HashGraph.rootHash,
 			new ObjectSet(hashgraph.getAllVertices().map((vertex) => vertex.hash))
 		);
+		const expectedOrder = [4, 0, 8, 2, 6];
 		for (let i = 0; i < 5; i++) {
-			expect(order[i].value).toStrictEqual([i * 2]);
+			expect(order[i].value).toStrictEqual([expectedOrder[i]]);
 		}
+	});
+});
+
+describe("linearizeMultipleSemantics", () => {
+	beforeEach(() => {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
+	});
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	test("should linearize operations in a simple sequence", () => {
+		const hashGraph = new HashGraph(
+			"",
+			(_vertices: Vertex[]) => ({
+				action: ActionType.Nop,
+			}),
+			() => ({
+				action: ActionType.Nop,
+			}),
+			SemanticsType.multiple
+		);
+		const origin = HashGraph.rootHash;
+
+		// Add vertices to the graph
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [1],
+					drpType: DrpType.DRP,
+				},
+				hashGraph.getFrontier(),
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [2],
+					drpType: DrpType.DRP,
+				},
+				hashGraph.getFrontier(),
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		const subgraph = new ObjectSet<string>();
+		hashGraph.getAllVertices().forEach((vertex) => subgraph.add(vertex.hash));
+
+		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
+		expect(result.map((op) => op.value)).toEqual([[1], [2]]);
+	});
+
+	test("should handle concurrent operations with conflict resolution", () => {
+		const hashGraph = new HashGraph(
+			"",
+			(_vertices: Vertex[]) => ({
+				action: ActionType.Drop,
+				vertices: _vertices.filter((_, index) => index !== 0).map((vertex) => vertex.hash),
+			}),
+			(_vertices: Vertex[]) => ({
+				action: ActionType.Drop,
+				vertices: _vertices.filter((_, index) => index !== 0).map((vertex) => vertex.hash),
+			}),
+			SemanticsType.multiple
+		);
+		const origin = HashGraph.rootHash;
+		let frontier = hashGraph.getFrontier();
+
+		// Add concurrent vertices
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [1],
+					drpType: DrpType.DRP,
+				},
+				frontier,
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [2],
+					drpType: DrpType.DRP,
+				},
+				frontier,
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [3],
+					drpType: DrpType.DRP,
+				},
+				frontier,
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		// Get the frontier
+		frontier = hashGraph.getFrontier();
+
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [4],
+					drpType: DrpType.DRP,
+				},
+				frontier,
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [5],
+					drpType: DrpType.DRP,
+				},
+				frontier.filter((_, idx) => idx !== 0),
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		frontier = hashGraph.getFrontier();
+
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [6],
+					drpType: DrpType.DRP,
+				},
+				frontier,
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		const subgraph = new ObjectSet<string>();
+		hashGraph.getAllVertices().forEach((vertex) => subgraph.add(vertex.hash));
+
+		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
+		expect(result.map((op) => op.value)).toEqual([[3], [5], [6]]);
+	});
+
+	test("should handle operations with null values", () => {
+		const hashGraph = new HashGraph(
+			"",
+			() => ({
+				action: ActionType.Nop,
+			}),
+			() => ({
+				action: ActionType.Nop,
+			}),
+			SemanticsType.multiple
+		);
+		const origin = HashGraph.rootHash;
+
+		// Add vertices to the graph
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: null,
+					drpType: DrpType.DRP,
+				},
+				hashGraph.getFrontier(),
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		hashGraph.addVertex(
+			newVertex(
+				"",
+				{
+					opType: "set",
+					value: [2],
+					drpType: DrpType.DRP,
+				},
+				hashGraph.getFrontier(),
+				Date.now(),
+				new Uint8Array()
+			)
+		);
+
+		const subgraph = new ObjectSet<string>();
+		hashGraph.getAllVertices().forEach((vertex) => subgraph.add(vertex.hash));
+
+		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
+		expect(result.map((op) => op.value)).toEqual([[2]]);
+	});
+
+	test("should handle empty subgraph", () => {
+		const hashGraph = new HashGraph(
+			"",
+			() => ({
+				action: ActionType.Nop,
+			}),
+			() => ({
+				action: ActionType.Nop,
+			}),
+			SemanticsType.multiple
+		);
+		const origin = HashGraph.rootHash;
+
+		const subgraph = new ObjectSet<string>();
+		subgraph.add(origin);
+
+		const result = linearizeMultipleSemantics(hashGraph, origin, subgraph);
+		expect(result).toEqual([]);
 	});
 });

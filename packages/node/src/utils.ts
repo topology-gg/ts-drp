@@ -1,23 +1,30 @@
-import { ObjectPb, deserializeValue, serializeValue } from "@ts-drp/object";
+import { deserializeValue, serializeValue } from "@ts-drp/object";
+import {
+	DRPState,
+	DRPStateEntry,
+	DRPStateEntryOtherTheWire,
+	DRPStateOtherTheWire,
+} from "@ts-drp/types";
 
-export function serializeStateMessage(state?: ObjectPb.DRPState): ObjectPb.DRPState {
-	const drpState = ObjectPb.DRPState.create();
+export function serializeStateMessage(state?: DRPState): DRPStateOtherTheWire {
+	const drpState = DRPStateOtherTheWire.create();
 	for (const e of state?.state ?? []) {
-		const entry = ObjectPb.DRPStateEntry.create({
+		const entry = DRPStateEntryOtherTheWire.create({
 			key: e.key,
-			value: serializeValue(e.value),
+			data: serializeValue(e.value),
 		});
 		drpState.state.push(entry);
 	}
 	return drpState;
 }
 
-export function deserializeStateMessage(state?: ObjectPb.DRPState): ObjectPb.DRPState {
-	const drpState = ObjectPb.DRPState.create();
+export function deserializeStateMessage(state?: DRPStateOtherTheWire): DRPState {
+	const drpState = DRPState.create();
+
 	for (const e of state?.state ?? []) {
-		const entry = ObjectPb.DRPStateEntry.create({
+		const entry = DRPStateEntry.create({
 			key: e.key,
-			value: deserializeValue(e.value),
+			value: deserializeValue(e.data),
 		});
 		drpState.state.push(entry);
 	}

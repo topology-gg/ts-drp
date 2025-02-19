@@ -1,9 +1,9 @@
 import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
 import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
-import { Vertex } from "../src/hashgraph/index.js";
+import { ActionType, SemanticsType, Vertex } from "../src/hashgraph/index.js";
 import {
 	ACLGroup,
 	DRP,
@@ -47,7 +47,10 @@ function selfCheckConstraints(hg: HashGraph): boolean {
 		}
 	}
 
-	const topoOrder = hg.kahnsAlgorithm(HashGraph.rootHash, new ObjectSet(hg.vertices.keys()));
+	const topoOrder = hg.dfsTopologicalSortIterative(
+		HashGraph.rootHash,
+		new ObjectSet(hg.vertices.keys())
+	);
 
 	for (const vertex of hg.getAllVertices()) {
 		if (!topoOrder.includes(vertex.hash)) {
@@ -67,6 +70,9 @@ describe("HashGraph construction tests", () => {
 	beforeEach(async () => {
 		obj1 = new DRPObject({ peerId: "peer1", acl, drp: new SetDRP<number>() });
 		obj2 = new DRPObject({ peerId: "peer2", acl, drp: new SetDRP<number>() });
+
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 	});
 
 	test("Test: Vertices are consistent across data structures", () => {
@@ -105,9 +111,62 @@ describe("HashGraph construction tests", () => {
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
 		expect(linearOps).toEqual([
-			{ opType: "add", value: [2], drpType: DrpType.DRP },
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			{ opType: "add", value: [2], drpType: DrpType.DRP },
 		] as Operation[]);
+	});
+
+	test("Test: Should detect cycle in topological sort", () => {
+		const hashgraph = new HashGraph(
+			"",
+			(_vertices: Vertex[]) => {
+				return {
+					action: ActionType.Nop,
+				};
+			},
+			(_vertices: Vertex[]) => {
+				return {
+					action: ActionType.Nop,
+				};
+			},
+			SemanticsType.pair
+		);
+		const frontier = hashgraph.getFrontier();
+		const v1 = newVertex(
+			"",
+			{
+				opType: "test",
+				value: [1],
+				drpType: DrpType.DRP,
+			},
+			frontier,
+			Date.now(),
+			new Uint8Array()
+		);
+		hashgraph.addVertex(v1);
+
+		const v2 = newVertex(
+			"",
+			{
+				opType: "test",
+				value: [2],
+				drpType: DrpType.DRP,
+			},
+			[v1.hash],
+			Date.now(),
+			new Uint8Array()
+		);
+		hashgraph.addVertex(v2);
+
+		// create a cycle
+		hashgraph.forwardEdges.set(v2.hash, [HashGraph.rootHash]);
+
+		expect(() => {
+			hashgraph.dfsTopologicalSortIterative(
+				HashGraph.rootHash,
+				new ObjectSet(hashgraph.vertices.keys())
+			);
+		}).toThrowError("Graph contains a cycle!");
 	});
 
 	test("Test: HashGraph with 2 root vertices", () => {
@@ -259,8 +318,8 @@ describe("HashGraph for AddWinSet tests", () => {
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [
 			{ opType: "add", value: [1], drpType: DrpType.DRP },
-			{ opType: "delete", value: [1], drpType: DrpType.DRP },
 			{ opType: "add", value: [2], drpType: DrpType.DRP },
+			{ opType: "delete", value: [1], drpType: DrpType.DRP },
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});

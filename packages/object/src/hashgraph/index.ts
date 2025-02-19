@@ -1,8 +1,9 @@
+import type { Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
+
 import { log } from "../index.js";
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
-import type { Vertex_Operation as Operation, Vertex } from "../proto/drp/object/v1/object_pb.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
 // Reexporting the Vertex and Operation types from the protobuf file
@@ -163,48 +164,37 @@ export class HashGraph {
 		this.arePredecessorsFresh = false;
 	}
 
-	kahnsAlgorithm(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
+		const visited = new ObjectSet<Hash>();
 		const result: Hash[] = [];
-		const inDegree = new Map<Hash, number>();
-		const queue: Hash[] = [];
+		const stack: Hash[] = [origin];
+		const processing = new ObjectSet<Hash>();
 
-		for (const hash of subgraph.entries()) {
-			inDegree.set(hash, 0);
-		}
+		while (stack.length > 0) {
+			const node = stack[stack.length - 1];
 
-		for (const [vertex, children] of this.forwardEdges) {
-			if (!inDegree.has(vertex)) continue;
-			for (const child of children) {
-				if (!inDegree.has(child)) continue;
-				inDegree.set(child, (inDegree.get(child) || 0) + 1);
+			if (visited.has(node)) {
+				stack.pop();
+				result.push(node);
+				processing.delete(node);
+				continue;
 			}
-		}
 
-		let head = 0;
-		queue.push(origin);
-		while (queue.length > 0) {
-			const current = queue[head];
-			head++;
-			if (!current) continue;
+			processing.add(node);
+			visited.add(node);
 
-			result.push(current);
-
-			for (const child of this.forwardEdges.get(current) || []) {
-				if (!inDegree.has(child)) continue;
-				const inDegreeValue = inDegree.get(child) || 0;
-				inDegree.set(child, inDegreeValue - 1);
-				if (inDegreeValue - 1 === 0) {
-					queue.push(child);
+			const neighbors = this.forwardEdges.get(node);
+			if (neighbors) {
+				for (const neighbor of neighbors.sort()) {
+					if (processing.has(neighbor)) throw new Error("Graph contains a cycle!");
+					if (subgraph.has(neighbor) && !visited.has(neighbor)) {
+						stack.push(neighbor);
+					}
 				}
 			}
-
-			if (head > queue.length / 2) {
-				queue.splice(0, head);
-				head = 0;
-			}
 		}
 
-		return result;
+		return result.reverse();
 	}
 
 	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */
@@ -213,7 +203,7 @@ export class HashGraph {
 		origin: Hash = HashGraph.rootHash,
 		subgraph: ObjectSet<Hash> = new ObjectSet(this.vertices.keys())
 	): Hash[] {
-		const result = this.kahnsAlgorithm(origin, subgraph);
+		const result = this.dfsTopologicalSortIterative(origin, subgraph);
 		if (!updateBitsets) return result;
 		this.reachablePredecessors.clear();
 		this.topoSortedIndex.clear();
