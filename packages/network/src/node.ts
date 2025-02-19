@@ -9,7 +9,7 @@ import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
 import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
 import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
-import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
+import { generateKeyPair, privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
@@ -30,6 +30,7 @@ import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
+import { etc } from "@noble/secp256k1";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { Message } from "@ts-drp/types";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
@@ -81,8 +82,12 @@ export class DRPNetworkNode {
 
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
-			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			privateKey = await generateKeyPairFromSeed("secp256k1", uint8ArrayFromString(tmp));
+			const tmp = this._config.private_key_seed.padEnd(64, "0");
+			const seedBytes = uint8ArrayFromString(tmp);
+			const seedHex = etc.bytesToHex(seedBytes);
+			const secp256k1PrivateKey = etc.hashToPrivateKey(seedHex);
+
+			privateKey = privateKeyFromRaw(secp256k1PrivateKey);
 		} else {
 			privateKey = await generateKeyPair("secp256k1");
 		}
