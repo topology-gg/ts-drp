@@ -9,7 +9,7 @@ import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
 import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
 import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
-import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
+import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
@@ -82,7 +82,9 @@ export class DRPNetworkNode {
 		let privateKey = undefined;
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			privateKey = await generateKeyPairFromSeed("Ed25519", uint8ArrayFromString(tmp));
+			privateKey = await generateKeyPairFromSeed("secp256k1", uint8ArrayFromString(tmp));
+		} else {
+			privateKey = await generateKeyPair("secp256k1");
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
