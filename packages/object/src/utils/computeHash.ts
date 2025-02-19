@@ -1,7 +1,7 @@
+import type { Vertex_Operation as Operation } from "@ts-drp/types";
 import * as crypto from "node:crypto";
 
 import type { Hash } from "../hashgraph/index.js";
-import type { Vertex_Operation as Operation } from "../proto/drp/object/v1/object_pb.js";
 
 export function computeHash(
 	peerId: string,
