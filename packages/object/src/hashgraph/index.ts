@@ -7,6 +7,9 @@ import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import { computeHash } from "../utils/computeHash.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
+// Reexporting the Vertex and Operation types from the protobuf file
+export type { Vertex, Operation };
+
 export type Hash = string;
 
 export enum OperationType {
