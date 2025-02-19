@@ -12,11 +12,15 @@ export class ObjectSet<T extends string | number | symbol> {
 	}
 
 	add(item: T): void {
+		if (this.has(item)) return;
+
 		this.set[item] = true;
 		this.size++;
 	}
 
 	delete(item: T): void {
+		if (!this.has(item)) return;
+
 		delete this.set[item];
 		this.size--;
 	}

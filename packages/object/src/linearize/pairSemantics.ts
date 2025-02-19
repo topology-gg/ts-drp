@@ -58,6 +58,5 @@ export function linearizePairSemantics(
 			}
 		}
 	}
-
 	return result;
 }
