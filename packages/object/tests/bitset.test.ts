@@ -51,4 +51,46 @@ describe("BitSet Test", () => {
 		other = other.and(bitset);
 		expect(other.get(0)).toBe(false);
 	});
+
+	test("check toBytes", () => {
+		const toBytes = bitset.toBytes();
+		const expected = new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+		expect(toBytes).toBeInstanceOf(Uint8Array);
+		expect(toBytes).toEqual(expected);
+	});
+
+	test("Bitset xor bit", () => {
+		const data = new Uint32Array([0, 0, 0]);
+		data[0] = 1;
+		const otherBitset = new BitSet(65, data);
+		const result = bitset.xor(otherBitset);
+		const expected = new Uint32Array([1, 0, 0]);
+		const bitsetExpected = new BitSet(65, expected);
+		expect(result).toEqual(bitsetExpected);
+	});
+
+	test("Bitset not", () => {
+		const notBitset = bitset.not();
+		const expectBitset = new BitSet(65, new Uint32Array([0xffffffff, 0xffffffff, 0xffffffff]));
+		expect(notBitset).toEqual(expectBitset);
+	});
+
+	test("Bitset toString", () => {
+		const toStringBitset = bitset.toString();
+		const expectString = "0".repeat(96);
+		expect(toStringBitset).toEqual(expectString);
+	});
+});
+
+describe("BitSet Test Data not undefined", () => {
+	let bitset: BitSet;
+
+	beforeEach(() => {
+		const data = new Uint32Array(3);
+		bitset = new BitSet(65, data);
+	});
+
+	test("Test: Bitset data not undefined", () => {
+		expect(bitset.data).not.toBe(undefined);
+	});
 });
