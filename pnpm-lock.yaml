@@ -358,7 +358,7 @@ importers:
         specifier: workspace:^
         version: link:../tracer
       '@ts-drp/types':
-        specifier: ^0.7.0
+        specifier: workspace:^
         version: link:../types
       es-toolkit:
         specifier: 1.30.1
