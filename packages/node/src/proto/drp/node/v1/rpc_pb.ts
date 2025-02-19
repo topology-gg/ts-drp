@@ -26,7 +26,7 @@ export interface GetDRPHashGraphResponse {
   verticesHashes: string[];
 }
 
-export interface GenericRespone {
+export interface GenericResponse {
   /** return error codes if different than 0 */
   returnCode: number;
 }
@@ -101,7 +101,9 @@ export const SubscribeDRPRequest: MessageFns<SubscribeDRPRequest> = {
   create<I extends Exact<DeepPartial<SubscribeDRPRequest>, I>>(base?: I): SubscribeDRPRequest {
     return SubscribeDRPRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SubscribeDRPRequest>, I>>(object: I): SubscribeDRPRequest {
+  fromPartial<I extends Exact<DeepPartial<SubscribeDRPRequest>, I>>(
+    object: I
+  ): SubscribeDRPRequest {
     const message = createBaseSubscribeDRPRequest();
     message.drpId = object.drpId ?? "";
     return message;
@@ -159,7 +161,9 @@ export const UnsubscribeDRPRequest: MessageFns<UnsubscribeDRPRequest> = {
   create<I extends Exact<DeepPartial<UnsubscribeDRPRequest>, I>>(base?: I): UnsubscribeDRPRequest {
     return UnsubscribeDRPRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<UnsubscribeDRPRequest>, I>>(object: I): UnsubscribeDRPRequest {
+  fromPartial<I extends Exact<DeepPartial<UnsubscribeDRPRequest>, I>>(
+    object: I
+  ): UnsubscribeDRPRequest {
     const message = createBaseUnsubscribeDRPRequest();
     message.drpId = object.drpId ?? "";
     return message;
@@ -214,10 +218,14 @@ export const GetDRPHashGraphRequest: MessageFns<GetDRPHashGraphRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetDRPHashGraphRequest>, I>>(base?: I): GetDRPHashGraphRequest {
+  create<I extends Exact<DeepPartial<GetDRPHashGraphRequest>, I>>(
+    base?: I
+  ): GetDRPHashGraphRequest {
     return GetDRPHashGraphRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetDRPHashGraphRequest>, I>>(object: I): GetDRPHashGraphRequest {
+  fromPartial<I extends Exact<DeepPartial<GetDRPHashGraphRequest>, I>>(
+    object: I
+  ): GetDRPHashGraphRequest {
     const message = createBaseGetDRPHashGraphRequest();
     message.drpId = object.drpId ?? "";
     return message;
@@ -229,7 +237,10 @@ function createBaseGetDRPHashGraphResponse(): GetDRPHashGraphResponse {
 }
 
 export const GetDRPHashGraphResponse: MessageFns<GetDRPHashGraphResponse> = {
-  encode(message: GetDRPHashGraphResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GetDRPHashGraphResponse,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     for (const v of message.verticesHashes) {
       writer.uint32(10).string(v!);
     }
@@ -276,32 +287,36 @@ export const GetDRPHashGraphResponse: MessageFns<GetDRPHashGraphResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetDRPHashGraphResponse>, I>>(base?: I): GetDRPHashGraphResponse {
+  create<I extends Exact<DeepPartial<GetDRPHashGraphResponse>, I>>(
+    base?: I
+  ): GetDRPHashGraphResponse {
     return GetDRPHashGraphResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetDRPHashGraphResponse>, I>>(object: I): GetDRPHashGraphResponse {
+  fromPartial<I extends Exact<DeepPartial<GetDRPHashGraphResponse>, I>>(
+    object: I
+  ): GetDRPHashGraphResponse {
     const message = createBaseGetDRPHashGraphResponse();
     message.verticesHashes = object.verticesHashes?.map((e) => e) || [];
     return message;
   },
 };
 
-function createBaseGenericRespone(): GenericRespone {
+function createBaseGenericResponse(): GenericResponse {
   return { returnCode: 0 };
 }
 
-export const GenericRespone: MessageFns<GenericRespone> = {
-  encode(message: GenericRespone, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GenericResponse: MessageFns<GenericResponse> = {
+  encode(message: GenericResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.returnCode !== 0) {
       writer.uint32(8).int32(message.returnCode);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GenericRespone {
+  decode(input: BinaryReader | Uint8Array, length?: number): GenericResponse {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenericRespone();
+    const message = createBaseGenericResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -322,11 +337,11 @@ export const GenericRespone: MessageFns<GenericRespone> = {
     return message;
   },
 
-  fromJSON(object: any): GenericRespone {
+  fromJSON(object: any): GenericResponse {
     return { returnCode: isSet(object.returnCode) ? globalThis.Number(object.returnCode) : 0 };
   },
 
-  toJSON(message: GenericRespone): unknown {
+  toJSON(message: GenericResponse): unknown {
     const obj: any = {};
     if (message.returnCode !== 0) {
       obj.returnCode = Math.round(message.returnCode);
@@ -334,11 +349,11 @@ export const GenericRespone: MessageFns<GenericRespone> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GenericRespone>, I>>(base?: I): GenericRespone {
-    return GenericRespone.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GenericResponse>, I>>(base?: I): GenericResponse {
+    return GenericResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GenericRespone>, I>>(object: I): GenericRespone {
-    const message = createBaseGenericRespone();
+  fromPartial<I extends Exact<DeepPartial<GenericResponse>, I>>(object: I): GenericResponse {
+    const message = createBaseGenericResponse();
     message.returnCode = object.returnCode ?? 0;
     return message;
   },
@@ -412,7 +427,9 @@ export const SyncDRPObjectRequest: MessageFns<SyncDRPObjectRequest> = {
   create<I extends Exact<DeepPartial<SyncDRPObjectRequest>, I>>(base?: I): SyncDRPObjectRequest {
     return SyncDRPObjectRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SyncDRPObjectRequest>, I>>(object: I): SyncDRPObjectRequest {
+  fromPartial<I extends Exact<DeepPartial<SyncDRPObjectRequest>, I>>(
+    object: I
+  ): SyncDRPObjectRequest {
     const message = createBaseSyncDRPObjectRequest();
     message.drpId = object.drpId ?? "";
     message.peerId = object.peerId ?? "";
@@ -425,7 +442,10 @@ function createBaseSendCustomMessageRequest(): SendCustomMessageRequest {
 }
 
 export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
-  encode(message: SendCustomMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: SendCustomMessageRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.peerId !== "") {
       writer.uint32(10).string(message.peerId);
     }
@@ -485,10 +505,14 @@ export const SendCustomMessageRequest: MessageFns<SendCustomMessageRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<SendCustomMessageRequest>, I>>(base?: I): SendCustomMessageRequest {
+  create<I extends Exact<DeepPartial<SendCustomMessageRequest>, I>>(
+    base?: I
+  ): SendCustomMessageRequest {
     return SendCustomMessageRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SendCustomMessageRequest>, I>>(object: I): SendCustomMessageRequest {
+  fromPartial<I extends Exact<DeepPartial<SendCustomMessageRequest>, I>>(
+    object: I
+  ): SendCustomMessageRequest {
     const message = createBaseSendCustomMessageRequest();
     message.peerId = object.peerId ?? "";
     message.data = object.data ?? new Uint8Array(0);
@@ -501,7 +525,10 @@ function createBaseSendGroupMessageRequest(): SendGroupMessageRequest {
 }
 
 export const SendGroupMessageRequest: MessageFns<SendGroupMessageRequest> = {
-  encode(message: SendGroupMessageRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: SendGroupMessageRequest,
+    writer: BinaryWriter = new BinaryWriter()
+  ): BinaryWriter {
     if (message.group !== "") {
       writer.uint32(10).string(message.group);
     }
@@ -561,10 +588,14 @@ export const SendGroupMessageRequest: MessageFns<SendGroupMessageRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<SendGroupMessageRequest>, I>>(base?: I): SendGroupMessageRequest {
+  create<I extends Exact<DeepPartial<SendGroupMessageRequest>, I>>(
+    base?: I
+  ): SendGroupMessageRequest {
     return SendGroupMessageRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SendGroupMessageRequest>, I>>(object: I): SendGroupMessageRequest {
+  fromPartial<I extends Exact<DeepPartial<SendGroupMessageRequest>, I>>(
+    object: I
+  ): SendGroupMessageRequest {
     const message = createBaseSendGroupMessageRequest();
     message.group = object.group ?? "";
     message.data = object.data ?? new Uint8Array(0);
@@ -623,7 +654,9 @@ export const AddCustomGroupRequest: MessageFns<AddCustomGroupRequest> = {
   create<I extends Exact<DeepPartial<AddCustomGroupRequest>, I>>(base?: I): AddCustomGroupRequest {
     return AddCustomGroupRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AddCustomGroupRequest>, I>>(object: I): AddCustomGroupRequest {
+  fromPartial<I extends Exact<DeepPartial<AddCustomGroupRequest>, I>>(
+    object: I
+  ): AddCustomGroupRequest {
     const message = createBaseAddCustomGroupRequest();
     message.group = object.group ?? "";
     return message;
@@ -631,13 +664,13 @@ export const AddCustomGroupRequest: MessageFns<AddCustomGroupRequest> = {
 };
 
 export interface DrpRpcService {
-  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericRespone>;
-  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericRespone>;
+  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericResponse>;
+  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericResponse>;
   GetDRPHashGraph(request: GetDRPHashGraphRequest): Promise<GetDRPHashGraphResponse>;
-  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericRespone>;
-  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericRespone>;
-  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericRespone>;
-  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericRespone>;
+  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericResponse>;
+  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericResponse>;
+  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericResponse>;
+  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericResponse>;
 }
 
 export const DrpRpcServiceServiceName = "drp.node.v1.DrpRpcService";
@@ -655,16 +688,16 @@ export class DrpRpcServiceClientImpl implements DrpRpcService {
     this.SendGroupMessage = this.SendGroupMessage.bind(this);
     this.AddCustomGroup = this.AddCustomGroup.bind(this);
   }
-  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericRespone> {
+  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericResponse> {
     const data = SubscribeDRPRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SubscribeDRP", data);
-    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
   }
 
-  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericRespone> {
+  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericResponse> {
     const data = UnsubscribeDRPRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "UnsubscribeDRP", data);
-    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
   }
 
   GetDRPHashGraph(request: GetDRPHashGraphRequest): Promise<GetDRPHashGraphResponse> {
@@ -673,28 +706,28 @@ export class DrpRpcServiceClientImpl implements DrpRpcService {
     return promise.then((data) => GetDRPHashGraphResponse.decode(new BinaryReader(data)));
   }
 
-  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericRespone> {
+  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericResponse> {
     const data = SyncDRPObjectRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SyncDRPObject", data);
-    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
   }
 
-  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericRespone> {
+  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericResponse> {
     const data = SendCustomMessageRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SendCustomMessage", data);
-    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
   }
 
-  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericRespone> {
+  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericResponse> {
     const data = SendGroupMessageRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SendGroupMessage", data);
-    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
   }
 
-  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericRespone> {
+  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericResponse> {
     const data = AddCustomGroupRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "AddCustomGroup", data);
-    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
   }
 }
 
@@ -729,14 +762,19 @@ function base64FromBytes(arr: Uint8Array): string {
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {

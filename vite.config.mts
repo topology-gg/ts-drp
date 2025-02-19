@@ -15,6 +15,7 @@ export default defineConfig({
 				"**/tests/**",
 				"**/proto/**",
 				"**/dist/**",
+				"packages/node/src/rpc/index.ts",
 			],
 		},
 		testTimeout: 10000,

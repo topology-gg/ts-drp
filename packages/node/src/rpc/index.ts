@@ -9,7 +9,7 @@ import { type DRPNode, log } from "../index.js";
 import { DrpRpcService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
 import type {
 	AddCustomGroupRequest,
-	GenericRespone,
+	GenericResponse,
 	GetDRPHashGraphRequest,
 	GetDRPHashGraphResponse,
 	SendCustomMessageRequest,
@@ -18,10 +18,10 @@ import type {
 	UnsubscribeDRPRequest,
 } from "../proto/drp/node/v1/rpc_pb.js";
 
-export function init(node: DRPNode) {
+export function init(node: DRPNode, port: number = 6969) {
 	async function subscribeDRP(
-		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
-		callback: sendUnaryData<GenericRespone>
+		call: ServerUnaryCall<SubscribeDRPRequest, GenericResponse>,
+		callback: sendUnaryData<GenericResponse>
 	) {
 		let returnCode = 0;
 		try {
@@ -33,15 +33,15 @@ export function init(node: DRPNode) {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response: GenericResponse = {
 			returnCode,
 		};
 		callback(null, response);
 	}
 
 	function unsubscribeDRP(
-		call: ServerUnaryCall<UnsubscribeDRPRequest, GenericRespone>,
-		callback: sendUnaryData<GenericRespone>
+		call: ServerUnaryCall<UnsubscribeDRPRequest, GenericResponse>,
+		callback: sendUnaryData<GenericResponse>
 	) {
 		let returnCode = 0;
 		try {
@@ -51,7 +51,7 @@ export function init(node: DRPNode) {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response: GenericResponse = {
 			returnCode,
 		};
 		callback(null, response);
@@ -80,8 +80,8 @@ export function init(node: DRPNode) {
 	}
 
 	async function syncDRPObject(
-		call: ServerUnaryCall<SubscribeDRPRequest, GenericRespone>,
-		callback: sendUnaryData<GenericRespone>
+		call: ServerUnaryCall<SubscribeDRPRequest, GenericResponse>,
+		callback: sendUnaryData<GenericResponse>
 	) {
 		let returnCode = 0;
 		try {
@@ -91,16 +91,17 @@ export function init(node: DRPNode) {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response: GenericResponse = {
 			returnCode,
 		};
 		callback(null, response);
 	}
 
 	async function sendCustomMessage(
-		call: ServerUnaryCall<SendCustomMessageRequest, GenericRespone>,
-		callback: sendUnaryData<GenericRespone>
+		call: ServerUnaryCall<SendCustomMessageRequest, GenericResponse>,
+		callback: sendUnaryData<GenericResponse>
 	) {
+		console.log("asdasdsd");
 		let returnCode = 0;
 		try {
 			await node.sendCustomMessage(call.request.peerId, call.request.data);
@@ -109,15 +110,15 @@ export function init(node: DRPNode) {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response: GenericResponse = {
 			returnCode,
 		};
 		callback(null, response);
 	}
 
 	async function sendGroupMessage(
-		call: ServerUnaryCall<SendGroupMessageRequest, GenericRespone>,
-		callback: sendUnaryData<GenericRespone>
+		call: ServerUnaryCall<SendGroupMessageRequest, GenericResponse>,
+		callback: sendUnaryData<GenericResponse>
 	) {
 		let returnCode = 0;
 		try {
@@ -127,15 +128,15 @@ export function init(node: DRPNode) {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response: GenericResponse = {
 			returnCode,
 		};
 		callback(null, response);
 	}
 
 	function addCustomGroup(
-		call: ServerUnaryCall<AddCustomGroupRequest, GenericRespone>,
-		callback: sendUnaryData<GenericRespone>
+		call: ServerUnaryCall<AddCustomGroupRequest, GenericResponse>,
+		callback: sendUnaryData<GenericResponse>
 	) {
 		let returnCode = 0;
 		try {
@@ -145,7 +146,7 @@ export function init(node: DRPNode) {
 			returnCode = 1;
 		}
 
-		const response: GenericRespone = {
+		const response: GenericResponse = {
 			returnCode,
 		};
 		callback(null, response);
@@ -169,7 +170,7 @@ export function init(node: DRPNode) {
 		sendGroupMessage,
 		addCustomGroup,
 	});
-	server.bindAsync("0.0.0.0:6969", grpc.ServerCredentials.createInsecure(), (_error, _port) => {
+	server.bindAsync(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure(), (_error, _port) => {
 		log.info("::rpc::init: running grpc in port:", _port);
 	});
 }

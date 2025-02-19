@@ -2,13 +2,13 @@ syntax = "proto3";
 package drp.node.v1;
 
 service DrpRpcService {
-  rpc SubscribeDRP(SubscribeDRPRequest) returns (GenericRespone);
-  rpc UnsubscribeDRP(UnsubscribeDRPRequest) returns (GenericRespone);
+  rpc SubscribeDRP(SubscribeDRPRequest) returns (GenericResponse);
+  rpc UnsubscribeDRP(UnsubscribeDRPRequest) returns (GenericResponse);
   rpc GetDRPHashGraph(GetDRPHashGraphRequest) returns (GetDRPHashGraphResponse);
-  rpc SyncDRPObject(SyncDRPObjectRequest) returns (GenericRespone);
-  rpc SendCustomMessage(SendCustomMessageRequest) returns (GenericRespone);
-  rpc SendGroupMessage(SendGroupMessageRequest) returns (GenericRespone);
-  rpc AddCustomGroup(AddCustomGroupRequest) returns (GenericRespone);
+  rpc SyncDRPObject(SyncDRPObjectRequest) returns (GenericResponse);
+  rpc SendCustomMessage(SendCustomMessageRequest) returns (GenericResponse);
+  rpc SendGroupMessage(SendGroupMessageRequest) returns (GenericResponse);
+  rpc AddCustomGroup(AddCustomGroupRequest) returns (GenericResponse);
 }
 
 message SubscribeDRPRequest {
@@ -28,7 +28,7 @@ message GetDRPHashGraphResponse {
   repeated string vertices_hashes = 1;
 }
 
-message GenericRespone {
+message GenericResponse {
   // return error codes if different than 0
   int32 return_code = 1;
 }
