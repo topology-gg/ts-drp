@@ -1,6 +1,7 @@
+import { ObjectPb } from "@ts-drp/types";
+
 import type { Operation, ResolveConflictsType, SemanticsType, Vertex } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";
-import type * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 
 export enum DrpType {
 	ACL = "ACL",
