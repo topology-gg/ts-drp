@@ -369,7 +369,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 		try {
-			vertex.signature = await node.credentialStore.signWithEd25519(vertex.hash);
+			vertex.signature = await node.credentialStore.signWithSecp256k1(vertex.hash);
 		} catch (error) {
 			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
@@ -442,7 +442,7 @@ export async function verifyACLIncomingVertices(
 			return null;
 		}
 
-		const publicKeyBytes = uint8ArrayFromString(publicKey.ed25519PublicKey, "base64");
+		const publicKeyBytes = uint8ArrayFromString(publicKey.secp256k1PublicKey, "base64");
 		const data = uint8ArrayFromString(vertex.hash);
 
 		try {

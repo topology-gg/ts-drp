@@ -17,7 +17,7 @@ export type DRPObjectCallback = (
 ) => void;
 
 export interface DRPPublicCredential {
-	ed25519PublicKey: string;
+	secp256k1PublicKey: string;
 	blsPublicKey: string;
 }
 
