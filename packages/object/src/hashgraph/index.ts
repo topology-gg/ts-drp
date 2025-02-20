@@ -1,9 +1,10 @@
-import type { Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
+import { type Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
 
 import { log } from "../index.js";
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
+import { computeHash } from "../utils/computeHash.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
 // Reexporting the Vertex and Operation types from the protobuf file
@@ -105,6 +106,16 @@ export class HashGraph {
 			: { action: ActionType.Nop };
 	}
 
+	createVertex(operation: Operation, dependencies: Hash[], timestamp: number): Vertex {
+		return Vertex.create({
+			hash: computeHash(this.peerId, operation, dependencies, timestamp),
+			peerId: this.peerId,
+			timestamp,
+			operation,
+			dependencies,
+		});
+	}
+
 	addToFrontier(vertex: Vertex) {
 		this.vertices.set(vertex.hash, vertex);
 		// Update forward edges
@@ -166,16 +177,20 @@ export class HashGraph {
 
 	dfsTopologicalSortIterative(origin: Hash, subgraph: ObjectSet<Hash>): Hash[] {
 		const visited = new ObjectSet<Hash>();
-		const result: Hash[] = [];
-		const stack: Hash[] = [origin];
+		const result: Hash[] = Array(subgraph.size);
+		const stack: Hash[] = Array(subgraph.size);
 		const processing = new ObjectSet<Hash>();
+		let resultIndex = subgraph.size - 1;
+		let stackIndex = 0;
+		stack[stackIndex] = origin;
 
-		while (stack.length > 0) {
-			const node = stack[stack.length - 1];
+		while (resultIndex >= 0) {
+			const node = stack[stackIndex];
 
 			if (visited.has(node)) {
-				stack.pop();
-				result.push(node);
+				result[resultIndex] = node;
+				stackIndex--;
+				resultIndex--;
 				processing.delete(node);
 				continue;
 			}
@@ -188,13 +203,14 @@ export class HashGraph {
 				for (const neighbor of neighbors.sort()) {
 					if (processing.has(neighbor)) throw new Error("Graph contains a cycle!");
 					if (subgraph.has(neighbor) && !visited.has(neighbor)) {
-						stack.push(neighbor);
+						stackIndex++;
+						stack[stackIndex] = neighbor;
 					}
 				}
 			}
 		}
 
-		return result.reverse();
+		return result;
 	}
 
 	/* Topologically sort the vertices in the whole hashgraph or the past of a given vertex. */

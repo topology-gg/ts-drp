@@ -89,7 +89,6 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 		addMul.add(5);
 		drp.merge(drp2.vertices);
 		drp2.merge(drp.vertices);
-
 		addMul.mul(5);
 		addMul.add(5);
 		addMul2.add(5);
@@ -99,8 +98,11 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 		expect(addMul2.query_value()).toBe(75);
 
 		addMul2.mul(2);
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 24)));
 		addMul2.add(2);
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 25)));
 		addMul.add(3);
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 26)));
 		addMul.mul(3);
 		drp.merge(drp2.vertices);
 		drp2.merge(drp.vertices);
