@@ -101,7 +101,6 @@ export function init(node: DRPNode, port: number = 6969) {
 		call: ServerUnaryCall<SendCustomMessageRequest, GenericResponse>,
 		callback: sendUnaryData<GenericResponse>
 	) {
-		console.log("asdasdsd");
 		let returnCode = 0;
 		try {
 			await node.sendCustomMessage(call.request.peerId, call.request.data);

@@ -6,7 +6,7 @@ import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import { AttestationUpdate, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
 import { MessageType } from "@ts-drp/types/src/index.js";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
+import { beforeAll, describe, expect, test, afterAll, vi, beforeEach } from "vitest";
 
 import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
@@ -179,6 +179,25 @@ describe("Handle message correctly", () => {
 			{ opType: "add", value: [5], drpType: DrpType.DRP },
 			{ opType: "add", value: [10], drpType: DrpType.DRP },
 		]);
+	});
+
+	test("should handle fetch state", async () => {
+		const message = NetworkPb.Message.create({
+			sender: node1.networkNode.peerId,
+			type: NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE,
+			data: NetworkPb.Sync.encode(
+				NetworkPb.Sync.create({
+					objectId: drpObject.id,
+					vertexHashes: node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => vertex.hash),
+				})
+			).finish(),
+		});
+
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+
+		// auto sync accept
+		expect(drpObject.vertices.length).toBe(3);
 	});
 
 	test("should handle sync message correctly", async () => {
