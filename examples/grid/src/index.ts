@@ -133,11 +133,7 @@ async function run() {
 }
 
 async function main() {
-	enableTracing({
-		provider: {
-			serviceName: "grid-service-tracer",
-		},
-	});
+	enableTracing();
 
 	const networkConfig = getNetworkConfigFromEnv();
 	gridState.node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);
