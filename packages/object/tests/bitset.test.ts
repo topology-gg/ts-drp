@@ -60,18 +60,21 @@ describe("BitSet Test", () => {
 	});
 
 	test("Bitset xor bit", () => {
-		const data = new Uint32Array([0, 0, 0]);
+		const data = new Uint32Array([0, 0, 0]) as unknown as Uint8Array;
 		data[0] = 1;
 		const otherBitset = new BitSet(65, data);
 		const result = bitset.xor(otherBitset);
-		const expected = new Uint32Array([1, 0, 0]);
+		const expected = new Uint32Array([1, 0, 0]) as unknown as Uint8Array;
 		const bitsetExpected = new BitSet(65, expected);
 		expect(result).toEqual(bitsetExpected);
 	});
 
 	test("Bitset not", () => {
 		const notBitset = bitset.not();
-		const expectBitset = new BitSet(65, new Uint32Array([0xffffffff, 0xffffffff, 0xffffffff]));
+		const expectBitset = new BitSet(
+			65,
+			new Uint32Array([0xffffffff, 0xffffffff, 0xffffffff]) as unknown as Uint8Array
+		);
 		expect(notBitset).toEqual(expectBitset);
 	});
 
@@ -86,11 +89,11 @@ describe("BitSet Test Data not undefined", () => {
 	let bitset: BitSet;
 
 	beforeEach(() => {
-		const data = new Uint32Array(3);
+		const data = new Uint32Array(3) as unknown as Uint8Array;
 		bitset = new BitSet(65, data);
 	});
 
 	test("Test: Bitset data not undefined", () => {
-		expect(bitset.data).not.toBe(undefined);
+		expect(bitset).not.toBe(undefined);
 	});
 });

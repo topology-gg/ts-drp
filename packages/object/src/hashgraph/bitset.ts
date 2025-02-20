@@ -8,7 +8,7 @@
 export class BitSet {
 	private data: Uint32Array;
 
-	constructor(bits: number, data?: Uint32Array) {
+	constructor(bits: number, data?: Uint8Array) {
 		const size = Math.ceil(bits / 32);
 		if (data === undefined) {
 			this.data = new Uint32Array(size);
