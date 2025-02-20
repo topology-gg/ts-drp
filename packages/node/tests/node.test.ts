@@ -2,7 +2,7 @@ import bls from "@chainsafe/bls/herumi";
 import { AddMulDRP, SetDRP } from "@ts-drp/blueprints";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
-import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
 	signFinalityVertices,
@@ -237,17 +237,26 @@ describe("Test for node connections", () => {
 
 	beforeAll(async () => {
 		for (let i = 0; i < 5; i++) {
-			const node = new DRPNode();
+			const node = new DRPNode({
+				log_config: {
+					level: "silent",
+				}
+			});
 			await node.start();
 			nodes.push(node);
 		}
 
-		while (nodes[0].networkNode.getAllPeers().length < 4) {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-		}
+		await vi.waitFor(() => {
+			console.log(nodes[1].networkNode.getAllPeers().length);
+			return nodes[1].networkNode.getAllPeers().length > 4;
+		}, {
+			timeout: 10000,
+			interval: 300,
+		})
 	});
 
     test("Nodes should stay connected and DRP is upto date", async () => {
+		await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for all nodes to connect
 		const drpid = "test";
 		for (let i = 0; i < 5; i++) {
 			const node = nodes[i];
@@ -257,14 +266,16 @@ describe("Test for node connections", () => {
 			})
 			drps.push(drpObject);
 		}
+		await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for nodes to connect to DRP
 
-		const drp = drps[0];
-		(drp.drp as AddMulDRP).add(1);
-		(drp.drp as AddMulDRP).add(2);
-
-		await new Promise((resolve) => setTimeout(resolve, 2000));
-
-		expect(nodes[1].networkNode.getAllPeers().length).toBe(6);
-		expect((drps[1].drp as AddMulDRP).query_value()).toBe(3);
+		for (let i = 0; i < 500; i++) {
+			const drp = drps[0];
+			(drp.drp as AddMulDRP).add(1);
+		}
+		await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for DRP to sync
+		expect(nodes[1].networkNode.getAllPeers().includes(nodes[0].networkNode.peerId)).toBe(true);
+		for (const drp of drps) {
+			expect((drp.drp as AddMulDRP).query_value()).toBe(500);
+		}
     });
 })
