@@ -26,7 +26,7 @@ export interface GetDRPHashGraphResponse {
   verticesHashes: string[];
 }
 
-export interface GenericResponse {
+export interface GenericRespone {
   /** return error codes if different than 0 */
   returnCode: number;
 }
@@ -301,22 +301,22 @@ export const GetDRPHashGraphResponse: MessageFns<GetDRPHashGraphResponse> = {
   },
 };
 
-function createBaseGenericResponse(): GenericResponse {
+function createBaseGenericRespone(): GenericRespone {
   return { returnCode: 0 };
 }
 
-export const GenericResponse: MessageFns<GenericResponse> = {
-  encode(message: GenericResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const GenericRespone: MessageFns<GenericRespone> = {
+  encode(message: GenericRespone, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.returnCode !== 0) {
       writer.uint32(8).int32(message.returnCode);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GenericResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): GenericRespone {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenericResponse();
+    const message = createBaseGenericRespone();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -337,11 +337,11 @@ export const GenericResponse: MessageFns<GenericResponse> = {
     return message;
   },
 
-  fromJSON(object: any): GenericResponse {
+  fromJSON(object: any): GenericRespone {
     return { returnCode: isSet(object.returnCode) ? globalThis.Number(object.returnCode) : 0 };
   },
 
-  toJSON(message: GenericResponse): unknown {
+  toJSON(message: GenericRespone): unknown {
     const obj: any = {};
     if (message.returnCode !== 0) {
       obj.returnCode = Math.round(message.returnCode);
@@ -349,11 +349,11 @@ export const GenericResponse: MessageFns<GenericResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GenericResponse>, I>>(base?: I): GenericResponse {
-    return GenericResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GenericRespone>, I>>(base?: I): GenericRespone {
+    return GenericRespone.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GenericResponse>, I>>(object: I): GenericResponse {
-    const message = createBaseGenericResponse();
+  fromPartial<I extends Exact<DeepPartial<GenericRespone>, I>>(object: I): GenericRespone {
+    const message = createBaseGenericRespone();
     message.returnCode = object.returnCode ?? 0;
     return message;
   },
@@ -664,13 +664,13 @@ export const AddCustomGroupRequest: MessageFns<AddCustomGroupRequest> = {
 };
 
 export interface DrpRpcService {
-  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericResponse>;
-  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericResponse>;
+  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericRespone>;
+  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericRespone>;
   GetDRPHashGraph(request: GetDRPHashGraphRequest): Promise<GetDRPHashGraphResponse>;
-  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericResponse>;
-  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericResponse>;
-  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericResponse>;
-  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericResponse>;
+  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericRespone>;
+  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericRespone>;
+  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericRespone>;
+  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericRespone>;
 }
 
 export const DrpRpcServiceServiceName = "drp.node.v1.DrpRpcService";
@@ -688,16 +688,16 @@ export class DrpRpcServiceClientImpl implements DrpRpcService {
     this.SendGroupMessage = this.SendGroupMessage.bind(this);
     this.AddCustomGroup = this.AddCustomGroup.bind(this);
   }
-  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericResponse> {
+  SubscribeDRP(request: SubscribeDRPRequest): Promise<GenericRespone> {
     const data = SubscribeDRPRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SubscribeDRP", data);
-    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
   }
 
-  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericResponse> {
+  UnsubscribeDRP(request: UnsubscribeDRPRequest): Promise<GenericRespone> {
     const data = UnsubscribeDRPRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "UnsubscribeDRP", data);
-    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
   }
 
   GetDRPHashGraph(request: GetDRPHashGraphRequest): Promise<GetDRPHashGraphResponse> {
@@ -706,28 +706,28 @@ export class DrpRpcServiceClientImpl implements DrpRpcService {
     return promise.then((data) => GetDRPHashGraphResponse.decode(new BinaryReader(data)));
   }
 
-  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericResponse> {
+  SyncDRPObject(request: SyncDRPObjectRequest): Promise<GenericRespone> {
     const data = SyncDRPObjectRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SyncDRPObject", data);
-    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
   }
 
-  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericResponse> {
+  SendCustomMessage(request: SendCustomMessageRequest): Promise<GenericRespone> {
     const data = SendCustomMessageRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SendCustomMessage", data);
-    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
   }
 
-  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericResponse> {
+  SendGroupMessage(request: SendGroupMessageRequest): Promise<GenericRespone> {
     const data = SendGroupMessageRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "SendGroupMessage", data);
-    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
   }
 
-  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericResponse> {
+  AddCustomGroup(request: AddCustomGroupRequest): Promise<GenericRespone> {
     const data = AddCustomGroupRequest.encode(request).finish();
     const promise = this.rpc.request(this.service, "AddCustomGroup", data);
-    return promise.then((data) => GenericResponse.decode(new BinaryReader(data)));
+    return promise.then((data) => GenericRespone.decode(new BinaryReader(data)));
   }
 }
 

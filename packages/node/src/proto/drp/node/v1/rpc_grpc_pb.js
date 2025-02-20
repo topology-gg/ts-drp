@@ -12,13 +12,13 @@ function deserialize_drp_node_v1_AddCustomGroupRequest(buffer_arg) {
   );
 }
 
-function serialize_drp_node_v1_GenericResponse(arg) {
-  const encoded = drp_node_v1_rpc_pb.GenericResponse.encode(arg).finish();
+function serialize_drp_node_v1_GenericRespone(arg) {
+  const encoded = drp_node_v1_rpc_pb.GenericRespone.encode(arg).finish();
   return Buffer.from(encoded);
 }
 
-function deserialize_drp_node_v1_GenericResponse(buffer_arg) {
-  return drp_node_v1_rpc_pb.GenericResponse.decode(new Uint8Array(buffer_arg));
+function deserialize_drp_node_v1_GenericRespone(buffer_arg) {
+  return drp_node_v1_rpc_pb.GenericRespone.decode(new Uint8Array(buffer_arg));
 }
 
 function serialize_drp_node_v1_GetDRPHashGraphRequest(arg) {
@@ -108,22 +108,22 @@ export const DrpRpcService = {
     requestStream: false,
     responseStream: false,
     requestType: drp_node_v1_rpc_pb.SubscribeDRPRequest,
-    responseType: drp_node_v1_rpc_pb.GenericResponse,
+    responseType: drp_node_v1_rpc_pb.GenericRespone,
     requestSerialize: serialize_drp_node_v1_SubscribeDRPRequest,
     requestDeserialize: deserialize_drp_node_v1_SubscribeDRPRequest,
-    responseSerialize: serialize_drp_node_v1_GenericResponse,
-    responseDeserialize: deserialize_drp_node_v1_GenericResponse,
+    responseSerialize: serialize_drp_node_v1_GenericRespone,
+    responseDeserialize: deserialize_drp_node_v1_GenericRespone,
   },
   unsubscribeDRP: {
     path: '/drp.node.v1.DrpRpcService/UnsubscribeDRP',
     requestStream: false,
     responseStream: false,
     requestType: drp_node_v1_rpc_pb.UnsubscribeDRPRequest,
-    responseType: drp_node_v1_rpc_pb.GenericResponse,
+    responseType: drp_node_v1_rpc_pb.GenericRespone,
     requestSerialize: serialize_drp_node_v1_UnsubscribeDRPRequest,
     requestDeserialize: deserialize_drp_node_v1_UnsubscribeDRPRequest,
-    responseSerialize: serialize_drp_node_v1_GenericResponse,
-    responseDeserialize: deserialize_drp_node_v1_GenericResponse,
+    responseSerialize: serialize_drp_node_v1_GenericRespone,
+    responseDeserialize: deserialize_drp_node_v1_GenericRespone,
   },
   getDRPHashGraph: {
     path: '/drp.node.v1.DrpRpcService/GetDRPHashGraph',
@@ -141,43 +141,43 @@ export const DrpRpcService = {
     requestStream: false,
     responseStream: false,
     requestType: drp_node_v1_rpc_pb.SyncDRPObjectRequest,
-    responseType: drp_node_v1_rpc_pb.GenericResponse,
+    responseType: drp_node_v1_rpc_pb.GenericRespone,
     requestSerialize: serialize_drp_node_v1_SyncDRPObjectRequest,
     requestDeserialize: deserialize_drp_node_v1_SyncDRPObjectRequest,
-    responseSerialize: serialize_drp_node_v1_GenericResponse,
-    responseDeserialize: deserialize_drp_node_v1_GenericResponse,
+    responseSerialize: serialize_drp_node_v1_GenericRespone,
+    responseDeserialize: deserialize_drp_node_v1_GenericRespone,
   },
   sendCustomMessage: {
     path: '/drp.node.v1.DrpRpcService/SendCustomMessage',
     requestStream: false,
     responseStream: false,
     requestType: drp_node_v1_rpc_pb.SendCustomMessageRequest,
-    responseType: drp_node_v1_rpc_pb.GenericResponse,
+    responseType: drp_node_v1_rpc_pb.GenericRespone,
     requestSerialize: serialize_drp_node_v1_SendCustomMessageRequest,
     requestDeserialize: deserialize_drp_node_v1_SendCustomMessageRequest,
-    responseSerialize: serialize_drp_node_v1_GenericResponse,
-    responseDeserialize: deserialize_drp_node_v1_GenericResponse,
+    responseSerialize: serialize_drp_node_v1_GenericRespone,
+    responseDeserialize: deserialize_drp_node_v1_GenericRespone,
   },
   sendGroupMessage: {
     path: '/drp.node.v1.DrpRpcService/SendGroupMessage',
     requestStream: false,
     responseStream: false,
     requestType: drp_node_v1_rpc_pb.SendGroupMessageRequest,
-    responseType: drp_node_v1_rpc_pb.GenericResponse,
+    responseType: drp_node_v1_rpc_pb.GenericRespone,
     requestSerialize: serialize_drp_node_v1_SendGroupMessageRequest,
     requestDeserialize: deserialize_drp_node_v1_SendGroupMessageRequest,
-    responseSerialize: serialize_drp_node_v1_GenericResponse,
-    responseDeserialize: deserialize_drp_node_v1_GenericResponse,
+    responseSerialize: serialize_drp_node_v1_GenericRespone,
+    responseDeserialize: deserialize_drp_node_v1_GenericRespone,
   },
   addCustomGroup: {
     path: '/drp.node.v1.DrpRpcService/AddCustomGroup',
     requestStream: false,
     responseStream: false,
     requestType: drp_node_v1_rpc_pb.AddCustomGroupRequest,
-    responseType: drp_node_v1_rpc_pb.GenericResponse,
+    responseType: drp_node_v1_rpc_pb.GenericRespone,
     requestSerialize: serialize_drp_node_v1_AddCustomGroupRequest,
     requestDeserialize: deserialize_drp_node_v1_AddCustomGroupRequest,
-    responseSerialize: serialize_drp_node_v1_GenericResponse,
-    responseDeserialize: deserialize_drp_node_v1_GenericResponse,
+    responseSerialize: serialize_drp_node_v1_GenericRespone,
+    responseDeserialize: deserialize_drp_node_v1_GenericRespone,
   },
 };
