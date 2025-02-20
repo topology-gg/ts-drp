@@ -199,9 +199,42 @@ describe("HashGraph construction tests", () => {
 			obj1.validateVertex(vertex);
 		}).toThrowError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`);
 		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
-
 		const linearOps = obj1.hashGraph.linearizeOperations();
 		const expectedOps: Operation[] = [{ opType: "add", value: [1], drpType: DrpType.DRP }];
+		expect(linearOps).toEqual(expectedOps);
+	});
+
+	test("Test: HashGraph with 2 root vertices arrow functions", () => {
+		/*
+		  ROOT -- V1:ADD(1)
+		  FAKE_ROOT -- V2:ADD(1)
+		*/
+		const drp1 = obj1.drp as SetDRP<number>;
+		drp1.add_arrow(1);
+		// add fake root
+		const fakeRoot = newVertex(
+			"peer1",
+			{ opType: "root", value: null, drpType: DrpType.DRP },
+			[],
+			Date.now(),
+			new Uint8Array()
+		);
+		expect(() => {
+			obj1.validateVertex(fakeRoot);
+		}).toThrowError(`Vertex ${fakeRoot.hash} has no dependencies.`);
+		const vertex = newVertex(
+			"peer1",
+			{ opType: "add", value: [1], drpType: DrpType.DRP },
+			[fakeRoot.hash],
+			Date.now(),
+			new Uint8Array()
+		);
+		expect(() => {
+			obj1.validateVertex(vertex);
+		}).toThrowError(`Vertex ${vertex.hash} has invalid dependency ${fakeRoot.hash}.`);
+		expect(selfCheckConstraints(obj1.hashGraph)).toBe(true);
+		const linearOps = obj1.hashGraph.linearizeOperations();
+		const expectedOps: Operation[] = [{ opType: "add_arrow", value: [1], drpType: DrpType.DRP }];
 		expect(linearOps).toEqual(expectedOps);
 	});
 

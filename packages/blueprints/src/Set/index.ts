@@ -13,6 +13,10 @@ export class SetDRP<T> implements DRP {
 		this._set.add(value);
 	}
 
+	add_arrow = (value: T): void => {
+		this._set.add(value);
+	};
+
 	delete(value: T): void {
 		this._set.delete(value);
 	}

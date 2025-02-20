@@ -6,7 +6,7 @@ import {
 	type Vertex_Operation as Operation,
 	type Vertex,
 } from "@ts-drp/types";
-import { cloneDeep } from "es-toolkit";
+import { cloneDeepWith } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
 
@@ -37,6 +37,17 @@ export interface DRPObjectConfig {
 }
 
 export let log: Logger;
+
+function cloneArrowFunctions(value: unknown) {
+	if (typeof value === "function") {
+		return value.bind(value);
+	}
+	return undefined; // Let cloneDeepWith handle everything else
+}
+
+function cloneDeep<T>(value: T): T {
+	return cloneDeepWith(value, cloneArrowFunctions);
+}
 
 export class DRPObject implements DRPObjectBase {
 	id: string;
