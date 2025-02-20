@@ -6,7 +6,7 @@ import { type DRPObject, ObjectACL } from "@ts-drp/object";
 import { AttestationUpdate, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
 import { MessageType } from "@ts-drp/types/src/index.js";
 import { raceEvent } from "race-event";
-import { beforeAll, describe, expect, test, afterAll, vi, beforeEach } from "vitest";
+import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
 
 import { drpMessagesHandler, signGeneratedVertices } from "../src/handlers.js";
 import { DRPNode } from "../src/index.js";
