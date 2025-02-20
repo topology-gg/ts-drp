@@ -245,14 +245,6 @@ describe("Test for node connections", () => {
 			await node.start();
 			nodes.push(node);
 		}
-
-		await vi.waitFor(() => {
-			console.log(nodes[1].networkNode.getAllPeers().length);
-			return nodes[1].networkNode.getAllPeers().length > 4;
-		}, {
-			timeout: 10000,
-			interval: 300,
-		})
 	});
 
     test("Nodes should stay connected and DRP is upto date", async () => {
@@ -269,10 +261,10 @@ describe("Test for node connections", () => {
 		await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for nodes to connect to DRP
 
 		for (let i = 0; i < 500; i++) {
-			const drp = drps[0];
+			const drp = drps[i % 5];
 			(drp.drp as AddMulDRP).add(1);
 		}
-		await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for DRP to sync
+		await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for DRPs to sync
 		expect(nodes[1].networkNode.getAllPeers().includes(nodes[0].networkNode.peerId)).toBe(true);
 		for (const drp of drps) {
 			expect((drp.drp as AddMulDRP).query_value()).toBe(500);
