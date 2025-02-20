@@ -1,5 +1,5 @@
 import bls from "@chainsafe/bls/herumi";
-import { SetDRP } from "@ts-drp/blueprints";
+import { AddMulDRP, SetDRP } from "@ts-drp/blueprints";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
@@ -230,3 +230,41 @@ describe("DRPNode voting tests", () => {
 		);
 	});
 });
+
+describe("Test for node connections", () => {
+    let nodes: DRPNode[] = [];
+	let drps: DRPObject[] = [];
+
+	beforeAll(async () => {
+		for (let i = 0; i < 5; i++) {
+			const node = new DRPNode();
+			await node.start();
+			nodes.push(node);
+		}
+
+		while (nodes[0].networkNode.getAllPeers().length < 4) {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
+	});
+
+    test("Nodes should stay connected and DRP is upto date", async () => {
+		const drpid = "test";
+		for (let i = 0; i < 5; i++) {
+			const node = nodes[i];
+			const drpObject = await node.connectObject({
+				id: drpid,
+				drp: new AddMulDRP(),
+			})
+			drps.push(drpObject);
+		}
+
+		const drp = drps[0];
+		(drp.drp as AddMulDRP).add(1);
+		(drp.drp as AddMulDRP).add(2);
+
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+
+		expect(nodes[1].networkNode.getAllPeers().length).toBe(6);
+		expect((drps[1].drp as AddMulDRP).query_value()).toBe(3);
+    });
+})
