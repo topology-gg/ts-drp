@@ -149,7 +149,7 @@ export class DRPNode {
 		await operations.subscribeObject(this, id);
 	}
 
-	createHeartbeat(id: string): void {
+	private createHeartbeat(id: string): void {
 		if (this.heartbeat) this.heartbeat.stop();
 		this.heartbeat = new DRPIDHeartbeat({
 			...this.config?.heartbeat_config,
