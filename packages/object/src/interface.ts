@@ -1,3 +1,4 @@
+import { IMetrics } from "@ts-drp/tracer";
 import { ObjectPb } from "@ts-drp/types";
 import { type Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
 
@@ -31,3 +32,9 @@ export interface LcaAndOperations {
 	lca: string;
 	linearizedOperations: Operation[];
 }
+export type ConnectObjectOptions = {
+	peerId: string;
+	id?: string;
+	drp?: DRP;
+	metrics?: IMetrics;
+};

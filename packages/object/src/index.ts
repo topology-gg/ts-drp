@@ -16,6 +16,7 @@ import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
 import { type Hash, HashGraph } from "./hashgraph/index.js";
 import {
+	ConnectObjectOptions,
 	type DRP,
 	type DRPObjectCallback,
 	type DRPPublicCredential,
@@ -122,7 +123,7 @@ export class DRPObject implements DRPObjectBase {
 		this.vertices = this.hashGraph.getAllVertices();
 	}
 
-	static createObject(options: { peerId: string; id?: string; drp?: DRP; metrics?: IMetrics }) {
+	static createObject(options: ConnectObjectOptions) {
 		const aclObj = new ObjectACL({
 			admins: new Map(),
 			permissionless: true,

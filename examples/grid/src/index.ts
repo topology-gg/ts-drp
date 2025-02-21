@@ -133,7 +133,9 @@ async function run() {
 }
 
 async function main() {
-	enableTracing();
+	if (import.meta.env.VITE_ENABLE_TRACING) {
+		enableTracing();
+	}
 
 	const networkConfig = getNetworkConfigFromEnv();
 	gridState.node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);

@@ -131,7 +131,7 @@ importers:
         specifier: 0.7.0
         version: link:../../packages/object
       '@ts-drp/tracer':
-        specifier: workspace:^
+        specifier: ^0.7.0
         version: link:../../packages/tracer
     devDependencies:
       '@types/node':
@@ -309,7 +309,7 @@ importers:
         specifier: 0.7.0
         version: link:../object
       '@ts-drp/tracer':
-        specifier: workspace:^
+        specifier: 0.7.0
         version: link:../tracer
       '@ts-drp/types':
         specifier: 0.7.0
@@ -355,10 +355,10 @@ importers:
         specifier: ^0.7.0
         version: link:../logger
       '@ts-drp/tracer':
-        specifier: workspace:^
+        specifier: ^0.7.0
         version: link:../tracer
       '@ts-drp/types':
-        specifier: workspace:^
+        specifier: ^0.7.0
         version: link:../types
       es-toolkit:
         specifier: 1.30.1

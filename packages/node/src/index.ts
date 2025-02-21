@@ -123,13 +123,11 @@ export class DRPNode {
 		};
 		metrics?: IMetrics;
 	}) {
-		const object = operations.connectObject(
-			this,
-			options.id,
-			options.drp,
-			options.sync?.peerId,
-			options.metrics
-		);
+		const object = operations.connectObject(this, options.id, {
+			peerId: options.sync?.peerId,
+			drp: options.drp,
+			metrics: options.metrics,
+		});
 		return object;
 	}
 

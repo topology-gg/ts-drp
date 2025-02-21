@@ -12,26 +12,30 @@ export function createObject(node: DRPNode, object: DRPObject) {
 	});
 }
 
+export type ConnectObjectOptions = {
+	drp?: DRP;
+	peerId?: string;
+	metrics?: IMetrics;
+};
+
 export async function connectObject(
 	node: DRPNode,
 	id: string,
-	drp?: DRP,
-	peerId?: string,
-	metrics?: IMetrics
+	options: ConnectObjectOptions
 ): Promise<DRPObject> {
 	const object = DRPObject.createObject({
 		peerId: node.networkNode.peerId,
 		id,
-		drp,
-		metrics,
+		drp: options.drp,
+		metrics: options.metrics,
 	});
 	node.objectStore.put(id, object);
 
-	await fetchState(node, id, peerId);
+	await fetchState(node, id, options.peerId);
 	// sync process needs to finish before subscribing
 	const retry = setInterval(async () => {
 		if (object.acl) {
-			await syncObject(node, id, peerId);
+			await syncObject(node, id, options.peerId);
 			await subscribeObject(node, id);
 			object.subscribe((obj, originFn, vertices) => {
 				drpObjectChangesHandler(node, obj, originFn, vertices);
