@@ -19,6 +19,7 @@ export enum MessageType {
   MESSAGE_TYPE_ATTESTATION_UPDATE = 7,
   MESSAGE_TYPE_CUSTOM = 8,
   MESSAGE_TYPE_ID_HEARTBEAT = 9,
+  MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE = 10,
   UNRECOGNIZED = -1,
 }
 
@@ -54,6 +55,9 @@ export function messageTypeFromJSON(object: any): MessageType {
     case 9:
     case "MESSAGE_TYPE_ID_HEARTBEAT":
       return MessageType.MESSAGE_TYPE_ID_HEARTBEAT;
+    case 10:
+    case "MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE":
+      return MessageType.MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -83,6 +87,8 @@ export function messageTypeToJSON(object: MessageType): string {
       return "MESSAGE_TYPE_CUSTOM";
     case MessageType.MESSAGE_TYPE_ID_HEARTBEAT:
       return "MESSAGE_TYPE_ID_HEARTBEAT";
+    case MessageType.MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE:
+      return "MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE";
     case MessageType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";

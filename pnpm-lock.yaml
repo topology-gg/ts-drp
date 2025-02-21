@@ -220,6 +220,9 @@ importers:
       '@libp2p/identify':
         specifier: ^3.0.6
         version: 3.0.22
+      '@libp2p/peer-id':
+        specifier: ^5.0.13
+        version: 5.0.13
       '@libp2p/ping':
         specifier: 2.0.11
         version: 2.0.11
