@@ -11,7 +11,7 @@
  "dependencies": {
   "@ts-drp/node": "0.7.0",
   "@ts-drp/object": "0.7.0",
-  "@ts-drp/tracer": "workspace:^"
+  "@ts-drp/tracer": "^0.7.0"
  },
  "devDependencies": {
   "@types/node": "^22.5.4",
