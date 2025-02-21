@@ -1,3 +1,4 @@
+import { Span } from "@opentelemetry/api";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
 import { beforeEach, describe, expect, test, vi } from "vitest";
@@ -323,6 +324,17 @@ describe("tracing lifecycle", () => {
 				throw new Error("test error");
 			});
 			await expect(fn()).rejects.toThrow("test error");
+		});
+
+		test("should apply custom attributes", () => {
+			const fn = metrics.traceFunc(
+				"test",
+				(a: number) => a + 1,
+				(span: Span, a: number) => {
+					span.setAttribute("input", a);
+				}
+			);
+			expect(fn(1)).toBe(2);
 		});
 
 		test("should trace functions that return promises", async () => {

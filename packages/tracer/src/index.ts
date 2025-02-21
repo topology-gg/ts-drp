@@ -187,7 +187,8 @@ export class OpentelemetryMetrics implements IMetrics {
 
 	public traceFunc<Args extends unknown[], Return>(
 		name: string,
-		fn: (...args: Args) => Return
+		fn: (...args: Args) => Return,
+		setAttributes?: (span: Span, ...args: Args) => void
 	): (...args: Args) => Return {
 		return (...args: Args): Return => {
 			if (!this.tracer || !enabled) {
@@ -195,6 +196,10 @@ export class OpentelemetryMetrics implements IMetrics {
 			}
 			const parentContext = context.active();
 			const span = this.tracer.startSpan(name, {}, parentContext);
+
+			if (setAttributes) {
+				setAttributes(span, ...args);
+			}
 
 			let result: Return;
 			const childContext = trace.setSpan(parentContext, span);
