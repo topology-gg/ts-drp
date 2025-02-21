@@ -39,6 +39,7 @@ import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
 
+export const DRP_DISCOVERY_TOPIC = "drp::discovery";
 export const DRP_MESSAGE_PROTOCOL = "/drp/message/0.0.1";
 export const BOOTSTRAP_NODES = [
 	"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG",
@@ -91,7 +92,7 @@ export class DRPNetworkNode {
 
 		const _peerDiscovery: Array<PeerDiscoveryFunction> = [
 			pubsubPeerDiscovery({
-				topics: ["drp::discovery"],
+				topics: [DRP_DISCOVERY_TOPIC],
 				interval: this._config?.pubsub?.peer_discovery_interval || 5000,
 			}),
 		];
