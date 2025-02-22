@@ -14,10 +14,14 @@ import {
 	SyncAccept,
 	Update,
 } from "@ts-drp/types";
+import * as crypto from "crypto";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { type DRPNode, log } from "./index.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
+import { Signature, SignatureWithRecovery } from "@noble/secp256k1";
+import { publicKeyFromRaw } from "@libp2p/crypto/keys";
+import { peerIdFromPublicKey } from "@libp2p/peer-id";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
@@ -437,30 +441,18 @@ export async function verifyACLIncomingVertices(
 			return null;
 		}
 
-		const publicKey = acl.query_getPeerKey(vertex.peerId);
-		if (!publicKey) {
-			return null;
-		}
-
-		const publicKeyBytes = uint8ArrayFromString(publicKey.secp256k1PublicKey, "base64");
-		const data = uint8ArrayFromString(vertex.hash);
-
 		try {
-			const cryptoKey = await crypto.subtle.importKey(
-				"raw",
-				publicKeyBytes,
-				{ name: "Ed25519" },
-				true,
-				["verify"]
-			);
+			const hashData = crypto.createHash("sha256").update(vertex.hash).digest("hex");
+			const recovery = vertex.signature[0];
+			const compactSignature = vertex.signature.slice(1);
+			const signatureWithRecovery =
+				Signature.fromCompact(compactSignature).addRecoveryBit(recovery);
 
-			const isValid = await crypto.subtle.verify(
-				{ name: "Ed25519" },
-				cryptoKey,
-				vertex.signature,
-				data
-			);
-
+			const recoveredPoint = signatureWithRecovery.recoverPublicKey(hashData);
+			const recoveredPublicKey = recoveredPoint.toRawBytes(true);
+			const publicKey = publicKeyFromRaw(recoveredPublicKey);
+			const expectedPeerId = peerIdFromPublicKey(publicKey).toString();
+			const isValid = expectedPeerId === vertex.peerId;
 			return isValid ? vertex : null;
 		} catch (error) {
 			console.error("Error verifying signature:", error);
