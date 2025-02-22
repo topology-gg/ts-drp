@@ -232,14 +232,20 @@ describe("DRPNode voting tests", () => {
 });
 
 describe("Test for node connections", () => {
+	const NODES = 10;
     let nodes: DRPNode[] = [];
 	let drps: DRPObject[] = [];
 
 	beforeAll(async () => {
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < NODES; i++) {
 			const node = new DRPNode({
 				log_config: {
 					level: "silent",
+				},
+				network_config: {
+					log_config: {
+						level: "error",
+					}
 				}
 			});
 			await node.start();
@@ -248,9 +254,11 @@ describe("Test for node connections", () => {
 	});
 
     test("Nodes should stay connected and DRP is upto date", async () => {
-		await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for all nodes to connect
+		await new Promise((resolve) => setTimeout(resolve, 30000)); // Wait for all nodes to connect
+		console.log(nodes[1].networkNode.getAllPeers().length);
+		expect(nodes[1].networkNode.getAllPeers().includes(nodes[0].networkNode.peerId)).toBe(true);
 		const drpid = "test";
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < NODES; i++) {
 			const node = nodes[i];
 			const drpObject = await node.connectObject({
 				id: drpid,
@@ -260,14 +268,13 @@ describe("Test for node connections", () => {
 		}
 		await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait for nodes to connect to DRP
 
-		for (let i = 0; i < 500; i++) {
-			const drp = drps[i % 5];
+		for (let i = 0; i < 1000; i++) {
+			const drp = drps[12];
 			(drp.drp as AddMulDRP).add(1);
 		}
 		await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for DRPs to sync
-		expect(nodes[1].networkNode.getAllPeers().includes(nodes[0].networkNode.peerId)).toBe(true);
 		for (const drp of drps) {
-			expect((drp.drp as AddMulDRP).query_value()).toBe(500);
+			expect((drp.drp as AddMulDRP).query_value()).toBe(1000);
 		}
     });
 })
