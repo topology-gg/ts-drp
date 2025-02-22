@@ -1,4 +1,7 @@
+import { publicKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Stream } from "@libp2p/interface";
+import { peerIdFromPublicKey } from "@libp2p/peer-id";
+import { Signature } from "@noble/secp256k1";
 import { streamToUint8Array } from "@ts-drp/network";
 import { type ACL, type DRPObject, HashGraph, type Vertex } from "@ts-drp/object";
 import {
@@ -15,13 +18,9 @@ import {
 	Update,
 } from "@ts-drp/types";
 import * as crypto from "crypto";
-import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { type DRPNode, log } from "./index.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
-import { Signature, SignatureWithRecovery } from "@noble/secp256k1";
-import { publicKeyFromRaw } from "@libp2p/crypto/keys";
-import { peerIdFromPublicKey } from "@libp2p/peer-id";
 
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
