@@ -318,7 +318,7 @@ importers:
         specifier: 0.7.0
         version: link:../object
       '@ts-drp/tracer':
-        specifier: 0.7.0
+        specifier: ^0.7.0
         version: link:../tracer
       '@ts-drp/types':
         specifier: 0.7.0
