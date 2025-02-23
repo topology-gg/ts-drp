@@ -3,9 +3,8 @@ import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, privateKeyFromRaw } from "@libp2p/crypto/keys";
 import type { Secp256k1PrivateKey } from "@libp2p/interface";
-import { etc, signAsync, SignatureWithRecovery } from "@noble/secp256k1";
+import { etc } from "@noble/secp256k1";
 import type { DRPPublicCredential } from "@ts-drp/object";
-import * as crypto from "crypto";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
@@ -44,25 +43,6 @@ export class DRPCredentialStore {
 			secp256k1PublicKey: uint8ArrayToString(this._secp256k1PrivateKey?.publicKey.raw, "base64"),
 			blsPublicKey: uint8ArrayToString(this._blsPrivateKey?.toPublicKey().toBytes(), "base64"),
 		};
-	}
-
-	async signWithSecp256k1(data: string): Promise<Uint8Array> {
-		if (!this._secp256k1PrivateKey) {
-			throw new Error("Private key not found");
-		}
-		const hashData = crypto.createHash("sha256").update(data).digest("hex");
-
-		const sig: SignatureWithRecovery = await signAsync(hashData, this._secp256k1PrivateKey.raw, {
-			extraEntropy: true,
-		});
-
-		const compactSignature = sig.toCompactRawBytes();
-
-		const fullSignature = new Uint8Array(1 + compactSignature.length);
-		fullSignature[0] = sig.recovery;
-		fullSignature.set(compactSignature, 1);
-
-		return fullSignature;
 	}
 
 	signWithBls(data: string): Uint8Array {
