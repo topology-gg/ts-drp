@@ -86,8 +86,7 @@ export class DRPNetworkNode {
 		if (this._config?.private_key_seed) {
 			const tmp = this._config.private_key_seed.padEnd(64, "0");
 			const seed = uint8ArrayFromString(tmp);
-			const seedHex = etc.bytesToHex(seed);
-			const rawPrivateKey = etc.hashToPrivateKey(seedHex);
+			const rawPrivateKey = etc.hashToPrivateKey(seed);
 			this._secp256k1PrivateKey = privateKeyFromRaw(rawPrivateKey) as Secp256k1PrivateKey;
 		} else {
 			this._secp256k1PrivateKey = await generateKeyPair("secp256k1");
