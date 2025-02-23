@@ -1,5 +1,4 @@
-import { MapDRP } from "@ts-drp/blueprints/src/index.js";
-import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { MapDRP, RecMulDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
 import Benchmark from "benchmark";
 
 import { DRP, DRPObject, ObjectACL } from "../src/index.js";
@@ -50,6 +49,40 @@ function benchmarkForAddWinSet(
 		}
 	});
 }
+
+function benchmarkForAddMulRecCall(
+	name: string,
+	numDRPs: number,
+	verticesPerDRP: number,
+	mergeFn: boolean
+) {
+	return suite.add(name, () => {
+		const objects: DRPObject[] = [];
+		for (let i = 0; i < numDRPs; i++) {
+			const obj: DRPObject = new DRPObject({
+				peerId: `peer${i + 1}`,
+				acl,
+				drp: new RecMulDRP(),
+			});
+			const drp = obj.drp as RecMulDRP;
+			for (let j = 0; j < verticesPerDRP; j++) {
+				drp.recursive_mul(j);
+			}
+			objects.push(obj);
+		}
+
+		if (mergeFn) {
+			for (let i = 0; i < objects.length; i++) {
+				for (let j = 0; j < objects.length; j++) {
+					if (i !== j) {
+						objects[i].merge(objects[j].hashGraph.getAllVertices());
+					}
+				}
+			}
+		}
+	});
+}
+
 const suite = new Benchmark.Suite();
 
 benchmarkForAddWinSet(
@@ -61,6 +94,20 @@ benchmarkForAddWinSet(
 
 benchmarkForAddWinSet(
 	`Create 2 DRP Objects ${NUMBER_OF_OPERATIONS} vertices each) and Merge`,
+	2,
+	NUMBER_OF_OPERATIONS,
+	true
+);
+
+benchmarkForAddMulRecCall(
+	"Create a HashGraph with 1000 operations for rec mul",
+	1,
+	NUMBER_OF_OPERATIONS,
+	false
+);
+
+benchmarkForAddMulRecCall(
+	`Create 2 DRP Objects ${NUMBER_OF_OPERATIONS} vertices each and Merge for rec mul`,
 	2,
 	NUMBER_OF_OPERATIONS,
 	true
