@@ -1,5 +1,5 @@
 import { AddMulDRP } from "@ts-drp/blueprints/src/AddMul/index.js";
-import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
 
@@ -26,6 +26,9 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 		drp2 = new DRPObject({ peerId: "peer2", drp: new AddMulDRP(), acl });
 		addMul = drp.drp as AddMulDRP;
 		addMul2 = drp2.drp as AddMulDRP;
+
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));
 	});
 
 	test("Test: Nop", () => {
@@ -86,23 +89,25 @@ describe("Test: ActionTypes (Nop and Swap)", () => {
 		addMul.add(5);
 		drp.merge(drp2.vertices);
 		drp2.merge(drp.vertices);
-
 		addMul.mul(5);
 		addMul.add(5);
 		addMul2.add(5);
 		drp.merge(drp2.vertices);
 		drp2.merge(drp.vertices);
-		expect(addMul.query_value()).toBe(55);
-		expect(addMul2.query_value()).toBe(55);
+		expect(addMul.query_value()).toBe(75);
+		expect(addMul2.query_value()).toBe(75);
 
 		addMul2.mul(2);
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 24)));
 		addMul2.add(2);
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 25)));
 		addMul.add(3);
+		vi.setSystemTime(new Date(Date.UTC(1998, 11, 26)));
 		addMul.mul(3);
 		drp.merge(drp2.vertices);
 		drp2.merge(drp.vertices);
-		expect(addMul.query_value()).toBe(354);
-		expect(addMul2.query_value()).toBe(354);
+		expect(addMul.query_value()).toBe(480);
+		expect(addMul2.query_value()).toBe(480);
 	});
 });
 

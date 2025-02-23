@@ -1,6 +1,9 @@
-import type { Operation, ResolveConflictsType, SemanticsType, Vertex } from "./hashgraph/index.js";
+import { IMetrics } from "@ts-drp/tracer";
+import { ObjectPb } from "@ts-drp/types";
+import { type Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
+
+import type { ResolveConflictsType, SemanticsType } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";
-import type * as ObjectPb from "./proto/drp/object/v1/object_pb.js";
 
 export enum DrpType {
 	ACL = "ACL",
@@ -29,3 +32,9 @@ export interface LcaAndOperations {
 	lca: string;
 	linearizedOperations: Operation[];
 }
+export type ConnectObjectOptions = {
+	peerId: string;
+	id?: string;
+	drp?: DRP;
+	metrics?: IMetrics;
+};

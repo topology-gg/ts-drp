@@ -31,10 +31,10 @@ import * as filters from "@libp2p/websockets/filters";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
+import { Message } from "@ts-drp/types";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
-import { Message } from "./proto/drp/network/v1/messages_pb.js";
 import { uint8ArrayToStream } from "./stream.js";
 
 export * from "./stream.js";
@@ -176,6 +176,7 @@ export class DRPNetworkNode {
 				...(this._config?.announce_addresses ? { announce: this._config.announce_addresses } : {}),
 			},
 			connectionManager: {
+				dialTimeout: 60_000,
 				addressSorter: this._sortAddresses,
 			},
 			connectionEncrypters: [noise()],
@@ -390,7 +391,7 @@ export class DRPNetworkNode {
 			const messageBuffer = Message.encode(message).finish();
 			await uint8ArrayToStream(stream, messageBuffer);
 		} catch (e) {
-			log.error("::sendMessageRandomTopicPeer:", e);
+			log.error("::sendGroupMessageRandomPeer:", e);
 		}
 	}
 

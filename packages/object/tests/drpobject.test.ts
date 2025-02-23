@@ -1,7 +1,9 @@
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
 import { beforeEach, describe, expect, it, test, vi } from "vitest";
 
-import { DRPObject, ObjectACL } from "../src/index.js";
+import { SemanticsType } from "../dist/src/hashgraph/index.js";
+import { ActionType } from "../dist/src/hashgraph/index.js";
+import { DRP, DRPObject, ObjectACL, ResolveConflictsType, Vertex } from "../src/index.js";
 
 const acl = new ObjectACL({
 	admins: new Map([
@@ -67,6 +69,46 @@ describe("Drp Object should be able to change state value", () => {
 			const stateKeys = state.state.map((x) => x.key);
 			expect(stateKeys).toEqual(expectedDrpKeys);
 		}
+	});
+});
+
+describe("Test for duplicate call issue", () => {
+	let counter = 0;
+
+	class CounterDRP implements DRP {
+		semanticsType = SemanticsType.pair;
+
+		private _counter: number;
+
+		constructor() {
+			this._counter = 0;
+		}
+
+		test() {
+			this._counter++;
+			counter++;
+			return this._counter;
+		}
+
+		resolveConflicts(_: Vertex[]): ResolveConflictsType {
+			return { action: ActionType.Nop };
+		}
+	}
+
+	test("Detect duplicate call", () => {
+		const obj = new DRPObject({
+			peerId: "",
+			publicCredential: {
+				ed25519PublicKey: "cred",
+				blsPublicKey: "cred",
+			},
+			drp: new CounterDRP(),
+		});
+
+		const testDRP = obj.drp as CounterDRP;
+		expect(testDRP).toBeDefined();
+		const ret = testDRP.test();
+		expect(ret).toBe(counter);
 	});
 });
 

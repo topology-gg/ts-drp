@@ -1,8 +1,10 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, StreamHandler } from "@libp2p/interface";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { DRPNetworkNode, type DRPNetworkNodeConfig, NetworkPb } from "@ts-drp/network";
+import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
+import { IMetrics } from "@ts-drp/tracer";
+import { Message, MessageType } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
@@ -59,9 +61,9 @@ export class DRPNode {
 	}
 
 	async sendGroupMessage(group: string, data: Uint8Array) {
-		const message = NetworkPb.Message.create({
+		const message = Message.create({
 			sender: this.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,
+			type: MessageType.MESSAGE_TYPE_CUSTOM,
 			data,
 		});
 		await this.networkNode.broadcastMessage(group, message);
@@ -72,9 +74,9 @@ export class DRPNode {
 	}
 
 	async sendCustomMessage(peerId: string, data: Uint8Array) {
-		const message = NetworkPb.Message.create({
+		const message = Message.create({
 			sender: this.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_CUSTOM,
+			type: MessageType.MESSAGE_TYPE_CUSTOM,
 			data,
 		});
 		await this.networkNode.sendMessage(peerId, message);
@@ -88,6 +90,7 @@ export class DRPNode {
 			enabled: boolean;
 			peerId?: string;
 		};
+		metrics?: IMetrics;
 	}) {
 		const object = new DRPObject({
 			peerId: this.networkNode.peerId,
@@ -95,6 +98,7 @@ export class DRPNode {
 			acl: options.acl,
 			drp: options.drp,
 			id: options.id,
+			metrics: options.metrics,
 		});
 		operations.createObject(this, object);
 		await operations.subscribeObject(this, object.id);
@@ -117,8 +121,13 @@ export class DRPNode {
 		sync?: {
 			peerId?: string;
 		};
+		metrics?: IMetrics;
 	}) {
-		const object = operations.connectObject(this, options.id, options.drp, options.sync?.peerId);
+		const object = operations.connectObject(this, options.id, {
+			peerId: options.sync?.peerId,
+			drp: options.drp,
+			metrics: options.metrics,
+		});
 		return object;
 	}
 

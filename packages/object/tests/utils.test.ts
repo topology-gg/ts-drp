@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { serializeStateMessage, deserializeStateMessage } from "@ts-drp/node/src/utils.js";
+import { MessagesPb } from "@ts-drp/types";
 import { expect, describe, it } from "vitest";
 
-import { deserializeValue, serializeValue } from "../src/index.js";
+import { DRPObject, HashGraph, serializeValue, deserializeValue } from "../src/index.js";
 
 class TestCustomClass {
 	constructor(
@@ -151,8 +154,6 @@ describe("Serialize & deserialize", () => {
 		const customObj = { a: new TestCustomClass("test", 42) };
 		const serialized = serializeValue(customObj);
 		const deserialized = deserializeValue(serialized);
-		console.log("deserialized", deserialized);
-		console.log("customObj", customObj);
 		expect(deserialized).toEqual(customObj);
 	});
 
@@ -218,5 +219,26 @@ describe("Serialize & deserialize", () => {
 		const serialized = serializeValue(obj);
 		const deserialized = deserializeValue(serialized);
 		expect(deserialized).toEqual(obj);
+	});
+
+	it("should serialize & deserialize SetDRP", () => {
+		const drpObject = DRPObject.createObject({
+			peerId: "test",
+			drp: new SetDRP(),
+		});
+		const aclState = drpObject.aclStates.get(HashGraph.rootHash);
+		const drpState = drpObject.drpStates.get(HashGraph.rootHash);
+		const response = MessagesPb.FetchStateResponse.create({
+			objectId: "test",
+			vertexHash: "test",
+			aclState: serializeStateMessage(aclState),
+			drpState: serializeStateMessage(drpState),
+		});
+		const data = MessagesPb.FetchStateResponse.encode(response).finish();
+		const decoded = MessagesPb.FetchStateResponse.decode(data);
+		const aclStateDecoded = deserializeStateMessage(decoded.aclState);
+		const drpStateDecoded = deserializeStateMessage(decoded.drpState);
+		expect(aclStateDecoded).toStrictEqual(aclState);
+		expect(drpStateDecoded).toStrictEqual(drpState);
 	});
 });

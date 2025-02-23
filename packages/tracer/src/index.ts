@@ -10,8 +10,11 @@ import {
 } from "@opentelemetry/sdk-trace-web";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 
+import { IMetrics } from "./interface.js";
+
+export { IMetrics };
+
 let enabled = false;
-let tracer: OtTracer | undefined;
 let provider: WebTracerProvider | undefined;
 let exporter: OTLPTraceExporter | undefined;
 
@@ -31,21 +34,16 @@ export type EnableTracingOptions = {
 	};
 };
 
-export const enableTracing = (tracerName: string, opts: EnableTracingOptions = {}): void => {
+export const enableTracing = (opts: EnableTracingOptions = {}): void => {
 	enabled = true;
 	initContextManager();
 	initProvider(opts.provider);
-
-	if (provider) {
-		tracer = provider.getTracer(tracerName) as OtTracer;
-	}
 };
 
 // disableTracing should reset the tracer, provider, and exporter
 // there for testing purposes
 export const disableTracing = (): void => {
 	enabled = false;
-	tracer = undefined;
 	provider = undefined;
 	exporter = undefined;
 };
@@ -179,49 +177,60 @@ function wrapAsyncGenerator<T>(gen: AsyncGenerator<T>, span: Span): AsyncGenerat
 	return wrapped;
 }
 
-export function traceFunc<Args extends unknown[], Return>(
-	name: string,
-	fn: (...args: Args) => Return,
-	setAttributes?: (span: Span, ...args: Args) => void
-): (...args: Args) => Return {
-	return (...args: Args): Return => {
-		if (!tracer || !enabled) return fn(...args);
-		const parentContext = context.active();
-		const span = tracer.startSpan(name, {}, parentContext);
+export class OpentelemetryMetrics implements IMetrics {
+	private tracer: OtTracer | undefined;
 
-		if (setAttributes) {
-			setAttributes(span, ...args);
-		}
+	constructor(tracerName: string) {
+		if (!provider) return;
+		this.tracer = provider.getTracer(tracerName) as OtTracer;
+	}
 
-		let result: Return;
-		const childContext = trace.setSpan(parentContext, span);
-		try {
-			result = context.with(childContext, fn, undefined, ...args);
-		} catch (err) {
-			const error = err instanceof Error ? err : new Error(String(err));
-			span.recordException(error);
-			span.setStatus({
-				code: SpanStatusCode.ERROR,
-				message: error.toString(),
-			});
+	public traceFunc<Args extends unknown[], Return>(
+		name: string,
+		fn: (...args: Args) => Return,
+		setAttributes?: (span: Span, ...args: Args) => void
+	): (...args: Args) => Return {
+		return (...args: Args): Return => {
+			if (!this.tracer || !enabled) {
+				return fn(...args);
+			}
+			const parentContext = context.active();
+			const span = this.tracer.startSpan(name, {}, parentContext);
+
+			if (setAttributes) {
+				setAttributes(span, ...args);
+			}
+
+			let result: Return;
+			const childContext = trace.setSpan(parentContext, span);
+			try {
+				result = context.with(childContext, fn, undefined, ...args);
+			} catch (err) {
+				const error = err instanceof Error ? err : new Error(String(err));
+				span.recordException(error);
+				span.setStatus({
+					code: SpanStatusCode.ERROR,
+					message: error.toString(),
+				});
+				span.end();
+				throw error;
+			}
+
+			if (isPromise<unknown>(result)) {
+				return wrapPromise(result, span) as Return;
+			}
+			if (isGenerator(result)) {
+				return wrapGenerator(result, span) as Return;
+			}
+			if (isAsyncGenerator(result)) {
+				return wrapAsyncGenerator(result, span) as Return;
+			}
+
+			span.setStatus({ code: SpanStatusCode.OK });
 			span.end();
-			throw error;
-		}
-
-		if (isPromise<unknown>(result)) {
-			return wrapPromise(result, span) as Return;
-		}
-		if (isGenerator(result)) {
-			return wrapGenerator(result, span) as Return;
-		}
-		if (isAsyncGenerator(result)) {
-			return wrapAsyncGenerator(result, span) as Return;
-		}
-
-		span.setStatus({ code: SpanStatusCode.OK });
-		span.end();
-		return result;
-	};
+			return result;
+		};
+	}
 }
 
 const initExporter = (opts: EnableTracingOptions["provider"]): OTLPTraceExporter => {
