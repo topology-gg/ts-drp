@@ -431,10 +431,6 @@ export async function verifyACLIncomingVertices(
 		};
 	});
 
-	const acl: ACL = object.acl as ACL;
-	if (!acl) {
-		return vertices;
-	}
 	const verificationPromises = vertices.map(async (vertex) => {
 		if (vertex.signature.length === 0) {
 			return null;
