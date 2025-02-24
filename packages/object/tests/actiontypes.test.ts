@@ -1,5 +1,5 @@
 import { AddMulDRP } from "@ts-drp/blueprints/src/AddMul/index.js";
-import { RecMulDRP } from "@ts-drp/blueprints/src/RecMul/index.js";
+import { RecursiveMulDRP } from "@ts-drp/blueprints/src/RecursiveMul/index.js";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { DRPObject, ObjectACL } from "../src/index.js";
@@ -123,14 +123,14 @@ describe("Test: ActionTypes (Drops)", () => {
 describe("Test: ActionTypes (RecMul)", () => {
 	let drp: DRPObject;
 	let drp2: DRPObject;
-	let recMul: RecMulDRP;
-	let recMul2: RecMulDRP;
+	let recMul: RecursiveMulDRP;
+	let recMul2: RecursiveMulDRP;
 
 	beforeEach(() => {
-		drp = new DRPObject({ peerId: "peer1", drp: new RecMulDRP(), acl });
-		drp2 = new DRPObject({ peerId: "peer2", drp: new RecMulDRP(), acl });
-		recMul = drp.drp as RecMulDRP;
-		recMul2 = drp2.drp as RecMulDRP;
+		drp = new DRPObject({ peerId: "peer1", drp: new RecursiveMulDRP(), acl });
+		drp2 = new DRPObject({ peerId: "peer2", drp: new RecursiveMulDRP(), acl });
+		recMul = drp.drp as RecursiveMulDRP;
+		recMul2 = drp2.drp as RecursiveMulDRP;
 
 		vi.useFakeTimers();
 		vi.setSystemTime(new Date(Date.UTC(1998, 11, 19)));

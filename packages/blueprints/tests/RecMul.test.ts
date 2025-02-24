@@ -1,13 +1,14 @@
-import { ActionType, Vertex } from "@ts-drp/object";
+import { ActionType } from "@ts-drp/object";
+import type { Vertex } from "@ts-drp/types";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { RecMulDRP } from "../src/RecMul/index.js";
+import { RecursiveMulDRP } from "../src/RecursiveMul/index.js";
 
 describe("RecMulDRP tests", () => {
-	let drp: RecMulDRP;
+	let drp: RecursiveMulDRP;
 
 	beforeEach(() => {
-		drp = new RecMulDRP();
+		drp = new RecursiveMulDRP();
 	});
 
 	test("Test: recursive_mul (Basic)", () => {
@@ -41,34 +42,30 @@ describe("RecMulDRP tests", () => {
 	});
 
 	test("Test: initialValue (Basic)", () => {
-		drp = new RecMulDRP(10);
+		drp = new RecursiveMulDRP({ initialValue: 10 });
 		expect(drp.query_value()).toEqual(10);
 
-		drp = new RecMulDRP(-10);
+		drp = new RecursiveMulDRP({ initialValue: -10 });
 		expect(drp.query_value()).toEqual(-10);
 
-		drp = new RecMulDRP(0);
+		drp = new RecursiveMulDRP({ initialValue: 0 });
 		expect(drp.query_value()).toEqual(0);
 
-		drp = new RecMulDRP();
+		drp = new RecursiveMulDRP();
 		expect(drp.query_value()).toEqual(1); // Default value is 1 for multiplication
 	});
 
 	test("Test: initialValue (Type Safety)", () => {
 		// @ts-expect-error Testing invalid input
-		drp = new RecMulDRP("10");
+		drp = new RecursiveMulDRP("10");
 		expect(drp.query_value()).toEqual(1);
 
 		// @ts-expect-error Testing invalid input
-		drp = new RecMulDRP(true);
+		drp = new RecursiveMulDRP(true);
 		expect(drp.query_value()).toEqual(1);
 
 		// @ts-expect-error Testing invalid input
-		drp = new RecMulDRP({});
-		expect(drp.query_value()).toEqual(1);
-
-		// @ts-expect-error Testing invalid input
-		drp = new RecMulDRP([]);
+		drp = new RecursiveMulDRP([]);
 		expect(drp.query_value()).toEqual(1);
 	});
 

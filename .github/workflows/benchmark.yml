@@ -34,7 +34,6 @@ jobs:
           cd packages/object
           pnpm run benchmark
 
-
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
         with:

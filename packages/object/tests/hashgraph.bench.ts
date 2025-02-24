@@ -1,4 +1,4 @@
-import { MapDRP, RecMulDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
+import { MapDRP, RecursiveMulDRP, SetDRP } from "@ts-drp/blueprints/src/index.js";
 import Benchmark from "benchmark";
 
 import { DRP, DRPObject, ObjectACL } from "../src/index.js";
@@ -54,7 +54,8 @@ function benchmarkForAddMulRecCall(
 	name: string,
 	numDRPs: number,
 	verticesPerDRP: number,
-	mergeFn: boolean
+	mergeFn: boolean,
+	withHistory: boolean = false
 ) {
 	return suite.add(name, () => {
 		const objects: DRPObject[] = [];
@@ -62,9 +63,9 @@ function benchmarkForAddMulRecCall(
 			const obj: DRPObject = new DRPObject({
 				peerId: `peer${i + 1}`,
 				acl,
-				drp: new RecMulDRP(),
+				drp: new RecursiveMulDRP({ withHistory }),
 			});
-			const drp = obj.drp as RecMulDRP;
+			const drp = obj.drp as RecursiveMulDRP;
 			for (let j = 0; j < verticesPerDRP; j++) {
 				drp.recursive_mul(j);
 			}
@@ -110,6 +111,22 @@ benchmarkForAddMulRecCall(
 	`Create 2 DRP Objects ${NUMBER_OF_OPERATIONS} vertices each and Merge for rec mul`,
 	2,
 	NUMBER_OF_OPERATIONS,
+	true
+);
+
+benchmarkForAddMulRecCall(
+	`Create 1 DRP Object ${NUMBER_OF_OPERATIONS} vertices and Merge for rec mul with history`,
+	1,
+	NUMBER_OF_OPERATIONS,
+	true,
+	true
+);
+
+benchmarkForAddMulRecCall(
+	`Create 2 DRP Objects ${NUMBER_OF_OPERATIONS} vertices each and Merge for rec mul with history`,
+	2,
+	NUMBER_OF_OPERATIONS,
+	true,
 	true
 );
 

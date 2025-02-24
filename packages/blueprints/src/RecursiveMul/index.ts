@@ -1,17 +1,26 @@
 import { ActionType, type DRP, type ResolveConflictsType, SemanticsType } from "@ts-drp/object";
 import { Vertex } from "@ts-drp/types";
 
-export class RecMulDRP implements DRP {
+export interface RecursiveMulOptions {
+	initialValue?: number;
+	withHistory?: boolean;
+}
+
+export class RecursiveMulDRP implements DRP {
 	semanticsType = SemanticsType.pair;
 
+	private readonly _withHistory: boolean;
 	private _value: number;
+	private _history: number[];
 
-	constructor(initialValue?: number) {
+	constructor({ initialValue, withHistory }: RecursiveMulOptions = {}) {
 		if (typeof initialValue === "number") {
 			this._value = initialValue;
 		} else {
 			this._value = 1;
 		}
+		this._history = [];
+		this._withHistory = withHistory ?? false;
 	}
 
 	recursive_mul(value: number): void {
@@ -26,6 +35,7 @@ export class RecMulDRP implements DRP {
 
 	private _multiply(value: number, base: number): number {
 		if (value === 1) return base; // Base case
+		if (this._withHistory) this._history.push(value);
 		return base + this._multiply(value - 1, base);
 	}
 
