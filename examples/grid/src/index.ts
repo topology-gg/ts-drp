@@ -92,8 +92,14 @@ async function run(metrics?: IMetrics) {
 	});
 
 	const button_connect = <HTMLButtonElement>document.getElementById("joinGrid");
+	const grid_input = <HTMLInputElement>document.getElementById("gridInput");
+	grid_input.addEventListener("keydown", (event) => {
+		if (event.key === "Enter") {
+			button_connect.click();
+		}
+	});
 	button_connect.addEventListener("click", async () => {
-		const drpId = (<HTMLInputElement>document.getElementById("gridInput")).value;
+		const drpId = grid_input.value;
 		try {
 			gridState.drpObject = await gridState.node.connectObject({
 				id: drpId,
@@ -138,15 +144,19 @@ async function main() {
 		metrics = new OpentelemetryMetrics("grid-service-2");
 	}
 
+	let hasRun = false;
+
 	const networkConfig = getNetworkConfigFromEnv();
 	gridState.node = new DRPNode(networkConfig ? { network_config: networkConfig } : undefined);
 	await gridState.node.start();
 	await gridState.node.networkNode.isDialable(async () => {
 		console.log("Started node", import.meta.env);
+		if (hasRun) return;
+		hasRun = true;
 		await run(metrics);
 	});
 
-	setInterval(renderInfo, import.meta.env.VITE_RENDER_INFO_INTERVAL);
+	if (!hasRun) setInterval(renderInfo, import.meta.env.VITE_RENDER_INFO_INTERVAL);
 }
 
 void main();
