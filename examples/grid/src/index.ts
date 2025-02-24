@@ -6,9 +6,14 @@ import { render, enableUIControls, renderInfo } from "./render";
 import { gridState } from "./state";
 import { getColorForPeerId } from "./util/color";
 
+export function getBooleanFromEnv(key: string): boolean {
+	const value = import.meta.env[key];
+	return value === "true" || value === "1" || Boolean(value);
+}
+
 export function getNetworkConfigFromEnv() {
-	const hasBootstrapPeers = Boolean(import.meta.env.VITE_BOOTSTRAP_PEERS);
-	const hasDiscoveryInterval = Boolean(import.meta.env.VITE_DISCOVERY_INTERVAL);
+	const hasBootstrapPeers = getBooleanFromEnv("VITE_BOOTSTRAP_PEERS");
+	const hasDiscoveryInterval = getBooleanFromEnv("VITE_DISCOVERY_INTERVAL");
 
 	const hasEnv = hasBootstrapPeers || hasDiscoveryInterval;
 
@@ -133,7 +138,7 @@ async function run(metrics?: IMetrics) {
 
 async function main() {
 	let metrics: IMetrics | undefined = undefined;
-	const enableTracingFlag = Boolean(import.meta.env.VITE_ENABLE_TRACING);
+	const enableTracingFlag = getBooleanFromEnv("VITE_ENABLE_TRACING");
 	if (enableTracingFlag) {
 		enableTracing();
 		metrics = new OpentelemetryMetrics("grid-service-2");
