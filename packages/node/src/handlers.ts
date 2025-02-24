@@ -1,6 +1,7 @@
 import type { Stream } from "@libp2p/interface";
 import { streamToUint8Array } from "@ts-drp/network";
-import { type ACL, type DRPObject, HashGraph, type Vertex } from "@ts-drp/object";
+import { type ACL, type DRPObject, HashGraph } from "@ts-drp/object";
+import { type Vertex } from "@ts-drp/types";
 import {
 	AggregatedAttestation,
 	Attestation,

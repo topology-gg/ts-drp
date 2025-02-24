@@ -1,20 +1,11 @@
 import { MapConflictResolution, MapDRP } from "@ts-drp/blueprints/src/Map/index.js";
 import { SetDRP } from "@ts-drp/blueprints/src/Set/index.js";
-import { Vertex } from "@ts-drp/types";
+import { type Vertex, Operation } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { ObjectACL } from "../src/acl/index.js";
 import { ActionType, SemanticsType } from "../src/hashgraph/index.js";
-import {
-	ACLGroup,
-	DRP,
-	DRPObject,
-	DrpType,
-	Hash,
-	HashGraph,
-	newVertex,
-	type Operation,
-} from "../src/index.js";
+import { ACLGroup, DRP, DRPObject, DrpType, Hash, HashGraph, newVertex } from "../src/index.js";
 import { ObjectSet } from "../src/utils/objectSet.js";
 
 const acl = new ObjectACL({
@@ -107,7 +98,6 @@ describe("HashGraph construction tests", () => {
 		drp1.add(1);
 		drp2.add(2);
 		obj2.merge(obj1.hashGraph.getAllVertices());
-
 		expect(selfCheckConstraints(obj2.hashGraph)).toBe(true);
 
 		const linearOps = obj2.hashGraph.linearizeOperations();
