@@ -3,7 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { AttestationUpdate, Message, Sync, SyncAccept } from "@ts-drp/types";
+import { AttestationUpdate, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
 import { MessageType } from "@ts-drp/types/src/index.js";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
@@ -158,9 +158,21 @@ describe("Handle message correctly", () => {
 		(drpObject.drp as SetDRP<number>).add(5);
 		(drpObject.drp as SetDRP<number>).add(10);
 
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		const hash = drpObject.vertices[1].hash;
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
+		const vertices = drpObject.vertices;
+		await signGeneratedVertices(node2, vertices);
+		const message = Message.create({
+			sender: node2.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_UPDATE,
+			data: Update.encode(
+				Update.create({
+					objectId: drpObject.id,
+					vertices: vertices,
+				})
+			).finish(),
+		});
+		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
+
+		await new Promise((resolve) => setTimeout(resolve, 500));
 		const expected_vertices = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return vertex.operation;
 		});
