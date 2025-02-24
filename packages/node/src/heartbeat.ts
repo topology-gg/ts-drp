@@ -218,7 +218,6 @@ export class DRPIDHeartbeat implements IDRPIDHeartbeat {
 			type: MessageType.MESSAGE_TYPE_ID_HEARTBEAT_RESPONSE,
 			data: IDHeartbeatResponse.encode(response).finish(),
 		});
-		console.log("sending message to", sender, message);
 		await networkNode.sendMessage(sender, message);
 	}
 }
