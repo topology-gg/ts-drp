@@ -133,7 +133,8 @@ async function run(metrics?: IMetrics) {
 
 async function main() {
 	let metrics: IMetrics | undefined = undefined;
-	if (import.meta.env.VITE_ENABLE_TRACING) {
+	const enableTracingFlag = import.meta.env.VITE_ENABLE_TRACING === "true";
+	if (enableTracingFlag) {
 		enableTracing();
 		metrics = new OpentelemetryMetrics("grid-service-2");
 	}
