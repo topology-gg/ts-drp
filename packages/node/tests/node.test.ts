@@ -1,7 +1,8 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
-import { type DRP, DRPObject, DrpType, type Vertex } from "@ts-drp/object";
+import { type DRP, DRPObject, DrpType } from "@ts-drp/object";
+import { type Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
 
 import {

@@ -3,7 +3,8 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { MessagesPb as NetworkPb } from "@ts-drp/types";
+import { AttestationUpdate, Message, Sync, SyncAccept } from "@ts-drp/types";
+import { MessageType } from "@ts-drp/types/src/index.js";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
 
@@ -24,7 +25,7 @@ describe("drpMessagesHandler inputs", () => {
 			"drp::node ::messageHandler: Stream and data are undefined"
 		);
 
-		const msg = NetworkPb.Message.create({
+		const msg = Message.create({
 			sender: node.networkNode.peerId,
 			type: -1,
 			data: new Uint8Array(),
@@ -157,7 +158,7 @@ describe("Handle message correctly", () => {
 		(drpObject.drp as SetDRP<number>).add(5);
 		(drpObject.drp as SetDRP<number>).add(10);
 
-		await new Promise((resolve) => setTimeout(resolve, 500));
+		await new Promise((resolve) => setTimeout(resolve, 1000));
 		const hash = drpObject.vertices[1].hash;
 		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 		const expected_vertices = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
@@ -180,11 +181,11 @@ describe("Handle message correctly", () => {
 		expect(drpObject.vertices.length).toBe(3);
 		expect(node1DrpObject?.vertices.length).toBe(5);
 
-		const message = NetworkPb.Message.create({
+		const message = Message.create({
 			sender: node1.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC,
-			data: NetworkPb.Sync.encode(
-				NetworkPb.Sync.create({
+			type: MessageType.MESSAGE_TYPE_SYNC,
+			data: Sync.encode(
+				Sync.create({
 					objectId: drpObject.id,
 					vertexHashes: node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => vertex.hash),
 				})
@@ -205,11 +206,11 @@ describe("Handle message correctly", () => {
 		(node1DrpObject?.drp as SetDRP<number>).add(20);
 		expect(node1DrpObject?.vertices.length).toBe(7);
 		await signGeneratedVertices(node1, node1DrpObject?.vertices || []);
-		const message = NetworkPb.Message.create({
+		const message = Message.create({
 			sender: node1.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
-			data: NetworkPb.SyncAccept.encode(
-				NetworkPb.SyncAccept.create({
+			type: MessageType.MESSAGE_TYPE_SYNC_ACCEPT,
+			data: SyncAccept.encode(
+				SyncAccept.create({
 					objectId: drpObject.id,
 					requested: node1DrpObject?.vertices,
 					requesting: [],
@@ -221,6 +222,30 @@ describe("Handle message correctly", () => {
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		expect(node1.objectStore.get(drpObject.id)?.vertices.length).toBe(7);
 		expect(drpObject.vertices.length).toBe(7);
+	});
+
+	test("should handle update attestation message correctly", async () => {
+		const hash = drpObject.vertices[1].hash;
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
+		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
+			return {
+				data: vertex.hash,
+				signature: node1.credentialStore.signWithBls(vertex.hash),
+			};
+		});
+		const message = Message.create({
+			sender: node1.networkNode.peerId,
+			type: MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
+			data: AttestationUpdate.encode(
+				AttestationUpdate.create({
+					objectId: drpObject.id,
+					attestations,
+				})
+			).finish(),
+		});
+		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
+		await new Promise((resolve) => setTimeout(resolve, 500));
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 	});
 
 	afterAll(async () => {
