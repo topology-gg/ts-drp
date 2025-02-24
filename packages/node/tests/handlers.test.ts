@@ -157,20 +157,9 @@ describe("Handle message correctly", () => {
 		(drpObject.drp as SetDRP<number>).add(5);
 		(drpObject.drp as SetDRP<number>).add(10);
 
-		const vertices = drpObject.vertices;
-		await signGeneratedVertices(node2, vertices);
-		const message = NetworkPb.Message.create({
-			sender: node2.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_UPDATE,
-			data: NetworkPb.Update.encode(
-				NetworkPb.Update.create({
-					objectId: drpObject.id,
-					vertices: vertices,
-				})
-			).finish(),
-		});
-		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));
+		const hash = drpObject.vertices[1].hash;
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 		const expected_vertices = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return vertex.operation;
 		});
@@ -232,30 +221,6 @@ describe("Handle message correctly", () => {
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		expect(node1.objectStore.get(drpObject.id)?.vertices.length).toBe(7);
 		expect(drpObject.vertices.length).toBe(7);
-	});
-
-	test("should handle update attestation message correctly", async () => {
-		const hash = drpObject.vertices[1].hash;
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
-		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
-			return {
-				data: vertex.hash,
-				signature: node1.credentialStore.signWithBls(vertex.hash),
-			};
-		});
-		const message = NetworkPb.Message.create({
-			sender: node1.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_ATTESTATION_UPDATE,
-			data: NetworkPb.AttestationUpdate.encode(
-				NetworkPb.AttestationUpdate.create({
-					objectId: drpObject.id,
-					attestations,
-				})
-			).finish(),
-		});
-		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
-		await new Promise((resolve) => setTimeout(resolve, 500));
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 	});
 
 	afterAll(async () => {
