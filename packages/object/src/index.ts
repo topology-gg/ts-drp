@@ -1,12 +1,6 @@
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { IMetrics } from "@ts-drp/tracer";
-import {
-	DRPObjectBase,
-	DRPState,
-	DRPStateEntry,
-	type Vertex_Operation as Operation,
-	type Vertex,
-} from "@ts-drp/types";
+import { DRPObjectBase, DRPState, DRPStateEntry, Operation, type Vertex } from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";

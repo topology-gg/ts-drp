@@ -1,6 +1,5 @@
 import { IMetrics } from "@ts-drp/tracer";
-import { ObjectPb } from "@ts-drp/types";
-import { type Vertex_Operation as Operation, Vertex } from "@ts-drp/types";
+import { Operation, Vertex } from "@ts-drp/types";
 
 import type { ResolveConflictsType, SemanticsType } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";
@@ -10,11 +9,7 @@ export enum DrpType {
 	DRP = "DRP",
 }
 
-export type DRPObjectCallback = (
-	object: DRPObject,
-	origin: string,
-	vertices: ObjectPb.Vertex[]
-) => void;
+export type DRPObjectCallback = (object: DRPObject, origin: string, vertices: Vertex[]) => void;
 
 export interface DRPPublicCredential {
 	ed25519PublicKey: string;
