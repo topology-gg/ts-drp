@@ -330,6 +330,9 @@ importers:
       '@chainsafe/bls':
         specifier: ^8.1.0
         version: 8.1.0
+      '@chainsafe/libp2p-gossipsub':
+        specifier: ^14.1.0
+        version: 14.1.0
       '@grpc/grpc-js':
         specifier: ^1.12.2
         version: 1.12.6
