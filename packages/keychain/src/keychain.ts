@@ -7,16 +7,16 @@ import type { DRPPublicCredential } from "@ts-drp/object";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
-export interface DRPCredentialConfig {
+export interface KeychainConfig {
 	private_key_seed?: string;
 }
 
-export class DRPCredentialStore {
-	private _config?: DRPCredentialConfig;
+export class Keychain {
+	private _config?: KeychainConfig;
 	private _ed25519PrivateKey?: Ed25519PrivateKey;
 	private _blsPrivateKey?: BlsSecretKey;
 
-	constructor(config?: DRPCredentialConfig) {
+	constructor(config?: KeychainConfig) {
 		this._config = config;
 	}
 

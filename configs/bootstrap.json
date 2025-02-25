@@ -6,7 +6,7 @@
 			"/dns4/bootstrap1.topology.gg/tcp/443/wss/p2p/12D3KooWBu1pZ3v2u6tXSmkN35kiMLENpv3bEXcyT1GJTVhipAkG"
 		]
 	},
-	"credential_config": {
+	"keychain_config": {
 		"private_key_seed": "bootstrap"
 	}
 }

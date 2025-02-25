@@ -370,7 +370,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 		try {
-			vertex.signature = await node.credentialStore.signWithEd25519(vertex.hash);
+			vertex.signature = await node.keychain.signWithEd25519(vertex.hash);
 		} catch (error) {
 			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
@@ -400,7 +400,7 @@ function generateAttestations(node: DRPNode, object: DRPObject, vertices: Vertex
 	);
 	return goodVertices.map((v) => ({
 		data: v.hash,
-		signature: node.credentialStore.signWithBls(v.hash),
+		signature: node.keychain.signWithBls(v.hash),
 	}));
 }
 

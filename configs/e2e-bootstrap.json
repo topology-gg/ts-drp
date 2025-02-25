@@ -4,7 +4,7 @@
 		"bootstrap": true,
 		"bootstrap_peers": []
 	},
-	"credential_config": {
+	"keychain_config": {
 		"private_key_seed": "bootstrap"
 	}
 }

@@ -1,1 +1,1 @@
-export * from "./credential.js";
+export * from "./keychain.js";
