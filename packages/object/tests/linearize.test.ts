@@ -407,10 +407,10 @@ describe("linearizeMultipleSemantics", () => {
 		}
 
 		const subgraph = new ObjectSet<string>(hashGraph.vertices.keys());
-		const order = linearizePairSemantics(hashGraph, HashGraph.rootHash, subgraph);
-		const topoOrder = hashGraph.topologicalSort(true);
-		for (let i = 0; i < order.length; i++) {
-			expect(order[i]).equal(hashGraph.vertices.get(topoOrder[i + 1])?.operation);
+		const linearizedOps = linearizePairSemantics(hashGraph, HashGraph.rootHash, subgraph);
+		const order = hashGraph.topologicalSort(true);
+		for (let i = 0; i < linearizedOps.length; i++) {
+			expect(linearizedOps[i]).equal(hashGraph.vertices.get(order[i + 1])?.operation);
 		}
 	});
 });
