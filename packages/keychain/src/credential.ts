@@ -4,8 +4,8 @@ import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
 import type { DRPPublicCredential } from "@ts-drp/object";
-import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { toString as uint8ArrayToString } from "uint8arrays/to-string";
 
 export interface DRPCredentialConfig {
 	private_key_seed?: string;
