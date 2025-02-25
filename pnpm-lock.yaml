@@ -193,9 +193,6 @@ importers:
       '@chainsafe/bls-keygen':
         specifier: ^0.4.0
         version: 0.4.0
-      '@chainsafe/libp2p-gossipsub':
-        specifier: ^14.1.0
-        version: 14.1.0
       '@libp2p/crypto':
         specifier: ^5.0.5
         version: 5.0.12
