@@ -354,6 +354,9 @@ importers:
       '@ts-drp/blueprints':
         specifier: 0.7.0
         version: link:../blueprints
+      '@ts-drp/keychain':
+        specifier: workspace:^
+        version: link:../keychain
       '@ts-drp/logger':
         specifier: 0.7.0
         version: link:../logger

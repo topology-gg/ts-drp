@@ -1,5 +1,6 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, StreamHandler } from "@libp2p/interface";
+import { DRPCredentialConfig, DRPCredentialStore } from "@ts-drp/keychain";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
@@ -8,7 +9,7 @@ import { Message, MessageType } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
 import * as operations from "./operations.js";
-import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./store/index.js";
+import { DRPObjectStore } from "./store/index.js";
 
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
