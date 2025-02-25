@@ -54,7 +54,6 @@ export interface DRPNetworkNodeConfig {
 	browser_metrics?: boolean;
 	listen_addresses?: string[];
 	log_config?: LoggerOptions;
-	private_key_seed?: string;
 	pubsub?: {
 		peer_discovery_interval?: number;
 	};

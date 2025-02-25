@@ -83,7 +83,6 @@ describe("Handle message correctly", () => {
 			bootstrap: true,
 			listen_addresses: ["/ip4/0.0.0.0/tcp/0/ws"],
 			bootstrap_peers: [],
-			private_key_seed: "bootstrap_message_handler",
 		});
 		await bootstrapNode.start();
 
@@ -96,15 +95,11 @@ describe("Handle message correctly", () => {
 		};
 		node1 = new DRPNode({
 			network_config: nodeConfig,
-			credential_config: {
-				private_key_seed: "node1",
-			},
+			credential_config: {},
 		});
 		node2 = new DRPNode({
 			network_config: nodeConfig,
-			credential_config: {
-				private_key_seed: "node2",
-			},
+			credential_config: {},
 		});
 
 		await node2.start();
