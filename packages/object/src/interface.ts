@@ -12,7 +12,7 @@ export enum DrpType {
 export type DRPObjectCallback = (object: DRPObject, origin: string, vertices: Vertex[]) => void;
 
 export interface DRPPublicCredential {
-	ed25519PublicKey: string;
+	secp256k1PublicKey: string;
 	blsPublicKey: string;
 }
 

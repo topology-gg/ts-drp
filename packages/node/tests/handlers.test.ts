@@ -171,6 +171,7 @@ describe("Handle message correctly", () => {
 			).finish(),
 		});
 		await node2.networkNode.sendMessage(node1.networkNode.peerId, message);
+
 		await new Promise((resolve) => setTimeout(resolve, 500));
 		const expected_vertices = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return vertex.operation;
@@ -237,7 +238,7 @@ describe("Handle message correctly", () => {
 
 	test("should handle update attestation message correctly", async () => {
 		const hash = drpObject.vertices[1].hash;
-		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(1);
+		expect(node2.objectStore.get(drpObject.id)?.finalityStore.getNumberOfSignatures(hash)).toBe(2);
 		const attestations = node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => {
 			return {
 				data: vertex.hash,

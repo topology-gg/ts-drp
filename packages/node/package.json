@@ -32,9 +32,9 @@
 	"devDependencies": {
 		"@bufbuild/protobuf": "^2.0.0",
 		"@types/node": "^22.5.4",
+		"race-event": "^1.3.0",
 		"tsx": "4.19.1",
 		"typescript": "^5.5.4",
-		"race-event": "^1.3.0",
 		"vitest": "^3.0.5"
 	},
 	"dependencies": {
@@ -46,14 +46,16 @@
 		"@grpc/reflection": "^1.0.4",
 		"@libp2p/crypto": "^5.0.5",
 		"@libp2p/interface": "^2.1.3",
-		"dotenv": "^16.4.5",
+		"@libp2p/peer-id": "^5.0.13",
+		"@noble/secp256k1": "^2.2.3",
 		"@ts-drp/blueprints": "0.7.0",
+		"@ts-drp/logger": "0.7.0",
 		"@ts-drp/network": "0.7.0",
 		"@ts-drp/object": "0.7.0",
-		"@ts-drp/logger": "0.7.0",
-		"@ts-drp/tracer": "0.7.0",
 		"@ts-drp/types": "0.7.0",
+		"@ts-drp/tracer": "^0.7.0",
 		"commander": "^13.0.0",
+		"dotenv": "^16.4.5",
 		"uint8arrays": "^5.1.0"
 	}
 }

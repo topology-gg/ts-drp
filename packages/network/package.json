@@ -50,6 +50,7 @@
 		"@libp2p/webtransport": "^5.0.9",
 		"@multiformats/multiaddr": "^12.3.1",
 		"@multiformats/multiaddr-matcher": "^1.6.0",
+		"@noble/secp256k1": "^2.2.3",
 		"@ts-drp/logger": "^0.7.0",
 		"@ts-drp/types": "^0.7.0",
 		"it-length-prefixed": "^10.0.0",
