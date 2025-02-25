@@ -9,7 +9,7 @@ import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
 import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
 import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
-import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
+import { privateKeyFromRaw } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
 import { devToolsMetrics } from "@libp2p/devtools-metrics";
 import { identify, identifyPush } from "@libp2p/identify";
@@ -76,13 +76,12 @@ export class DRPNetworkNode {
 		log = new Logger("drp::network", config?.log_config);
 	}
 
-	async start() {
+	async start(rawPrivateKey?: string) {
 		if (this._node?.status === "started") throw new Error("Node already started");
 
 		let privateKey = undefined;
-		if (this._config?.private_key_seed) {
-			const tmp = this._config.private_key_seed.padEnd(32, "0");
-			privateKey = await generateKeyPairFromSeed("Ed25519", uint8ArrayFromString(tmp));
+		if (rawPrivateKey) {
+			privateKey = privateKeyFromRaw(uint8ArrayFromString(rawPrivateKey, "base64"));
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
@@ -242,10 +241,10 @@ export class DRPNetworkNode {
 		await this._node?.stop();
 	}
 
-	async restart(config?: DRPNetworkNodeConfig) {
+	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: string) {
 		await this.stop();
 		if (config) this._config = config;
-		await this.start();
+		await this.start(rawPrivateKey);
 	}
 
 	async isDialable(callback?: () => void | Promise<void>) {

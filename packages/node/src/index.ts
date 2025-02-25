@@ -36,7 +36,7 @@ export class DRPNode {
 
 	async start(): Promise<void> {
 		await this.credentialStore.start();
-		await this.networkNode.start();
+		await this.networkNode.start(this.credentialStore.getEd25519PrivateKey());
 		await this.networkNode.addMessageHandler(async ({ stream }) =>
 			drpMessagesHandler(this, stream)
 		);
