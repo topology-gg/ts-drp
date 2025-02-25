@@ -35,7 +35,12 @@ export class RecursiveMulDRP implements DRP {
 
 	private _multiply(value: number, base: number): number {
 		if (value === 1) return base; // Base case
-		if (this._withHistory) this._history.push(value);
+		if (this._withHistory) {
+			this._history.push(value);
+			if (this._history.length > 1000) {
+				this._history.shift();
+			}
+		}
 		return base + this._multiply(value - 1, base);
 	}
 
