@@ -39,7 +39,6 @@
 	},
 	"dependencies": {
 		"@chainsafe/bls": "^8.1.0",
-		"@chainsafe/bls-keygen": "^0.4.0",
 		"@chainsafe/libp2p-gossipsub": "^14.1.0",
 		"@grpc/grpc-js": "^1.12.2",
 		"@grpc/proto-loader": "^0.7.13",
@@ -47,7 +46,7 @@
 		"@libp2p/crypto": "^5.0.5",
 		"@libp2p/interface": "^2.1.3",
 		"@ts-drp/blueprints": "0.7.0",
-		"@ts-drp/keychain": "workspace:^",
+		"@ts-drp/keychain": "0.7.0",
 		"@ts-drp/logger": "0.7.0",
 		"@ts-drp/network": "0.7.0",
 		"@ts-drp/object": "0.7.0",
