@@ -1,6 +1,6 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints/src/index.js";
-import { DRPCredentialStore } from "@ts-drp/node/src/store/index.js";
+import { DRPCredentialStore } from "@ts-drp/keychain/src/credential.js";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { beforeEach, describe, expect, test } from "vitest";
 
