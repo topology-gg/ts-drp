@@ -95,11 +95,15 @@ describe("Handle message correctly", () => {
 		};
 		node1 = new DRPNode({
 			network_config: nodeConfig,
-			credential_config: {},
+			credential_config: {
+				private_key_seed: "node1",
+			},
 		});
 		node2 = new DRPNode({
 			network_config: nodeConfig,
-			credential_config: {},
+			credential_config: {
+				private_key_seed: "node2",
+			},
 		});
 
 		await node2.start();
