@@ -96,7 +96,7 @@ export class DRPIDHeartbeat implements IDRPIDHeartbeat {
 			this._searchStartTime = Date.now();
 		}
 
-		if (!this.inHeartbeatWindow()) {
+		if (!this.inHeartbeatWindow(this._searchStartTime)) {
 			this.logger.error(`::heartbeat: No peers found after ${this._searchDuration}ms of searching`);
 			this._searchStartTime = undefined;
 			return;
@@ -125,9 +125,8 @@ export class DRPIDHeartbeat implements IDRPIDHeartbeat {
 	 * @returns {boolean} True if within search window, false if search time has expired or not started
 	 * @private
 	 */
-	private inHeartbeatWindow(): boolean {
-		if (!this._searchStartTime) return false;
-		const searchDuration = Date.now() - this._searchStartTime;
+	private inHeartbeatWindow(_searchStartTime: number): boolean {
+		const searchDuration = Date.now() - _searchStartTime;
 		return searchDuration < this._searchDuration;
 	}
 
