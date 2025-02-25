@@ -41,12 +41,19 @@ interface SubscriberInfo {
  * @implements {IDRPIDHeartbeat}
  */
 export class DRPIDHeartbeat implements IDRPIDHeartbeat {
+	/** Unique identifier for the DRPObject */
 	private readonly _id: string;
+	/** Interval in milliseconds between heartbeats. Defaults to 10,000ms */
 	private readonly _interval: number;
+	/** Network node instance used for peer communication */
 	private readonly _networkNode: DRPNetworkNode;
+	/** Interval ID for the heartbeat timer */
 	private _intervalId?: NodeJS.Timeout;
+	/** Start time of the search for peers */
 	private _searchStartTime?: number;
+	/** Duration in milliseconds to search for peers before giving up */
 	private _searchDuration: number;
+	/** Logger instance for logging */
 	private logger: Logger;
 
 	/**
