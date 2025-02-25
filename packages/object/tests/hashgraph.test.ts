@@ -221,7 +221,7 @@ describe("HashGraph construction tests", () => {
 	});
 });
 
-describe("HashGraph for AddWinSet tests", () => {
+describe("HashGraph for SetDRP tests", () => {
 	let obj1: DRPObject;
 	let obj2: DRPObject;
 	const acl = new ObjectACL({
