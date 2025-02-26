@@ -59,15 +59,10 @@ export class Keychain {
 		return this._blsPrivateKey.sign(uint8ArrayFromString(data)).toBytes();
 	}
 
-	get ed25519PrivateKey() {
+	get ed25519PrivateKey(): Uint8Array {
 		if (!this._ed25519PrivateKey) {
 			throw new Error("Private key not found");
 		}
-		return uint8ArrayToString(this._ed25519PrivateKey.raw, "base64");
-	}
-		if (!this._ed25519PrivateKey) {
-			throw new Error("Private key not found");
-		}
-		return uint8ArrayToString(this._ed25519PrivateKey.raw, "base64");
+		return this._ed25519PrivateKey.raw;
 	}
 }

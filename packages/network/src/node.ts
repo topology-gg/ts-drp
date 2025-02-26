@@ -33,7 +33,6 @@ import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { Message } from "@ts-drp/types";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
-import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { uint8ArrayToStream } from "./stream.js";
 
@@ -75,12 +74,12 @@ export class DRPNetworkNode {
 		log = new Logger("drp::network", config?.log_config);
 	}
 
-	async start(rawPrivateKey?: string) {
+	async start(rawPrivateKey?: Uint8Array) {
 		if (this._node?.status === "started") throw new Error("Node already started");
 
 		let privateKey = undefined;
 		if (rawPrivateKey) {
-			privateKey = privateKeyFromRaw(uint8ArrayFromString(rawPrivateKey, "base64"));
+			privateKey = privateKeyFromRaw(rawPrivateKey);
 		}
 
 		const _bootstrapNodesList = this._config?.bootstrap_peers
@@ -240,7 +239,7 @@ export class DRPNetworkNode {
 		await this._node?.stop();
 	}
 
-	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: string) {
+	async restart(config?: DRPNetworkNodeConfig, rawPrivateKey?: Uint8Array) {
 		await this.stop();
 		if (config) this._config = config;
 		await this.start(rawPrivateKey);

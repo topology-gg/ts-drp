@@ -36,7 +36,7 @@ export class DRPNode {
 
 	async start(): Promise<void> {
 		await this.keychain.start();
-		await this.networkNode.start(this.keychain.getEd25519PrivateKey());
+		await this.networkNode.start(this.keychain.ed25519PrivateKey);
 		await this.networkNode.addMessageHandler(async ({ stream }) =>
 			drpMessagesHandler(this, stream)
 		);
