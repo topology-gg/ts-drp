@@ -1,5 +1,5 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
-import type { EventCallback, StreamHandler } from "@libp2p/interface";
+import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
@@ -36,7 +36,7 @@ export class DRPNode {
 	async start(): Promise<void> {
 		await this.credentialStore.start();
 		await this.networkNode.start();
-		await this.networkNode.addMessageHandler(async ({ stream }) =>
+		await this.networkNode.addMessageHandler(async ({ stream }: IncomingStreamData) =>
 			drpMessagesHandler(this, stream)
 		);
 	}
