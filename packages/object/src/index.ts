@@ -128,6 +128,9 @@ export class DRPObject implements DRPObjectBase {
 			acl: aclObj,
 			drp: options.drp,
 			metrics: options.metrics,
+			config: {
+				log_config: options.log_config,
+			},
 		});
 		return object;
 	}

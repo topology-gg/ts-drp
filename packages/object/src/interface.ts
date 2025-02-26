@@ -3,6 +3,7 @@ import { Operation, Vertex } from "@ts-drp/types";
 
 import type { ResolveConflictsType, SemanticsType } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";
+import { LoggerOptions } from "@ts-drp/logger";
 
 export enum DrpType {
 	ACL = "ACL",
@@ -32,4 +33,5 @@ export type ConnectObjectOptions = {
 	id?: string;
 	drp?: DRP;
 	metrics?: IMetrics;
+	log_config?: LoggerOptions;
 };
