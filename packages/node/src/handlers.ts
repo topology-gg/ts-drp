@@ -405,9 +405,11 @@ function generateAttestations(node: DRPNode, object: DRPObject, vertices: Vertex
 }
 
 function getAttestations(object: DRPObject, vertices: Vertex[]): AggregatedAttestation[] {
-	return vertices
-		.map((v) => object.finalityStore.getAttestation(v.hash))
-		.filter((a) => a !== undefined);
+	return (
+		vertices
+			.map((v) => object.finalityStore.getAttestation(v.hash))
+			.filter((a): a is AggregatedAttestation => a !== undefined) ?? []
+	);
 }
 
 export async function verifyACLIncomingVertices(
@@ -469,8 +471,8 @@ export async function verifyACLIncomingVertices(
 		}
 	});
 
-	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
-		(vertex: Vertex | null) => vertex !== null
+	const verifiedVertices: Vertex[] = (await Promise.all(verificationPromises)).filter(
+		(vertex: Vertex | null): vertex is Vertex => vertex !== null
 	);
 
 	return verifiedVertices;
