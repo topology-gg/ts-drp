@@ -1,9 +1,9 @@
+import { LoggerOptions } from "@ts-drp/logger";
 import { IMetrics } from "@ts-drp/tracer";
 import { Operation, Vertex } from "@ts-drp/types";
 
 import type { ResolveConflictsType, SemanticsType } from "./hashgraph/index.js";
 import type { DRPObject } from "./index.js";
-import { LoggerOptions } from "@ts-drp/logger";
 
 export enum DrpType {
 	ACL = "ACL",
