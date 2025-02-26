@@ -34,18 +34,22 @@ export class RecursiveMulDRP implements DRP {
 	}
 
 	private _multiply(value: number, base: number): number {
-		if (value === 1) return base; // Base case
 		if (this._withHistory) {
-			this._history.push(value);
+			this._history.push(base);
 			if (this._history.length > 1000) {
 				this._history.shift();
 			}
 		}
+		if (value === 1) return base; // Base case
 		return base + this._multiply(value - 1, base);
 	}
 
 	query_value(): number {
 		return this._value;
+	}
+
+	query_history(): number[] {
+		return this._history;
 	}
 
 	resolveConflicts(_: Vertex[]): ResolveConflictsType {
