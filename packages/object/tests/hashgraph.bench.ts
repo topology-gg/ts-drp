@@ -25,18 +25,15 @@ function benchmarkForAddWinSet(
 				drp: new SetDRP<number>(),
 			});
 			const drp = obj.drp;
-			if (!drp) {
-				throw new Error("DRP is undefined");
-			}
 			for (let j = 0; j < verticesPerDRP; j++) {
 				if (i % 3 === 2) {
-					drp.add(j);
-					drp.delete(j);
+					drp?.add(j);
+					drp?.delete(j);
 				} else if (i % 3 === 1) {
-					drp.delete(j);
-					drp.add(j);
+					drp?.delete(j);
+					drp?.add(j);
 				} else {
-					drp.add(j);
+					drp?.add(j);
 				}
 			}
 			objects.push(obj);
