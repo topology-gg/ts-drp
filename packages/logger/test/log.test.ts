@@ -11,7 +11,7 @@ describe("Logger test", () => {
 		expect(typeof Logger).toBe("function");
 	});
 
-	test("constructor", () => {
+	test("should be constructor", () => {
 		expect(logger).toBeInstanceOf(Logger);
 	});
 });

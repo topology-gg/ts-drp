@@ -1,5 +1,6 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
+import { Logger } from "@ts-drp/logger";
 import { ACLGroup, ObjectACL } from "@ts-drp/object";
 import { type DRP, DRPObject, DrpType } from "@ts-drp/object";
 import { type Vertex } from "@ts-drp/types";
@@ -234,11 +235,25 @@ describe("DRPNode with rpc", () => {
 	let drp: DRP;
 	let drpNode: DRPNode;
 	let drpObject: DRPObject;
+	let mockLogger: Logger;
 
 	beforeAll(async () => {
 		drpNode = new DRPNode();
 		await drpNode.start();
 		vi.useFakeTimers();
+		vi.mock("@ts-drp/logger", () => {
+			const mockLogger = {
+				error: vi.fn(),
+				info: vi.fn(),
+				warn: vi.fn(),
+				debug: vi.fn(),
+			};
+
+			return {
+				Logger: vi.fn().mockImplementation(() => mockLogger),
+			};
+		});
+		mockLogger = new Logger("drp::network", {});
 	});
 	beforeEach(async () => {
 		drp = new SetDRP();
@@ -248,25 +263,34 @@ describe("DRPNode with rpc", () => {
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp });
 	});
 
-	test("connectObject test", async () => {
+	test("should run connectObject", async () => {
 		const drpObjectConnected = await drpNode.connectObject({ id: drpObject.id, drp });
 		expect(drpObjectConnected.id).toEqual(drpObject.id);
 		vi.advanceTimersByTime(3000);
+		const object = drpNode.objectStore.get(drpObject.id);
+		expect(object).toBeDefined();
 	});
 
-	test("unsubscribeObject test", async () => {
+	test("should run unsubscribeObject", async () => {
 		await drpNode.unsubscribeObject(drpObject.id);
+		expect(mockLogger.info).toHaveBeenCalledWith(
+			"::unsubscribe: Successfuly unsubscribed the topic",
+			drpObject.id
+		);
 	});
 
-	test("unsubscribeObject test with purge", async () => {
+	test("should run unsubscribeObject with purge", async () => {
 		await drpNode.unsubscribeObject(drpObject.id, true);
+		const store = drpNode.objectStore.get(drpObject.id);
+		expect(store).toBeUndefined();
 	});
 
-	test("syncObject test", async () => {
+	test("should run syncObject ", async () => {
 		await drpNode.syncObject(drpObject.id);
 	});
 
-	test("Node restart", async () => {
+	test("should run node restart", async () => {
 		await drpNode.restart();
+		expect(mockLogger.info).toHaveBeenCalledWith("::restart: Node restarted");
 	});
 });
