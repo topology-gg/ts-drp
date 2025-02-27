@@ -4,20 +4,45 @@
 		"allowJs": true,
 		"target": "ES2022",
 		"module": "NodeNext",
-		"lib": ["ES2023", "ES2023.Array", "DOM", "DOM.Iterable", "WebWorker"],
-
+		"lib": [
+			"ES2023",
+			"ES2023.Array",
+			"DOM",
+			"DOM.Iterable",
+			"WebWorker"
+		],
 		"esModuleInterop": true,
 		"moduleResolution": "NodeNext",
-
 		"declaration": true,
 		"declarationMap": true,
 		"composite": true,
-
 		"skipLibCheck": true,
 		"stripInternal": true,
 		"resolveJsonModule": true,
 		"paths": {
-			"@ts-drp/*": ["./packages/*"]
+			"@ts-drp/*": [
+				"./packages/*"
+			]
 		}
-	}
+	},
+	"references": [
+		{
+			"path": "./packages/blueprints"
+		},
+		{
+			"path": "./packages/logger"
+		},
+		{
+			"path": "./packages/network"
+		},
+		{
+			"path": "./packages/object"
+		},
+		{
+			"path": "./packages/types"
+		},
+		{
+			"path": "./packages/tracer"
+		}
+	]
 }

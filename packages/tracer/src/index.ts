@@ -12,7 +12,7 @@ import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 
 import { IMetrics } from "./interface.js";
 
-export { IMetrics };
+export type { IMetrics };
 
 let enabled = false;
 let provider: WebTracerProvider | undefined;

@@ -1,13 +1,18 @@
 import eslint from "@eslint/js";
 import tsparser from "@typescript-eslint/parser";
-import esimport from "eslint-plugin-import";
+import importPlugin from "eslint-plugin-import";
 import prettier from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 import vitest from "eslint-plugin-vitest";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import path from "path";
+import { config as tsLintConfig, configs, plugin } from "typescript-eslint";
+//
+//const typeScriptExtensions = [".ts", ".cts", ".mts", ".tsx"];
 
-const config = tseslint.config(
+//const allExtensions = [...typeScriptExtensions, ".js", ".jsx", ".mjs", ".cjs"];
+
+const config = tsLintConfig(
 	{
 		ignores: [
 			"**/.env",
@@ -30,14 +35,28 @@ const config = tseslint.config(
 		],
 	},
 	eslint.configs.recommended,
-	tseslint.configs.strict,
+	configs.strict,
+	importPlugin.flatConfigs.recommended,
+	importPlugin.flatConfigs.typescript,
 	{
 		plugins: {
-			"@typescript-eslint": tseslint.plugin,
-			"import": esimport,
+			"@typescript-eslint": plugin,
 			"prettier": prettier,
 			"unused-imports": unusedImports,
 			"vitest": vitest,
+		},
+		settings: {
+			"import/external-module-folders": [
+				"node_modules",
+				"node_modules/@types",
+				path.resolve(import.meta.dirname, "node_modules"),
+			],
+			"import/resolver": {
+				typescript: {},
+				node: {
+					moduleDirectory: ["node_modules", path.resolve(import.meta.dirname, "node_modules"), "."],
+				},
+			},
 		},
 		languageOptions: {
 			parser: tsparser,
@@ -68,6 +87,11 @@ const config = tseslint.config(
 			"@typescript-eslint/no-dynamic-delete": "off",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-floating-promises": "error",
+			"import/no-self-import": "error",
+			"import/no-duplicates": "error",
+			"import/no-named-default": "error",
+			"import/no-webpack-loader-syntax": "error",
+			"@typescript-eslint/consistent-type-exports": "error",
 			"no-unused-vars": "off",
 			"unused-imports/no-unused-imports": "error",
 			"prefer-const": "error",
@@ -82,6 +106,7 @@ const config = tseslint.config(
 					},
 				},
 			],
+			"import/no-cycle": "error",
 		},
 	}
 );

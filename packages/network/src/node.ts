@@ -7,7 +7,7 @@ import {
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
 import { autoNAT } from "@libp2p/autonat";
-import { type BootstrapComponents, bootstrap } from "@libp2p/bootstrap";
+import { bootstrap, type BootstrapComponents } from "@libp2p/bootstrap";
 import { circuitRelayServer, circuitRelayTransport } from "@libp2p/circuit-relay-v2";
 import { generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import { dcutr } from "@libp2p/dcutr";
@@ -36,7 +36,6 @@ import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { uint8ArrayToStream } from "./stream.js";
-
 export * from "./stream.js";
 
 export const DRP_MESSAGE_PROTOCOL = "/drp/message/0.0.1";

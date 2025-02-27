@@ -1,19 +1,26 @@
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { IMetrics } from "@ts-drp/tracer";
-import { DRPObjectBase, DRPState, DRPStateEntry, Operation, type Vertex } from "@ts-drp/types";
+import {
+	ACL,
+	DRPObjectBase,
+	DRPPublicCredential,
+	DRPState,
+	DRPStateEntry,
+	Operation,
+	type Vertex,
+	Hash,
+} from "@ts-drp/types";
 import { cloneDeep } from "es-toolkit";
 import { deepEqual } from "fast-equals";
 import * as crypto from "node:crypto";
 
 import { ObjectACL } from "./acl/index.js";
-import type { ACL } from "./acl/interface.js";
 import { type FinalityConfig, FinalityStore } from "./finality/index.js";
-import { type Hash, HashGraph } from "./hashgraph/index.js";
+import { HashGraph } from "./hashgraph/index.js";
 import {
 	ConnectObjectOptions,
 	type DRP,
 	type DRPObjectCallback,
-	type DRPPublicCredential,
 	DrpType,
 	type LcaAndOperations,
 } from "./interface.js";
@@ -23,7 +30,6 @@ import { ObjectSet } from "./utils/objectSet.js";
 export * from "./utils/serializer.js";
 export * from "./acl/index.js";
 export * from "./hashgraph/index.js";
-export * from "./acl/interface.js";
 export * from "./interface.js";
 
 // snake_casing to match the JSON config
@@ -31,8 +37,6 @@ export interface DRPObjectConfig {
 	log_config?: LoggerOptions;
 	finality_config?: FinalityConfig;
 }
-
-export let log: Logger;
 
 export interface DRPObjectOptions<T extends DRP> {
 	peerId: string;
@@ -59,12 +63,14 @@ export class DRPObject<T extends DRP> implements DRPObjectBase {
 	finalityStore: FinalityStore;
 	subscriptions: DRPObjectCallback<T>[] = [];
 
+	private log: Logger;
+
 	constructor(options: DRPObjectOptions<T>) {
 		if (!options.acl && !options.publicCredential) {
 			throw new Error("Either publicCredential or acl must be provided to create a DRPObject");
 		}
 
-		log = new Logger("drp::object", options.config?.log_config);
+		this.log = new Logger("drp::object", options.config?.log_config);
 		this.id =
 			options.id ??
 			crypto
@@ -190,7 +196,7 @@ export class DRPObject<T extends DRP> implements DRPObjectBase {
 		try {
 			appliedOperationResult = this._applyOperation(clonedDRP, vertexOperation);
 		} catch (e) {
-			log.error(`::drpObject::callFn: ${e}`);
+			this.log.error(`::drpObject::callFn: ${e}`);
 			return appliedOperationResult;
 		}
 

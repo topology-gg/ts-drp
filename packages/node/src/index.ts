@@ -2,13 +2,16 @@ import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, StreamHandler } from "@libp2p/interface";
 import { Logger, type LoggerOptions } from "@ts-drp/logger";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
-import { type ACL, type DRP, DRPObject } from "@ts-drp/object";
+import { type DRP, DRPObject } from "@ts-drp/object";
 import { IMetrics } from "@ts-drp/tracer";
-import { Message, MessageType } from "@ts-drp/types";
+import { type ACL, Message, MessageType } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
+import { log } from "./logger.js";
 import * as operations from "./operations.js";
 import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./store/index.js";
+
+export { DRPCredentialStore };
 
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
@@ -16,8 +19,6 @@ export interface DRPNodeConfig {
 	network_config?: DRPNetworkNodeConfig;
 	credential_config?: DRPCredentialConfig;
 }
-
-export let log: Logger;
 
 export class DRPNode {
 	config?: DRPNodeConfig;
@@ -39,6 +40,7 @@ export class DRPNode {
 		await this.networkNode.addMessageHandler(async ({ stream }) =>
 			drpMessagesHandler(this, stream)
 		);
+		log.info("DRPNode started");
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {

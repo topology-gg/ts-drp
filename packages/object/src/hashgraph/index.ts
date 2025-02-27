@@ -1,36 +1,22 @@
-import { Operation, Vertex } from "@ts-drp/types";
+import { Logger, LoggerOptions } from "@ts-drp/logger";
+import {
+	Hash,
+	Operation,
+	ResolveConflictsType,
+	Vertex,
+	SemanticsType,
+	ActionType,
+} from "@ts-drp/types";
 
-import { log } from "../index.js";
 import { BitSet } from "./bitset.js";
 import { linearizeMultipleSemantics } from "../linearize/multipleSemantics.js";
 import { linearizePairSemantics } from "../linearize/pairSemantics.js";
 import { computeHash } from "../utils/computeHash.js";
 import { ObjectSet } from "../utils/objectSet.js";
 
-export type Hash = string;
-
 export enum OperationType {
 	NOP = "-1",
 }
-
-export enum ActionType {
-	Nop = 0,
-	DropLeft = 1,
-	DropRight = 2,
-	Swap = 3,
-	Drop = 4,
-}
-
-export enum SemanticsType {
-	pair = 0,
-	multiple = 1,
-}
-
-// In the case of multi-vertex semantics, we are returning an array of vertices (their hashes) to be reduced.
-export type ResolveConflictsType = {
-	action: ActionType;
-	vertices?: Hash[];
-};
 
 export type VertexDistance = {
 	distance: number;
@@ -63,16 +49,20 @@ export class HashGraph {
 	// We start with a bitset of size 1, and double it every time we reach the limit
 	private currentBitsetSize = 1;
 
+	private log: Logger;
+
 	constructor(
 		peerId: string,
 		resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType,
 		resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType,
-		semanticsTypeDRP?: SemanticsType
+		semanticsTypeDRP?: SemanticsType,
+		log_config?: LoggerOptions
 	) {
 		this.peerId = peerId;
 		this.resolveConflictsACL = resolveConflictsACL;
 		this.resolveConflictsDRP = resolveConflictsDRP;
 		this.semanticsTypeDRP = semanticsTypeDRP;
+		this.log = new Logger("drp::hashgraph", log_config);
 
 		const rootVertex: Vertex = {
 			hash: HashGraph.rootHash,
@@ -298,18 +288,18 @@ export class HashGraph {
 		while (currentHash1 !== currentHash2) {
 			const distance1 = this.vertexDistances.get(currentHash1);
 			if (!distance1) {
-				log.error("::hashgraph::LCA: Vertex not found");
+				this.log.error("::hashgraph::LCA: Vertex not found");
 				return;
 			}
 			const distance2 = this.vertexDistances.get(currentHash2);
 			if (!distance2) {
-				log.error("::hashgraph::LCA: Vertex not found");
+				this.log.error("::hashgraph::LCA: Vertex not found");
 				return;
 			}
 
 			if (distance1.distance > distance2.distance) {
 				if (!distance1.closestDependency) {
-					log.error("::hashgraph::LCA: Closest dependency not found");
+					this.log.error("::hashgraph::LCA: Closest dependency not found");
 					return;
 				}
 				for (const dep of this.vertices.get(currentHash1)?.dependencies || []) {
@@ -324,7 +314,7 @@ export class HashGraph {
 				visited.add(currentHash1);
 			} else {
 				if (!distance2.closestDependency) {
-					log.error("::hashgraph::LCA: Closest dependency not found");
+					this.log.error("::hashgraph::LCA: Closest dependency not found");
 					return;
 				}
 				for (const dep of this.vertices.get(currentHash2)?.dependencies || []) {

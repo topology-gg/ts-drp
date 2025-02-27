@@ -20,3 +20,11 @@ export {
 	SyncAccept,
 	SyncReject,
 } from "./proto/drp/v1/messages_pb.js";
+
+export * from "./object/acl.js";
+export * from "./object/hashgraph.js";
+export type * from "./object/object.js";
+export * from "./object/drp.js";
+export type * from "./object/bitset.js";
+export type * from "./object/finality.js";
+export type * from "./object/credentials.js";

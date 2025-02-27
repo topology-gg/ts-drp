@@ -1,3 +1,5 @@
+import { BitSet as BitSetInterface } from "@ts-drp/types";
+
 /* 
 	BitSet is associated with each vertex and is used to store the indices of the vertices that are reachable.
 	In other words, all the vertices causally before in the hashgraph.
@@ -5,7 +7,7 @@
 	Then, to check if two vertices are causally related, we check if the BitSet of the first vertex contains the index of the second vertex and vice-versa.
 	Algorithm for more optimal causality check inspired by https://stackoverflow.com/a/78133041
 */
-export class BitSet {
+export class BitSet implements BitSetInterface {
 	private data: Uint32Array;
 
 	constructor(bits: number, data?: Uint8Array) {

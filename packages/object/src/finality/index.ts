@@ -1,21 +1,28 @@
-import bls from "@chainsafe/bls/herumi";
-import { AggregatedAttestation, Attestation } from "@ts-drp/types";
+import { bls } from "@chainsafe/bls/herumi";
+import { Logger, LoggerOptions } from "@ts-drp/logger";
+import {
+	AggregatedAttestation,
+	Attestation,
+	DRPPublicCredential,
+	FinalityState as FinalityStateInterface,
+	FinalityStore as FinalityStoreInterface,
+	Hash,
+} from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { BitSet } from "../hashgraph/bitset.js";
-import type { Hash } from "../hashgraph/index.js";
-import { type DRPPublicCredential, log } from "../index.js";
 
 const DEFAULT_FINALITY_THRESHOLD = 0.51;
 
 export interface FinalityConfig {
 	finality_threshold?: number;
+	log_config?: LoggerOptions;
 }
 
-export class FinalityState {
-	data: string;
-	signerCredentials: DRPPublicCredential[];
-	signerIndices: Map<string, number>;
+export class FinalityState implements FinalityStateInterface {
+	readonly data: string;
+	readonly signerCredentials: DRPPublicCredential[];
+	readonly signerIndices: Map<string, number>;
 	aggregation_bits: BitSet;
 	signature?: Uint8Array;
 	numberOfSignatures: number;
@@ -93,13 +100,16 @@ export class FinalityState {
 	}
 }
 
-export class FinalityStore {
+export class FinalityStore implements FinalityStoreInterface {
 	states: Map<string, FinalityState>;
-	finalityThreshold: number;
+	readonly finalityThreshold: number;
+
+	private log: Logger;
 
 	constructor(config?: FinalityConfig) {
 		this.states = new Map();
 		this.finalityThreshold = config?.finality_threshold ?? DEFAULT_FINALITY_THRESHOLD;
+		this.log = new Logger("drp::finality", config?.log_config);
 	}
 
 	initializeState(hash: Hash, signers: Map<string, DRPPublicCredential>) {
@@ -153,7 +163,7 @@ export class FinalityStore {
 			try {
 				this.states.get(attestation.data)?.addSignature(peerId, attestation.signature, verify);
 			} catch (e) {
-				log.error("::finality::addSignatures", e);
+				this.log.error("::finality::addSignatures", e);
 			}
 		}
 	}
@@ -176,7 +186,7 @@ export class FinalityStore {
 			try {
 				this.states.get(attestation.data)?.merge(attestation);
 			} catch (e) {
-				log.error("::finality::mergeSignatures", e);
+				this.log.error("::finality::mergeSignatures", e);
 			}
 		}
 	}
