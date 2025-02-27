@@ -107,11 +107,8 @@ describe("Test for duplicate call issue", () => {
 		});
 
 		const testDRP = obj.drp;
-		if (!testDRP) {
-			throw new Error("DRP is undefined");
-		}
 		expect(testDRP).toBeDefined();
-		const ret = testDRP.test();
+		const ret = testDRP?.test();
 		expect(ret).toBe(counter);
 	});
 });
