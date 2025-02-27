@@ -216,7 +216,7 @@ export class DRPObject<T extends DRP> implements DRPObjectBase {
 		this._notify("callFn", [vertex]);
 
 		if (!isACL) Object.assign(this.drp as DRP, clonedDRP);
-		else Object.assign(this.acl as ACL, clonedDRP);
+		else Object.assign(this.acl, clonedDRP);
 
 		return appliedOperationResult;
 	}
@@ -326,7 +326,7 @@ export class DRPObject<T extends DRP> implements DRPObjectBase {
 	// check if the given peer has write permission
 	private _checkWriterPermission(peerId: string, deps: Hash[]): boolean {
 		const acl = this._computeObjectACL(deps);
-		return (acl as ACL).query_isWriter(peerId);
+		return acl.query_isWriter(peerId);
 	}
 
 	// apply the operation to the DRP
@@ -511,24 +511,22 @@ export class DRPObject<T extends DRP> implements DRPObjectBase {
 		if (!this.acl || !this.hashGraph) {
 			throw new Error("ObjectACL or hashgraph is undefined");
 		}
-		const currentObjectACL = this.acl as ACL;
 		const newState = this._computeObjectACLState(this.hashGraph.getFrontier());
 		for (const entry of newState.state) {
-			if (entry.key in currentObjectACL && typeof currentObjectACL[entry.key] !== "function") {
-				currentObjectACL[entry.key] = entry.value;
+			if (entry.key in this.acl && typeof this.acl[entry.key] !== "function") {
+				this.acl[entry.key] = entry.value;
 			}
 		}
 	}
 
 	private _setRootStates() {
-		const acl = this.acl as ACL;
 		const aclState = [];
-		for (const key of Object.keys(acl)) {
-			if (typeof acl[key] !== "function") {
+		for (const key of Object.keys(this.acl)) {
+			if (typeof this.acl[key] !== "function") {
 				aclState.push(
 					DRPStateEntry.create({
 						key,
-						value: cloneDeep(acl[key]),
+						value: cloneDeep(this.acl[key]),
 					})
 				);
 			}

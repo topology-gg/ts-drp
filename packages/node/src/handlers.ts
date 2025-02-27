@@ -126,7 +126,7 @@ function fetchStateResponseHandler(node: DRPNode, data: Uint8Array) {
 		object.aclStates.set(fetchStateResponse.vertexHash, state);
 		for (const e of state.state) {
 			if (object.originalObjectACL) object.originalObjectACL[e.key] = e.value;
-			(object.acl as ACL)[e.key] = e.value;
+			object.acl[e.key] = e.value;
 		}
 		node.objectStore.put(object.id, object);
 		return;
@@ -148,7 +148,7 @@ async function attestationUpdateHandler(node: DRPNode, sender: string, data: Uin
 		return;
 	}
 
-	if ((object.acl as ACL).query_isFinalitySigner(sender)) {
+	if (object.acl.query_isFinalitySigner(sender)) {
 		object.finalityStore.addSignatures(sender, attestationUpdate.attestations);
 	}
 }
@@ -166,7 +166,7 @@ async function updateHandler(node: DRPNode, sender: string, data: Uint8Array) {
 	}
 
 	let verifiedVertices: Vertex[] = [];
-	if ((object.acl as ACL).permissionless) {
+	if (object.acl.permissionless) {
 		verifiedVertices = updateMessage.vertices;
 	} else {
 		verifiedVertices = await verifyACLIncomingVertices(object, updateMessage.vertices);
@@ -269,7 +269,7 @@ async function syncAcceptHandler(node: DRPNode, sender: string, data: Uint8Array
 	}
 
 	let verifiedVertices: Vertex[] = [];
-	if ((object.acl as ACL).permissionless) {
+	if (object.acl.permissionless) {
 		verifiedVertices = syncAcceptMessage.requested;
 	} else {
 		verifiedVertices = await verifyACLIncomingVertices(object, syncAcceptMessage.requested);
@@ -385,7 +385,7 @@ export function signFinalityVertices<T extends DRP>(
 	obj: DRPObject<T>,
 	vertices: Vertex[]
 ) {
-	if (!(obj.acl as ACL).query_isFinalitySigner(node.networkNode.peerId)) {
+	if (!obj.acl.query_isFinalitySigner(node.networkNode.peerId)) {
 		return [];
 	}
 	const attestations = generateAttestations(node, obj, vertices);
@@ -440,8 +440,7 @@ export async function verifyACLIncomingVertices<T extends DRP>(
 		};
 	});
 
-	const acl: ACL = object.acl as ACL;
-	if (!acl) {
+	if (!object.acl) {
 		return vertices;
 	}
 	const verificationPromises = vertices.map(async (vertex) => {
@@ -449,7 +448,7 @@ export async function verifyACLIncomingVertices<T extends DRP>(
 			return null;
 		}
 
-		const publicKey = acl.query_getPeerKey(vertex.peerId);
+		const publicKey = object.acl.query_getPeerKey(vertex.peerId);
 		if (!publicKey) {
 			return null;
 		}
