@@ -219,7 +219,7 @@ describe("HashGraph construction tests", () => {
 	});
 
 	test("Root vertex acl state should not be modified", () => {
-		const acl1 = obj1.acl as ObjectACL;
+		const acl1 = obj1.acl;
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
 			ed25519PublicKey: "pubKey2",
 			blsPublicKey: "pubKey2",
@@ -761,8 +761,8 @@ describe("Writer permission tests", () => {
 		if (!drp1 || !drp2) {
 			throw new Error("DRP is undefined");
 		}
-		const acl1 = obj1.acl as ObjectACL;
-		const acl2 = obj2.acl as ObjectACL;
+		const acl1 = obj1.acl;
+		const acl2 = obj2.acl;
 
 		drp1.add(1);
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
@@ -794,7 +794,7 @@ describe("Writer permission tests", () => {
 		if (!drp1 || !drp2 || !drp3) {
 			throw new Error("DRP is undefined");
 		}
-		const acl1 = obj1.acl as ObjectACL;
+		const acl1 = obj1.acl;
 
 		acl1.grant("peer1", "peer2", ACLGroup.Writer, {
 			ed25519PublicKey: "pubKey2",
@@ -830,7 +830,7 @@ describe("Writer permission tests", () => {
 	});
 
 	test("Should grant admin permission to a peer", () => {
-		const acl1 = obj1.acl as ObjectACL;
+		const acl1 = obj1.acl;
 		const newAdminPeer1 = "newAdminPeer1";
 		const newAdmin = {
 			ed25519PublicKey: "newAdmin",
@@ -855,7 +855,7 @@ describe("Writer permission tests", () => {
 		if (!drp1) {
 			throw new Error("DRP is undefined");
 		}
-		const acl1 = obj1.acl as ObjectACL;
+		const acl1 = obj1.acl;
 
 		drp1.add(1);
 		const hash1 = obj1.hashGraph.getFrontier()[0];

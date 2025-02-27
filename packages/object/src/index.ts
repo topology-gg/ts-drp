@@ -47,7 +47,7 @@ export interface DRPObjectOptions<T extends DRP> {
 export class DRPObject<T extends DRP> implements DRPObjectBase {
 	id: string;
 	vertices: Vertex[] = [];
-	acl?: ProxyHandler<ACL>;
+	acl: ACL;
 	drp?: T;
 	// @ts-expect-error: initialized in constructor
 	hashGraph: HashGraph;
@@ -79,7 +79,7 @@ export class DRPObject<T extends DRP> implements DRPObjectBase {
 				admins: new Map([[options.peerId, options.publicCredential as DRPPublicCredential]]),
 				permissionless: true,
 			});
-		this.acl = new Proxy(objAcl, this.proxyDRPHandler<ACL>(DrpType.ACL)) as ProxyHandler<ACL>;
+		this.acl = new Proxy(objAcl, this.proxyDRPHandler<ACL>(DrpType.ACL)) as ACL;
 		if (options.drp) {
 			this._initLocalDrpInstance(options.peerId, options.drp, objAcl);
 		} else {
@@ -216,7 +216,7 @@ export class DRPObject<T extends DRP> implements DRPObjectBase {
 		this._notify("callFn", [vertex]);
 
 		if (!isACL) Object.assign(this.drp as DRP, clonedDRP);
-		else Object.assign(this.acl as ObjectACL, clonedDRP);
+		else Object.assign(this.acl as ACL, clonedDRP);
 
 		return appliedOperationResult;
 	}

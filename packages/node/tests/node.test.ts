@@ -1,6 +1,6 @@
 import bls from "@chainsafe/bls/herumi";
 import { SetDRP } from "@ts-drp/blueprints";
-import { ACLGroup, ObjectACL } from "@ts-drp/object";
+import { ACL, ACLGroup, ObjectACL } from "@ts-drp/object";
 import { DRPObject, DrpType } from "@ts-drp/object";
 import { type Vertex } from "@ts-drp/types";
 import { beforeAll, beforeEach, describe, expect, test } from "vitest";
@@ -109,7 +109,7 @@ describe("DPRNode with verify and sign signature", () => {
 
 describe("DRPNode voting tests", () => {
 	let drp1: SetDRP<number> | undefined;
-	let acl1: ObjectACL;
+	let acl1: ACL;
 	let nodeA: DRPNode;
 	let nodeB: DRPNode;
 	let obj1: DRPObject<SetDRP<number>>;
@@ -133,7 +133,7 @@ describe("DRPNode voting tests", () => {
 			drp: new SetDRP(),
 		});
 		drp1 = obj1.drp;
-		acl1 = obj1.acl as ObjectACL;
+		acl1 = obj1.acl;
 		obj2 = new DRPObject({
 			peerId: nodeB.networkNode.peerId,
 			acl: acl1,
@@ -174,14 +174,14 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1) ---- A:REVOKE(B) ---- B:ADD(2)
 		*/
 
-		acl1?.grant(
+		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			ACLGroup.Writer,
 			nodeB.credentialStore.getPublicCredential()
 		);
 		drp1?.add(1);
-		acl1?.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
+		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
 		drp1?.add(2);
 
 		obj2.merge(obj1.vertices);
@@ -203,7 +203,7 @@ describe("DRPNode voting tests", () => {
 		  ROOT -- A:GRANT(B) ---- B:ADD(1)
 		*/
 
-		acl1?.grant(
+		acl1.grant(
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			ACLGroup.Finality,

@@ -47,7 +47,7 @@ describe("Drp Object should be able to change state value", () => {
 
 	it("should update ACL state keys when DRP state changes", () => {
 		const drpSet = drpObject.drp;
-		const aclInstance = drpObject.acl as ObjectACL;
+		const aclInstance = drpObject.acl;
 
 		// Add a value to the DRP set
 		drpSet?.add(1);
