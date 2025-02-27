@@ -293,4 +293,25 @@ describe("DRPNode with rpc", () => {
 		await drpNode.restart();
 		expect(mockLogger.info).toHaveBeenCalledWith("::restart: Node restarted");
 	});
+
+	test("Should subscribe to object", async () => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		drpNode.objectStore.subscribe(drpObject.id, (objectId: string, object: DRPObject) => {
+			mockLogger.info("::subscribe: Subscribed to object");
+		});
+		const _subscriptions = drpNode.objectStore["_subscriptions"];
+		expect(_subscriptions.has(drpObject.id)).toBe(true);
+	});
+
+	test("Should unsubscribe to object", async () => {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const callBack = (objectId: string, object: DRPObject) => {
+			mockLogger.info("::unsubscribe: Unsubscribed to object");
+		};
+		drpNode.objectStore.subscribe(drpObject.id, callBack);
+		drpNode.objectStore.unsubscribe(drpObject.id, callBack);
+		const _subscriptions = drpNode.objectStore["_subscriptions"];
+		const expectedCallback = _subscriptions.get(drpObject.id)?.find((x) => x === callBack);
+		expect(expectedCallback).toBeUndefined();
+	});
 });
