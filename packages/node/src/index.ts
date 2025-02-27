@@ -7,7 +7,7 @@ import { IMetrics } from "@ts-drp/tracer";
 import { IDRPIDHeartbeat, Message, MessageType, DRP_HEARTBEAT_TOPIC } from "@ts-drp/types";
 
 import { drpMessagesHandler, heartbeatHandler } from "./handlers.js";
-import { DRPIDHeartbeat, DRPIDHeartbeatConfig } from "./heartbeat.js";
+import { DRPIDHeartbeat, DRPIDHeartbeatConfig } from "./heartbeat/heartbeat.js";
 import * as operations from "./operations.js";
 import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./store/index.js";
 

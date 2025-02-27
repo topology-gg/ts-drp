@@ -17,7 +17,7 @@ import {
 } from "@ts-drp/types";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
-import { DRPIDHeartbeat } from "./heartbeat.js";
+import { DRPIDHeartbeat } from "./heartbeat/heartbeat.js";
 import { type DRPNode, log } from "./index.js";
 import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
 
