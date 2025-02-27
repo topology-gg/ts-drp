@@ -3,7 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { AttestationUpdate, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
+import { AttestationUpdate, FetchState, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
 import { MessageType } from "@ts-drp/types/src/index.js";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
@@ -182,11 +182,11 @@ describe("Handle message correctly", () => {
 	});
 
 	test("should handle fetch state", async () => {
-		const message = NetworkPb.Message.create({
+		const message = Message.create({
 			sender: node1.networkNode.peerId,
-			type: NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE,
-			data: NetworkPb.FetchState.encode(
-				NetworkPb.FetchState.create({
+			type: MessageType.MESSAGE_TYPE_FETCH_STATE,
+			data: FetchState.encode(
+				FetchState.create({
 					objectId: drpObject.id,
 					vertexHash: drpObject.vertices[0].hash,
 				})
