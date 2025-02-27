@@ -7,11 +7,12 @@ import { IMetrics } from "@ts-drp/tracer";
 import { type ACL, Message, MessageType } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
-import { log } from "./logger.js";
+import { logger } from "./logger.js";
 import * as operations from "./operations.js";
 import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./store/index.js";
 
 export { DRPCredentialStore };
+export { serializeStateMessage, deserializeStateMessage } from "./utils.js";
 
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {
@@ -28,7 +29,7 @@ export class DRPNode {
 
 	constructor(config?: DRPNodeConfig) {
 		this.config = config;
-		log = new Logger("drp::node", config?.log_config);
+		logger.log = new Logger("drp::node", config?.log_config);
 		this.networkNode = new DRPNetworkNode(config?.network_config);
 		this.objectStore = new DRPObjectStore();
 		this.credentialStore = new DRPCredentialStore(config?.credential_config);
@@ -40,7 +41,7 @@ export class DRPNode {
 		await this.networkNode.addMessageHandler(async ({ stream }) =>
 			drpMessagesHandler(this, stream)
 		);
-		log.info("DRPNode started");
+		logger.log?.info("DRPNode started");
 	}
 
 	async restart(config?: DRPNodeConfig): Promise<void> {

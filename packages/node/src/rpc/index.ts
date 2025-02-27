@@ -5,7 +5,8 @@ import * as reflection from "@grpc/reflection";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { type DRPNode, log } from "../index.js";
+import { type DRPNode } from "../index.js";
+import { logger } from "../logger.js";
 import { DrpRpcService } from "../proto/drp/node/v1/rpc_grpc_pb.js";
 import type {
 	AddCustomGroupRequest,
@@ -29,7 +30,7 @@ export function init(node: DRPNode) {
 				id: call.request.drpId,
 			});
 		} catch (e) {
-			log.error("::rpc::subscribeDRP: Error", e);
+			logger.log?.error("::rpc::subscribeDRP: Error", e);
 			returnCode = 1;
 		}
 
@@ -47,7 +48,7 @@ export function init(node: DRPNode) {
 		try {
 			node.unsubscribeObject(call.request.drpId);
 		} catch (e) {
-			log.error("::rpc::unsubscribeDRP: Error", e);
+			logger.log?.error("::rpc::unsubscribeDRP: Error", e);
 			returnCode = 1;
 		}
 
@@ -70,7 +71,7 @@ export function init(node: DRPNode) {
 				hashes.push(v.hash);
 			}
 		} catch (e) {
-			log.error("::rpc::getDRPHashGraph: Error", e);
+			logger.log?.error("::rpc::getDRPHashGraph: Error", e);
 		}
 
 		const response: GetDRPHashGraphResponse = {
@@ -87,7 +88,7 @@ export function init(node: DRPNode) {
 		try {
 			await node.syncObject(call.request.drpId);
 		} catch (e) {
-			log.error("::rpc::syncDRPObject: Error", e);
+			logger.log?.error("::rpc::syncDRPObject: Error", e);
 			returnCode = 1;
 		}
 
@@ -105,7 +106,7 @@ export function init(node: DRPNode) {
 		try {
 			await node.sendCustomMessage(call.request.peerId, call.request.data);
 		} catch (e) {
-			log.error("::rpc::sendCustomMessage: Error", e);
+			logger.log?.error("::rpc::sendCustomMessage: Error", e);
 			returnCode = 1;
 		}
 
@@ -123,7 +124,7 @@ export function init(node: DRPNode) {
 		try {
 			await node.sendGroupMessage(call.request.group, call.request.data);
 		} catch (e) {
-			log.error("::rpc::sendGroupMessage: Error", e);
+			logger.log?.error("::rpc::sendGroupMessage: Error", e);
 			returnCode = 1;
 		}
 
@@ -141,7 +142,7 @@ export function init(node: DRPNode) {
 		try {
 			node.addCustomGroup(call.request.group);
 		} catch (e) {
-			log.error("::rpc::addCustomGroup: Error", e);
+			logger.log?.error("::rpc::addCustomGroup: Error", e);
 			returnCode = 1;
 		}
 
@@ -170,6 +171,6 @@ export function init(node: DRPNode) {
 		addCustomGroup,
 	});
 	server.bindAsync("0.0.0.0:6969", grpc.ServerCredentials.createInsecure(), (_error, _port) => {
-		log.info("::rpc::init: running grpc in port:", _port);
+		logger.log?.info("::rpc::init: running grpc in port:", _port);
 	});
 }
