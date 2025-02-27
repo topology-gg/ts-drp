@@ -185,19 +185,20 @@ describe("Handle message correctly", () => {
 		const message = NetworkPb.Message.create({
 			sender: node1.networkNode.peerId,
 			type: NetworkPb.MessageType.MESSAGE_TYPE_FETCH_STATE,
-			data: NetworkPb.Sync.encode(
-				NetworkPb.Sync.create({
+			data: NetworkPb.FetchState.encode(
+				NetworkPb.FetchState.create({
 					objectId: drpObject.id,
-					vertexHashes: node1.objectStore.get(drpObject.id)?.vertices.map((vertex) => vertex.hash),
+					vertexHash: drpObject.vertices[0].hash,
 				})
 			).finish(),
 		});
 
 		await node1.networkNode.sendMessage(node2.networkNode.peerId, message);
 		await new Promise((resolve) => setTimeout(resolve, 500));
-
-		// auto sync accept
-		expect(drpObject.vertices.length).toBe(3);
+		const drp = node1.objectStore.get(drpObject.id);
+		const drp2 = node2.objectStore.get(drpObject.id);
+		// After fetching the state, the vertices should be the same
+		expect(drp?.vertices).toEqual(drp2?.vertices);
 	});
 
 	test("should handle sync message correctly", async () => {
