@@ -1,10 +1,10 @@
 {
  "name": "@ts-drp/types",
- "version": "0.8.0",
+ "version": "0.8.5",
  "license": "MIT",
  "repository": {
   "type": "git",
-  "url": "git+https://github.com/topology-foundation/ts-drp.git"
+  "url": "git+https://github.com/drp-tech/ts-drp.git"
  },
  "type": "module",
  "types": "./dist/src/index.d.ts",
@@ -35,7 +35,6 @@
   "@typescript-eslint/eslint-plugin": "^8.20.0",
   "@typescript-eslint/parser": "^8.20.0",
   "eslint": "^9.18.0",
-  "typescript": "^5.7.3",
   "typescript-eslint": "^8.20.0"
  }
 }

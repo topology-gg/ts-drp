@@ -1,3 +1,4 @@
+import { LoggerOptions } from "@ts-drp/logger";
 import { IMetrics } from "@ts-drp/tracer";
 import { Operation, Vertex } from "@ts-drp/types";
 
@@ -22,7 +23,7 @@ export interface DRPPublicCredential {
 
 export interface DRP {
 	semanticsType: SemanticsType;
-	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflicts?: (vertices: Vertex[]) => ResolveConflictsType;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 }
@@ -36,4 +37,5 @@ export type ConnectObjectOptions<T extends DRP> = {
 	id?: string;
 	drp?: T;
 	metrics?: IMetrics;
+	log_config?: LoggerOptions;
 };

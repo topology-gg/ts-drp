@@ -370,7 +370,7 @@ export async function signGeneratedVertices(node: DRPNode, vertices: Vertex[]) {
 			return;
 		}
 		try {
-			vertex.signature = await node.credentialStore.signWithEd25519(vertex.hash);
+			vertex.signature = await node.keychain.signWithEd25519(vertex.hash);
 		} catch (error) {
 			log.error("::signGeneratedVertices: Error signing vertex:", vertex.hash, error);
 		}
@@ -408,7 +408,7 @@ function generateAttestations<T extends DRP>(
 	);
 	return goodVertices.map((v) => ({
 		data: v.hash,
-		signature: node.credentialStore.signWithBls(v.hash),
+		signature: node.keychain.signWithBls(v.hash),
 	}));
 }
 
@@ -479,8 +479,8 @@ export async function verifyACLIncomingVertices<T extends DRP>(
 		}
 	});
 
-	const verifiedVertices = (await Promise.all(verificationPromises)).filter(
-		(vertex: Vertex | null) => vertex !== null
+	const verifiedVertices: Vertex[] = (await Promise.all(verificationPromises)).filter(
+		(vertex: Vertex | null): vertex is Vertex => vertex !== null
 	);
 
 	return verifiedVertices;

@@ -417,6 +417,35 @@ describe("HashGraph for AddWinSet tests", () => {
 		];
 		expect(linearOps).toEqual(expectedOps);
 	});
+
+	test("Should return topological sort order when linearizing operations", () => {
+		const drp1 = obj1.drp as SetDRP<number>;
+		const drp2 = obj2.drp as SetDRP<number>;
+
+		drp1.add(1);
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		drp1.add(2);
+		drp2.delete(2);
+		drp2.delete(2);
+		obj1.merge(obj2.hashGraph.getAllVertices());
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		drp1.delete(2);
+		obj2.merge(obj1.hashGraph.getAllVertices());
+
+		const order1 = obj1.hashGraph.topologicalSort();
+		const linearizedOps1 = obj1.hashGraph.linearizeOperations();
+		for (let i = 0; i < linearizedOps1.length; ++i) {
+			expect(linearizedOps1[i]).toBe(obj1.hashGraph.vertices.get(order1[i + 1])?.operation);
+		}
+
+		const order2 = obj2.hashGraph.topologicalSort();
+		const linearizedOps2 = obj2.hashGraph.linearizeOperations();
+		for (let i = 0; i < linearizedOps2.length; ++i) {
+			expect(linearizedOps2[i]).toBe(obj2.hashGraph.vertices.get(order2[i + 1])?.operation);
+		}
+	});
 });
 
 describe("HashGraph for undefined operations tests", () => {
