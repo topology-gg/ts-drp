@@ -20,3 +20,4 @@ export {
 	SyncAccept,
 	SyncReject,
 } from "./proto/drp/v1/messages_pb.js";
+export * from "./interval-runner.js";
