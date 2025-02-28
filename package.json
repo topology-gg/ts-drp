@@ -28,7 +28,7 @@
     "e2e-test": "pnpm exec playwright test --fail-on-flaky-tests",
     "flamegraph": "pnpm tsx packages/object/tests/hashgraph.flamegraph.ts",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint:fix": "prettier --write '**/package.json' && eslint . --fix",
     "postinstall": "pnpm build:packages",
     "proto-gen": "pnpm proto-gen:types",
     "proto-gen:types": "buf generate packages/types/src/proto -o packages/types/src/proto",
@@ -37,8 +37,9 @@
     "watch": "pnpm --parallel --filter '@ts-drp/*' watch"
   },
   "dependencies": {
-    "typescript": "^5.7.3",
-    "@types/node": "^22.5.4"
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.5.4",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
@@ -48,6 +49,7 @@
     "assemblyscript": "^0.27.29",
     "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.1",
+    "eslint-import-resolver-typescript": "^3.8.3",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-unused-imports": "^4.1.4",
