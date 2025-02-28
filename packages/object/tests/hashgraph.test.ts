@@ -219,19 +219,9 @@ describe("HashGraph construction tests", () => {
 	});
 });
 
-<<<<<<< HEAD
 describe("HashGraph for AddWinSet tests", () => {
 	let obj1: DRPObject<SetDRP<number>>;
 	let obj2: DRPObject<SetDRP<number>>;
-||||||| 0546ba2
-describe("HashGraph for AddWinSet tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
-=======
-describe("HashGraph for SetDRP tests", () => {
-	let obj1: DRPObject;
-	let obj2: DRPObject;
->>>>>>> origin/main
 	const acl = new ObjectACL({
 		admins: new Map([
 			["peer1", { ed25519PublicKey: "pubKey1", blsPublicKey: "pubKey1" }],

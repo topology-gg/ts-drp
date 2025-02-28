@@ -1,43 +1,12 @@
 import { GossipSub, MeshPeer } from "@chainsafe/libp2p-gossipsub";
 import { Connection, IdentifyResult, Libp2p, SubscriptionChangeData } from "@libp2p/interface";
-//import { loadConfig } from "@ts-drp/node";
-import { Message } from "@ts-drp/types";
-import * as dotenv from "dotenv";
-import fs from "node:fs";
+import { loadConfig } from "@ts-drp/node/utils";
+import { Message, DRPNetworkNodeConfig } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll } from "vitest";
 
-import { DRPNetworkNode, DRPNetworkNodeConfig, streamToUint8Array } from "../src/node.js";
-
-export function loadConfig(configPath: string) {
-	let config;
-	if (configPath) {
-		config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-		return config;
-	}
-	const result = dotenv.config();
-	if (!result.error) {
-		config = { network_config: {} };
-		config.network_config = {
-			listen_addresses: process.env.LISTEN_ADDRESSES
-				? process.env.LISTEN_ADDRESSES.split(",")
-				: undefined,
-			announce_addresses: process.env.ANNOUNCE_ADDRESSES
-				? process.env.ANNOUNCE_ADDRESSES.split(",")
-				: undefined,
-			bootstrap: process.env.BOOTSTRAP ? process.env.BOOTSTRAP === "true" : undefined,
-			bootstrap_peers: process.env.BOOTSTRAP_PEERS
-				? process.env.BOOTSTRAP_PEERS.split(",")
-				: undefined,
-			browser_metrics: process.env.BROWSER_METRICS
-				? process.env.BROWSER_METRICS === "true"
-				: undefined,
-			private_key_seed: process.env.PRIVATE_KEY_SEED ? process.env.PRIVATE_KEY_SEED : undefined,
-		};
-		return config;
-	}
-	return config;
-}
+import { DRPNetworkNode } from "../src/node.js";
+import { streamToUint8Array } from "../src/stream.js";
 
 describe("DRPNetworkNode can connect & send messages", () => {
 	const controller = new AbortController();

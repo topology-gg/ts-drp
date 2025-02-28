@@ -3,13 +3,9 @@ import type { SecretKey as BlsSecretKey } from "@chainsafe/bls/types";
 import { deriveKeyFromEntropy } from "@chainsafe/bls-keygen";
 import { generateKeyPair, generateKeyPairFromSeed } from "@libp2p/crypto/keys";
 import type { Ed25519PrivateKey } from "@libp2p/interface";
-import { DRPPublicCredential } from "@ts-drp/types";
+import { DRPPublicCredential, KeychainConfig } from "@ts-drp/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
-
-export interface KeychainConfig {
-	private_key_seed?: string;
-}
 
 export class Keychain {
 	private _config?: KeychainConfig;

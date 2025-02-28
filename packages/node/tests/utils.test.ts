@@ -2,7 +2,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DRPObject } from "@ts-drp/object";
 import { beforeAll, describe, expect, test } from "vitest";
 
-import { deserializeStateMessage, serializeStateMessage } from "../src/utils.js";
+import { deserializeStateMessage, serializeStateMessage } from "../src/utils/serialize.js";
 
 describe("State message utils", () => {
 	let object: DRPObject<SetDRP<number>>;

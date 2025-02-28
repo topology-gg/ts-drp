@@ -1,8 +1,9 @@
+import { DRPNodeConfig } from "@ts-drp/types";
+
 import { program } from "./cli/index.js";
-import { loadConfig } from "./config.js";
 import { DRPNode } from "./index.js";
-import type { DRPNodeConfig } from "./index.js";
 import { init as rpc_init } from "./rpc/index.js";
+import { loadConfig } from "./utils/config.js";
 
 export const run = async () => {
 	program.parse(process.argv);

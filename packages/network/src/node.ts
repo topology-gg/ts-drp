@@ -30,12 +30,11 @@ import { webSockets } from "@libp2p/websockets";
 import * as filters from "@libp2p/websockets/filters";
 import { type MultiaddrInput, multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
-import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { Message } from "@ts-drp/types";
+import { Logger } from "@ts-drp/logger";
+import { Message, DRPNetworkNodeConfig } from "@ts-drp/types";
 import { type Libp2p, type ServiceFactoryMap, createLibp2p } from "libp2p";
 
 import { uint8ArrayToStream } from "./stream.js";
-export * from "./stream.js";
 
 export const DRP_MESSAGE_PROTOCOL = "/drp/message/0.0.1";
 export const BOOTSTRAP_NODES = [
@@ -45,17 +44,6 @@ export const BOOTSTRAP_NODES = [
 let log: Logger;
 
 // snake_casing to match the JSON config
-export interface DRPNetworkNodeConfig {
-	announce_addresses?: string[];
-	bootstrap?: boolean;
-	bootstrap_peers?: string[];
-	browser_metrics?: boolean;
-	listen_addresses?: string[];
-	log_config?: LoggerOptions;
-	pubsub?: {
-		peer_discovery_interval?: number;
-	};
-}
 
 type PeerDiscoveryFunction =
 	| ((components: PubSubPeerDiscoveryComponents) => PeerDiscovery)

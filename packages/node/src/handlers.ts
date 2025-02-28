@@ -19,7 +19,7 @@ import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
 import { type DRPNode } from "./index.js";
 import { logger } from "./logger.js";
-import { deserializeStateMessage, serializeStateMessage } from "./utils.js";
+import { deserializeStateMessage, serializeStateMessage } from "./utils/serialize.js";
 /*
   Handler for all DRP messages, including pubsub messages and direct messages
   You need to setup stream xor data

@@ -28,3 +28,7 @@ export * from "./object/drp.js";
 export type * from "./object/bitset.js";
 export type * from "./object/finality.js";
 export type * from "./object/credentials.js";
+export type * from "./keychain/keychain.js";
+export type * from "./logger/logger.js";
+export type * from "./network/network.js";
+export type * from "./node/node.js";

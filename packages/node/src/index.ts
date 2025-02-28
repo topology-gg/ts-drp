@@ -1,27 +1,21 @@
 import type { GossipsubMessage } from "@chainsafe/libp2p-gossipsub";
 import type { EventCallback, IncomingStreamData, StreamHandler } from "@libp2p/interface";
-import { KeychainConfig, Keychain } from "@ts-drp/keychain";
-import { Logger, type LoggerOptions } from "@ts-drp/logger";
-import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
+import { Keychain } from "@ts-drp/keychain";
+import { Logger } from "@ts-drp/logger";
+import { DRPNetworkNode } from "@ts-drp/network";
 import { type DRP, DRPObject } from "@ts-drp/object";
 import { IMetrics } from "@ts-drp/tracer";
-import { type ACL, Message, MessageType } from "@ts-drp/types";
+import { type ACL, DRPNodeConfig, Message, MessageType } from "@ts-drp/types";
 
 import { drpMessagesHandler } from "./handlers.js";
 import { logger } from "./logger.js";
 import * as operations from "./operations.js";
 import { DRPObjectStore } from "./store/index.js";
 
-export { serializeStateMessage, deserializeStateMessage } from "./utils.js";
-export { loadConfig } from "./config.js";
+export { serializeStateMessage, deserializeStateMessage } from "./utils/serialize.js";
+export { loadConfig } from "./utils/config.js";
 
 // snake_casing to match the JSON config
-export interface DRPNodeConfig {
-	log_config?: LoggerOptions;
-	network_config?: DRPNetworkNodeConfig;
-	keychain_config?: KeychainConfig;
-}
-
 export class DRPNode {
 	config?: DRPNodeConfig;
 	objectStore: DRPObjectStore;
