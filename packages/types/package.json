@@ -23,6 +23,7 @@
 	"scripts": {
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
+		"lint": "eslint .",
 		"prepack": "tsc -b",
 		"watch": "tsc -b -w"
 	},

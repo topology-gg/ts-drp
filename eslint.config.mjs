@@ -8,11 +8,12 @@ import globals from "globals";
 import path from "path";
 import { config as tsLintConfig, configs, plugin } from "typescript-eslint";
 //
-//const typeScriptExtensions = [".ts", ".cts", ".mts", ".tsx"];
+const typeScriptExtensions = [".ts", ".cts", ".mts", ".tsx"];
 
-//const allExtensions = [...typeScriptExtensions, ".js", ".jsx", ".mjs", ".cjs"];
+const allExtensions = [...typeScriptExtensions, ".js", ".jsx", ".mjs", ".cjs", ".d.ts"];
 
-const config = tsLintConfig(
+/** @type {import("typescript-eslint").InfiniteDepthConfigWithExtends[]} */
+export const baseConfig = [
 	{
 		ignores: [
 			"**/.env",
@@ -55,6 +56,7 @@ const config = tsLintConfig(
 				typescript: {},
 				node: {
 					moduleDirectory: ["node_modules", path.resolve(import.meta.dirname, "node_modules"), "."],
+					extensions: allExtensions,
 				},
 			},
 		},
@@ -108,7 +110,10 @@ const config = tsLintConfig(
 			],
 			"import/no-cycle": "error",
 		},
-	}
-);
+	},
+];
+
+/** @type {import("typescript-eslint").ConfigArray} */
+const config = tsLintConfig(...baseConfig);
 
 export default config;

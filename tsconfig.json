@@ -25,24 +25,4 @@
 			]
 		}
 	},
-	"references": [
-		{
-			"path": "./packages/blueprints"
-		},
-		{
-			"path": "./packages/logger"
-		},
-		{
-			"path": "./packages/network"
-		},
-		{
-			"path": "./packages/object"
-		},
-		{
-			"path": "./packages/types"
-		},
-		{
-			"path": "./packages/tracer"
-		}
-	]
 }

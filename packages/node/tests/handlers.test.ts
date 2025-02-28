@@ -3,8 +3,7 @@ import { SetDRP } from "@ts-drp/blueprints";
 import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { AttestationUpdate, Message, Sync, SyncAccept, Update } from "@ts-drp/types";
-import { MessageType } from "@ts-drp/types/src/index.js";
+import { AttestationUpdate, Message, Sync, SyncAccept, Update, MessageType } from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
 

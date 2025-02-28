@@ -27,7 +27,7 @@
 		"docs": "typedoc",
 		"e2e-test": "pnpm exec playwright test --fail-on-flaky-tests",
 		"flamegraph": "pnpm tsx packages/object/tests/hashgraph.flamegraph.ts",
-		"lint": "eslint .",
+		"lint": "pnpm --filter '@ts-drp/*' lint",
 		"lint:fix": "eslint . --fix",
 		"postinstall": "pnpm build:packages",
 		"proto-gen": "pnpm proto-gen:types",

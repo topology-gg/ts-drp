@@ -23,12 +23,14 @@
 	"scripts": {
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
+		"lint": "eslint .",
 		"prepack": "tsc -b",
 		"test": "vitest",
 		"watch": "tsc -b -w"
 	},
 	"devDependencies": {
 		"@libp2p/interface": "^2.1.3",
+		"dotenv": "^16.4.5",
 		"race-event": "^1.3.0"
 	},
 	"dependencies": {

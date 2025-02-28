@@ -23,12 +23,10 @@
 	"scripts": {
 		"build": "tsc -b",
 		"clean": "rm -rf dist/ node_modules/",
+		"lint": "eslint .",
 		"prepack": "tsc -b",
 		"test": "vitest",
 		"watch": "tsc -b -w"
-	},
-	"devDependencies": {
-		"@ts-drp/object": "^0.8.0"
 	},
 	"dependencies": {
 		"@thi.ng/random": "^4.1.0",

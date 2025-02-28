@@ -13,6 +13,7 @@ import { type DRPCredentialConfig, DRPCredentialStore, DRPObjectStore } from "./
 
 export { DRPCredentialStore };
 export { serializeStateMessage, deserializeStateMessage } from "./utils.js";
+export { loadConfig } from "./config.js";
 
 // snake_casing to match the JSON config
 export interface DRPNodeConfig {

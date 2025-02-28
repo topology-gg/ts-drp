@@ -186,10 +186,6 @@ importers:
       '@ts-drp/types':
         specifier: ^0.8.0
         version: link:../types
-    devDependencies:
-      '@ts-drp/object':
-        specifier: ^0.8.0
-        version: link:../object
 
   packages/logger:
     dependencies:
@@ -281,6 +277,9 @@ importers:
       '@libp2p/interface':
         specifier: ^2.1.3
         version: 2.6.1
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.7
       race-event:
         specifier: ^1.3.0
         version: 1.3.0
@@ -340,7 +339,7 @@ importers:
         specifier: ^2.0.0
         version: 2.2.3
       '@ts-drp/blueprints':
-        specifier: workspace:^
+        specifier: ^0.8.0
         version: link:../blueprints
       '@types/node':
         specifier: ^22.5.4
@@ -395,10 +394,10 @@ importers:
         specifier: ^2.0.0
         version: 2.2.3
       '@ts-drp/blueprints':
-        specifier: workspace:^
+        specifier: ^0.8.0
         version: link:../blueprints
       '@ts-drp/node':
-        specifier: workspace:^0.8.0
+        specifier: ^0.8.0
         version: link:../node
       '@types/benchmark':
         specifier: ^2.1.5
