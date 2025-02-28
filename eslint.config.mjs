@@ -5,12 +5,7 @@ import prettier from "eslint-plugin-prettier";
 import unusedImports from "eslint-plugin-unused-imports";
 import vitest from "eslint-plugin-vitest";
 import globals from "globals";
-import path from "path";
 import { config as tsLintConfig, configs, plugin } from "typescript-eslint";
-//
-const typeScriptExtensions = [".ts", ".cts", ".mts", ".tsx"];
-
-const allExtensions = [...typeScriptExtensions, ".js", ".jsx", ".mjs", ".cjs", ".d.ts"];
 
 /** @type {import("typescript-eslint").InfiniteDepthConfigWithExtends[]} */
 export const baseConfig = [
@@ -47,17 +42,8 @@ export const baseConfig = [
 			"vitest": vitest,
 		},
 		settings: {
-			"import/external-module-folders": [
-				"node_modules",
-				"node_modules/@types",
-				path.resolve(import.meta.dirname, "node_modules"),
-			],
 			"import/resolver": {
 				typescript: {},
-				node: {
-					moduleDirectory: ["node_modules", path.resolve(import.meta.dirname, "node_modules"), "."],
-					extensions: allExtensions,
-				},
 			},
 		},
 		languageOptions: {

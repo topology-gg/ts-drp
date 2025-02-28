@@ -1,9 +1,17 @@
 import type { Connection, IdentifyResult, Libp2p, Stream } from "@libp2p/interface";
 import { SetDRP } from "@ts-drp/blueprints";
-import { DRPNetworkNode, type DRPNetworkNodeConfig } from "@ts-drp/network";
+import { DRPNetworkNode } from "@ts-drp/network";
 import { DrpType } from "@ts-drp/object";
 import { type DRPObject, ObjectACL } from "@ts-drp/object";
-import { AttestationUpdate, Message, Sync, SyncAccept, Update, MessageType } from "@ts-drp/types";
+import {
+	AttestationUpdate,
+	Message,
+	Sync,
+	SyncAccept,
+	Update,
+	MessageType,
+	DRPNetworkNodeConfig,
+} from "@ts-drp/types";
 import { raceEvent } from "race-event";
 import { beforeAll, describe, expect, test, afterAll, vi } from "vitest";
 

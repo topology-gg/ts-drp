@@ -258,7 +258,7 @@ importers:
         specifier: ^2.0.6
         version: 2.0.24
       '@libp2p/bootstrap':
-        specifier: ^11.0.6
+        specifier: ^11.0.28
         version: 11.0.28
       '@libp2p/circuit-relay-v2':
         specifier: ^3.1.6
@@ -282,7 +282,7 @@ importers:
         specifier: 2.0.11
         version: 2.0.11
       '@libp2p/pubsub-peer-discovery':
-        specifier: ^11.0.0
+        specifier: ^11.0.1
         version: 11.0.1
       '@libp2p/webrtc':
         specifier: ^5.0.9
@@ -299,6 +299,9 @@ importers:
       '@multiformats/multiaddr-matcher':
         specifier: ^1.6.0
         version: 1.6.0
+      '@ts-drp/keychain':
+        specifier: workspace:0.8.5
+        version: link:../keychain
       '@ts-drp/logger':
         specifier: ^0.8.5
         version: link:../logger
@@ -516,6 +519,9 @@ importers:
       '@bufbuild/protobuf':
         specifier: ^2.0.0
         version: 2.2.3
+      loglevel:
+        specifier: ^1.9.2
+        version: 1.9.2
     devDependencies:
       '@eslint/js':
         specifier: ^9.18.0
@@ -3246,8 +3252,8 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  electron-to-chromium@1.5.107:
-    resolution: {integrity: sha512-dJr1o6yCntRkXElnhsHh1bAV19bo/hKyFf7tCcWgpXbuFIF0Lakjgqv5LRfSDaNzAII8Fnxg2tqgHkgCvxdbxw==}
+  electron-to-chromium@1.5.109:
+    resolution: {integrity: sha512-AidaH9JETVRr9DIPGfp1kAarm/W6hRJTPuCnkF+2MqhF4KaAgRIcBc8nvjk+YMXZhwfISof/7WG29eS4iGxQLQ==}
 
   elliptic@6.6.1:
     resolution: {integrity: sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==}
@@ -9237,7 +9243,7 @@ snapshots:
   browserslist@4.24.4:
     dependencies:
       caniuse-lite: 1.0.30001701
-      electron-to-chromium: 1.5.107
+      electron-to-chromium: 1.5.109
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.24.4)
 
@@ -9680,7 +9686,7 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  electron-to-chromium@1.5.107: {}
+  electron-to-chromium@1.5.109: {}
 
   elliptic@6.6.1:
     dependencies:
