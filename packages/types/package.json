@@ -1,37 +1,37 @@
 {
-	"name": "@ts-drp/types",
-	"version": "0.8.5",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/topology-foundation/ts-drp.git"
-	},
-	"type": "module",
-	"types": "./dist/src/index.d.ts",
-	"files": [
-		"src",
-		"dist",
-		"!dist/test",
-		"!**/*.tsbuildinfo"
-	],
-	"exports": {
-		".": {
-			"types": "./dist/src/index.d.ts",
-			"import": "./dist/src/index.js"
-		}
-	},
-	"scripts": {
-		"build": "tsc -b",
-		"clean": "rm -rf dist/ node_modules/",
-		"lint": "eslint .",
-		"prepack": "tsc -b",
-		"watch": "tsc -b -w"
-	},
-	"dependencies": {
-		"@bufbuild/protobuf": "^2.0.0",
-		"loglevel": "^1.9.2"
-	},
-	"devDependencies": {
-		"@types/object-inspect": "^1.13.0"
-	}
+  "name": "@ts-drp/types",
+  "version": "0.8.5",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/topology-foundation/ts-drp.git"
+  },
+  "type": "module",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "src",
+    "dist",
+    "!dist/test",
+    "!**/*.tsbuildinfo"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist/ node_modules/",
+    "lint": "eslint .",
+    "prepack": "tsc -b",
+    "watch": "tsc -b -w"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.0.0",
+    "loglevel": "^1.9.2"
+  },
+  "devDependencies": {
+    "@types/object-inspect": "^1.13.0"
+  }
 }
