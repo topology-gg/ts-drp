@@ -19,7 +19,7 @@ export interface DRP {
 	 *
 	 * @param vertices - The vertices to resolve conflicts from.
 	 */
-	resolveConflicts: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflicts?(vertices: Vertex[]): ResolveConflictsType;
 	/**
 	 * The properties of the DRP.
 	 */

@@ -26,7 +26,7 @@ export type VertexDistance = {
 export class HashGraph {
 	peerId: string;
 	resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType;
-	resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType;
+	resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType;
 	semanticsTypeDRP?: SemanticsType;
 
 	vertices: Map<Hash, Vertex> = new Map();
@@ -53,7 +53,7 @@ export class HashGraph {
 
 	constructor(
 		peerId: string,
-		resolveConflictsACL: (vertices: Vertex[]) => ResolveConflictsType,
+		resolveConflictsACL?: (vertices: Vertex[]) => ResolveConflictsType,
 		resolveConflictsDRP?: (vertices: Vertex[]) => ResolveConflictsType,
 		semanticsTypeDRP?: SemanticsType,
 		log_config?: LoggerOptions
@@ -86,7 +86,9 @@ export class HashGraph {
 
 	resolveConflicts(vertices: Vertex[]): ResolveConflictsType {
 		if (vertices[0].operation?.drpType === "ACL") {
-			return this.resolveConflictsACL(vertices);
+			return this.resolveConflictsACL
+				? this.resolveConflictsACL(vertices)
+				: { action: ActionType.Nop };
 		}
 		return this.resolveConflictsDRP
 			? this.resolveConflictsDRP(vertices)

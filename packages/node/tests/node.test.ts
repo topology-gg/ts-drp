@@ -21,9 +21,7 @@ describe("DPRNode with verify and sign signature", () => {
 
 	beforeEach(async () => {
 		const acl = new ObjectACL({
-			admins: new Map([
-				[drpNode.networkNode.peerId, drpNode.credentialStore.getPublicCredential()],
-			]),
+			admins: new Map([[drpNode.networkNode.peerId, drpNode.keychain.getPublicCredential()]]),
 		});
 		drpObject = new DRPObject({ peerId: drpNode.networkNode.peerId, acl, drp: new SetDRP() });
 	});
@@ -123,7 +121,7 @@ describe("DRPNode voting tests", () => {
 
 	beforeEach(async () => {
 		const acl = new ObjectACL({
-			admins: new Map([[nodeA.networkNode.peerId, nodeA.credentialStore.getPublicCredential()]]),
+			admins: new Map([[nodeA.networkNode.peerId, nodeA.keychain.getPublicCredential()]]),
 		});
 
 		obj1 = new DRPObject({
@@ -149,7 +147,7 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			ACLGroup.Finality,
-			nodeB.credentialStore.getPublicCredential()
+			nodeB.keychain.getPublicCredential()
 		);
 		drp1?.add(1);
 
@@ -163,7 +161,7 @@ describe("DRPNode voting tests", () => {
 
 		expect(obj2.finalityStore.canSign(nodeB.networkNode.peerId, V1.hash)).toBe(true);
 		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
-			nodeB.credentialStore.signWithBls(V1.hash)
+			nodeB.keychain.signWithBls(V1.hash)
 		);
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(1);
 	});
@@ -177,7 +175,7 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			ACLGroup.Writer,
-			nodeB.credentialStore.getPublicCredential()
+			nodeB.keychain.getPublicCredential()
 		);
 		drp1?.add(1);
 		acl1.revoke(nodeA.networkNode.peerId, nodeB.networkNode.peerId, ACLGroup.Writer);
@@ -206,7 +204,7 @@ describe("DRPNode voting tests", () => {
 			nodeA.networkNode.peerId,
 			nodeB.networkNode.peerId,
 			ACLGroup.Finality,
-			nodeB.credentialStore.getPublicCredential()
+			nodeB.keychain.getPublicCredential()
 		);
 		drp1?.add(1);
 		obj2.merge(obj1.vertices);
@@ -222,8 +220,8 @@ describe("DRPNode voting tests", () => {
 		expect(obj2.finalityStore.getNumberOfSignatures(V1.hash)).toBe(2);
 		expect(obj2.finalityStore.getAttestation(V1.hash)?.signature).toEqual(
 			bls.aggregateSignatures([
-				nodeA.credentialStore.signWithBls(V1.hash),
-				nodeB.credentialStore.signWithBls(V1.hash),
+				nodeA.keychain.signWithBls(V1.hash),
+				nodeB.keychain.signWithBls(V1.hash),
 			])
 		);
 	});

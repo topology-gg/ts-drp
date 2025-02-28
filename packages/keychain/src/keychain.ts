@@ -7,16 +7,16 @@ import { DRPPublicCredential } from "@ts-drp/types";
 import { toString as uint8ArrayToString } from "uint8arrays";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 
-export interface DRPCredentialConfig {
+export interface KeychainConfig {
 	private_key_seed?: string;
 }
 
-export class DRPCredentialStore {
-	private _config?: DRPCredentialConfig;
+export class Keychain {
+	private _config?: KeychainConfig;
 	private _ed25519PrivateKey?: Ed25519PrivateKey;
 	private _blsPrivateKey?: BlsSecretKey;
 
-	constructor(config?: DRPCredentialConfig) {
+	constructor(config?: KeychainConfig) {
 		this._config = config;
 	}
 
@@ -57,5 +57,12 @@ export class DRPCredentialStore {
 		}
 
 		return this._blsPrivateKey.sign(uint8ArrayFromString(data)).toBytes();
+	}
+
+	get ed25519PrivateKey(): Uint8Array {
+		if (!this._ed25519PrivateKey) {
+			throw new Error("Private key not found");
+		}
+		return this._ed25519PrivateKey.raw;
 	}
 }
